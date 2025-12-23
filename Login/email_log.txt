@@ -1,0 +1,81 @@
+[2025-12-18 17:12:12] To: mathewwilson2028@mca.ajce.in | OTP: 678305 | MailSent: No
+[2025-12-18 17:15:32] To: mathewwilson2028@mca.ajce.in | OTP: 671007 | MailSent: No
+[2025-12-18 17:18:42] To: mathewwilson2028@mca.ajce.in | OTP: 389106 | MailSent: No
+[2025-12-18 17:20:51] To: mathewwilson2028@mca.ajce.in | OTP: 614666 | MailSent: No
+[2025-12-18 17:28:14] To: mathewwilson2028@mca.ajce.in | OTP: 624155 | MailSent: No
+[2025-12-18 17:32:47] To: mathewwilson2028@mca.ajce.in | OTP: 409191 | MailSent: No
+[2025-12-18 17:32:49] To: mathewwilson2028@mca.ajce.in | OTP: 835019 | MailSent: No
+[2025-12-18 17:32:51] To: mathewwilson2028@mca.ajce.in | OTP: 299851 | MailSent: No
+[2025-12-18 17:33:20] To: mathewwilson2028@mca.ajce.in | OTP: 324003 | MailSent: No
+[2025-12-18 17:35:30] To: mathewwilson2028@mca.ajce.in | OTP: 511816 | MailSent: No
+[2025-12-19 05:54:00] To: mathewwilson2028@mca.ajce.in | OTP: 111280 | MailSent: No
+[2025-12-19 05:58:33] mathewwilson2028@mca.ajce.in | OTP generated
+[2025-12-19 06:31:22] To: mathewwilson2028@mca.ajce.in | OTP: 685258 | MailSent: No
+--------------------------------------------------
+[2025-12-19 06:37:14] Reset Link Generated
+Email: mathewwilson2028@mca.ajce.in
+Link: http://localhost/AquaSafe/Login/reset_password.php?token=7c194b41a80cc5188dc61a2ca9dfa514208fb9f8490b0e9ea1f621bb59ddfbc0
+--------------------------------------------------
+
+--------------------------------------------------
+[2025-12-19 06:39:28] Reset Link Generated
+Email: sharonshibupandakasalayil2028@mca.ajce.in
+Link: http://localhost/AquaSafe/Login/reset_password.php?token=212449b8bcce9605a11291ce752fe40bf02dc7b16e6da75d0fe23440533c5b6e
+--------------------------------------------------
+
+--------------------------------------------------
+[2025-12-19 06:42:12] Reset Link Generated
+Email: sharonshibupandakasalayil2028@mca.ajce.in
+Link: http://localhost/AquaSafe/Login/reset_password.php?token=750465e05e2b2f16d10a66c40d6a4168a03bd2d96851314b72e1ffee99d9d4e3
+--------------------------------------------------
+
+--------------------------------------------------
+[2025-12-19 06:47:24] Reset Link Generated
+Email: sharonshibupandakasalayil2028@mca.ajce.in
+Link: http://localhost/AquaSafe/Login/reset_password.php?token=50ac1f1cd754d6557b5da8e08eaa3bf7f6461187e52f5d1e94ffcc109fd9f8b6
+SMTP Status: Failed (Config needed)
+Error: Message could not be sent. Mailer Error: SMTP Error: Could not authenticate.
+--------------------------------------------------
+
+--------------------------------------------------
+[2025-12-19 06:54:18] Reset Link Generated
+Email: mathewwilson2028@mca.ajce.in
+Link: http://localhost/AquaSafe/Login/reset_password.php?token=12ba3f148dd3ef001f816ff9d4d4bab97276cb0bb54515d08cc1f9ddccf23460
+SMTP Status: Sent Successfully
+--------------------------------------------------
+
+--------------------------------------------------
+[2025-12-19 06:54:25] Reset Link Generated
+Email: mathewwilson2028@mca.ajce.in
+Link: http://localhost/AquaSafe/Login/reset_password.php?token=cf6a08b6c2432080c992fda52a3e7ba9c84a6fa5910c989477dc3b58a2095c63
+SMTP Status: Sent Successfully
+--------------------------------------------------
+
+--------------------------------------------------
+[2025-12-19 06:55:53] Reset Link Generated
+Email: sharonshibupandakasalayil2028@mca.ajce.in
+Link: http://localhost/AquaSafe/Login/reset_password.php?token=48219a4c382c163f3ec43bbaff7954cefe6c1620bfd6477e8c6780b190d742b9
+SMTP Status: Sent Successfully
+--------------------------------------------------
+
+--------------------------------------------------
+[2025-12-19 07:00:38] Reset Link Generated
+Email: albinsunny0420@gmail.com
+Link: http://localhost/AquaSafe/Login/reset_password.php?token=c89f20d57a885374f9200c20d11fa291a823915030e76333274bcee69d2746e2
+SMTP Status: Sent Successfully
+--------------------------------------------------
+
+--------------------------------------------------
+[2025-12-23 04:36:40] Reset Link Generated
+Email: agnussabu2028@mca.ajce.in
+Link: http://localhost/AquaSafe/Login/reset_password.php?token=69273b3054d8632d64987152de3029e2402e456c6987628b484ec56cd0696c1e
+SMTP Status: Sent Successfully
+--------------------------------------------------
+
+--------------------------------------------------
+[2025-12-23 04:51:03] Reset Link Generated
+Email: ardrasnair2028@mca.ajce.in
+Link: http://localhost/AquaSafe/Login/reset_password.php?token=318dbc8912aad6498c8e552982d0250c0faf545b7ba12ac469cfbeeedd099bc1
+SMTP Status: Sent Successfully
+--------------------------------------------------
+
