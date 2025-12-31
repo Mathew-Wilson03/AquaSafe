@@ -58,9 +58,8 @@ if($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['signup_btn'])){
     // Insert new user
     // Securely hash the password
     $hashed_password = password_hash($password, PASSWORD_DEFAULT);
-    
-    // Normalize role
-    $clean_role = ($role === 'admin') ? 'admin' : 'user';
+    // Normalize role to match DB ENUM
+    $clean_role = (strtolower($role) === 'admin' || strtolower($role) === 'administrator') ? 'administrator' : 'user';
 
     $sql = "INSERT INTO `$table` (name, email, password, `$role_col`) VALUES (?, ?, ?, ?)";
     

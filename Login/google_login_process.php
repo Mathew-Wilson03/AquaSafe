@@ -81,7 +81,11 @@ if ($stmt = mysqli_prepare($link, $sql)) {
         
         // Use provided role if available, otherwise default to 'user'
         $new_role = isset($_POST['role']) ? $_POST['role'] : 'user';
-        if ($new_role !== 'admin') $new_role = 'user'; // Safety check
+        if (strtolower($new_role) === 'admin' || strtolower($new_role) === 'administrator') {
+            $new_role = 'administrator';
+        } else {
+            $new_role = 'user';
+        }
 
         // Try to insert using the dynamically detected role column
         $insert = "INSERT INTO `" . $table . "` (name, email, password, `$role_col`) VALUES (?, ?, '', ?)";

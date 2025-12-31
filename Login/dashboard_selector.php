@@ -10,7 +10,8 @@ if(!isset($_SESSION["loggedin"]) || $_SESSION["loggedin"] !== true){
 $name = htmlspecialchars($_SESSION["name"] ?? "User");
 $email = htmlspecialchars($_SESSION["email"] ?? "");
 $user_role = htmlspecialchars($_SESSION["user_role"] ?? "user");
-$is_admin = ($user_role === 'administrator');
+$role_lower = strtolower(trim((string)$user_role));
+$is_admin = in_array($role_lower, ['administrator', 'admin', 'superadmin'], true);
 ?>
 <!DOCTYPE html>
 <html lang="en">

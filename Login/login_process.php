@@ -55,20 +55,21 @@ if($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['login_btn'])){
                             
                             $role_lower = strtolower(trim((string)$user_role));
                             
-                            // Debug logging
-                            error_log("[login_process] Success. User: $email, Role: $role_lower");
-
-                            // Always send user to the dashboard selector so their role is explicit
-                            $redirect_url = 'dashboard_selector.php';
+                            // Direct redirect based on role
+                            if (in_array($role_lower, ['administrator', 'admin', 'superadmin'], true)) {
+                                $redirect_url = 'admin_dashboard.php';
+                            } else {
+                                $redirect_url = 'user_dashboard.php';
+                            }
                             
-                            // CLEAN REDIRECT
+                            // Debug logging
+                            error_log("[login_process] Success. User: $email, Role: $role_lower -> $redirect_url");
+
                             if (!headers_sent()) {
                                 header("Location: " . $redirect_url);
                                 exit;
                             } else {
-                                // Script/HTML fallback
                                 echo '<script>window.location.href="' . $redirect_url . '";</script>';
-                                echo 'Login successful. <a href="' . $redirect_url . '">Click here to continue</a>.';
                                 exit;
                             }
                         } else {

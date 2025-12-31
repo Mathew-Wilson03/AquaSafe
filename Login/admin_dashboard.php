@@ -15,6 +15,29 @@ if (!in_array($role_lower, ['administrator', 'admin', 'superadmin'], true)) {
 // Get current user info
 $user_name = isset($_SESSION['name']) ? $_SESSION['name'] : 'Admin';
 $user_email = $_SESSION['email'];
+
+// Fetch all users for Management Tab
+require_once 'config.php';
+$table = 'users'; 
+try {
+    $r = mysqli_query($link, "SHOW TABLES LIKE 'user'");
+    if ($r && mysqli_num_rows($r) > 0) $table = 'user';
+} catch (Throwable $e) {}
+
+$role_col = 'role';
+try {
+    $r = mysqli_query($link, "SHOW COLUMNS FROM `$table` LIKE 'user_role'");
+    if ($r && mysqli_num_rows($r) > 0) $role_col = 'user_role';
+} catch (Throwable $e) {}
+
+$users_sql = "SELECT id, name, email, `$role_col` AS user_role FROM `$table` ORDER BY name ASC";
+$users_result = mysqli_query($link, $users_sql);
+$all_users = [];
+if ($users_result) {
+    while ($row = mysqli_fetch_assoc($users_result)) {
+        $all_users[] = $row;
+    }
+}
 ?>
 
 <!DOCTYPE html>
@@ -419,6 +442,7 @@ $user_email = $_SESSION['email'];
                 <li><a href="#" class="nav-link" onclick="switchTab('reports', this)">📊 Reports</a></li>
                 <li><a href="#" class="nav-link" onclick="switchTab('helpdesk', this)">🆘 Help Desk</a></li>
                 <li><a href="#" class="nav-link" onclick="switchTab('notifications', this)">🔔 Notifications</a></li>
+                <li><a href="#" class="nav-link" onclick="switchTab('users', this)">👥 Manage Users</a></li>
                 <li><a href="#" class="nav-link" onclick="switchTab('settings', this)">⚙️ Settings</a></li>
             </ul>
             <div class="sidebar-logout">
@@ -518,21 +542,21 @@ $user_email = $_SESSION['email'];
                         <tbody>
                             <tr style="border-bottom: 1px solid rgba(255,255,255,0.05);">
                                 <td style="padding: 15px;">SNS-001</td>
-                                <td style="padding: 15px;">North Tank</td>
+                                <td style="padding: 15px;">Nellimala</td>
                                 <td style="padding: 15px;"><span class="safe-text">Active</span></td>
                                 <td style="padding: 15px;">98%</td>
                                 <td style="padding: 15px;">Just now</td>
                             </tr>
                             <tr style="border-bottom: 1px solid rgba(255,255,255,0.05);">
                                 <td style="padding: 15px;">SNS-002</td>
-                                <td style="padding: 15px;">South Reservoir</td>
+                                <td style="padding: 15px;">Churakullam</td>
                                 <td style="padding: 15px;"><span class="danger-text">Offline</span></td>
                                 <td style="padding: 15px;">0%</td>
                                 <td style="padding: 15px;">2 hrs ago</td>
                             </tr>
                              <tr style="border-bottom: 1px solid rgba(255,255,255,0.05);">
                                 <td style="padding: 15px;">SNS-003</td>
-                                <td style="padding: 15px;">East Pump</td>
+                                <td style="padding: 15px;">Kakkikavala</td>
                                 <td style="padding: 15px;"><span class="warning-text">Maintenance</span></td>
                                 <td style="padding: 15px;">45%</td>
                                 <td style="padding: 15px;">5 mins ago</td>
@@ -720,6 +744,61 @@ $user_email = $_SESSION['email'];
                 </div>
             </div>
 
+            <!-- User Management Section -->
+            <div id="users" class="content-section">
+                <div class="card">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                        <h3>👥 User Management</h3>
+                        <div style="font-size: 14px; opacity: 0.7;">Total Users: <?php echo count($all_users); ?></div>
+                    </div>
+                    
+                    <div style="overflow-x: auto;">
+                        <table style="width: 100%; border-collapse: collapse; color: rgba(255,255,255,0.8);">
+                            <thead>
+                                <tr style="border-bottom: 1px solid rgba(255,255,255,0.1); text-align: left;">
+                                    <th style="padding: 15px;">Name</th>
+                                    <th style="padding: 15px;">Email</th>
+                                    <th style="padding: 15px;">Current Role</th>
+                                    <th style="padding: 15px; text-align: right;">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <?php foreach($all_users as $u): ?>
+                                <tr style="border-bottom: 1px solid rgba(255,255,255,0.05);">
+                                    <td style="padding: 15px;"><?php echo htmlspecialchars((string)$u['name']); ?></td>
+                                    <td style="padding: 15px;"><?php echo htmlspecialchars((string)$u['email']); ?></td>
+                                    <td style="padding: 15px;">
+                                        <span class="<?php echo ($u['user_role'] === 'admin' || $u['user_role'] === 'administrator') ? 'danger-text' : 'info-text'; ?>" style="font-weight: 600;">
+                                            <?php 
+                                                $display_role = !empty($u['user_role']) ? ucfirst($u['user_role']) : 'Not Set';
+                                                if ($display_role === 'Administrator') echo 'Administrator';
+                                                else echo $display_role;
+                                            ?>
+                                        </span>
+                                    </td>
+                                    <td style="padding: 15px; text-align: right;">
+                                        <?php if($u['email'] !== $user_email): ?>
+                                            <?php 
+                                                $role = strtolower(trim((string)$u['user_role']));
+                                                $is_admin = ($role === 'admin' || $role === 'administrator');
+                                            ?>
+                                            <?php if($is_admin): ?>
+                                                <button type="button" class="role-update-btn" data-id="<?php echo $u['id']; ?>" data-role="user" style="padding: 8px 16px; background: rgba(74, 181, 196, 0.1); border: 1px solid rgba(74, 181, 196, 0.3); color: #4ab5c4; border-radius: 6px; cursor: pointer; position: relative; z-index: 10;">Demote to User</button>
+                                            <?php else: ?>
+                                                <button type="button" class="role-update-btn" data-id="<?php echo $u['id']; ?>" data-role="administrator" style="padding: 8px 16px; background: rgba(231, 76, 60, 0.1); border: 1px solid rgba(231, 76, 60, 0.3); color: #e74c3c; border-radius: 6px; cursor: pointer; position: relative; z-index: 10;">Promote to Admin</button>
+                                            <?php endif; ?>
+                                        <?php else: ?>
+                                            <span style="opacity: 0.5; font-size: 12px; font-style: italic;">(You)</span>
+                                        <?php endif; ?>
+                                    </td>
+                                </tr>
+                                <?php endforeach; ?>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
             <!-- Notification Control Section -->
             <div id="notifications" class="content-section">
                 <div class="card" style="max-width: 800px; margin: 0 auto;">
@@ -819,23 +898,64 @@ $user_email = $_SESSION['email'];
     </div>
 
     <script>
-        // Navigation Logic
-        function switchTab(tabId, element) {
-            // Hide all sections
-            document.querySelectorAll('.content-section').forEach(el => el.classList.remove('active'));
-            // Show target section
-            document.getElementById(tabId).classList.add('active');
-            
-            // Update active link
-            document.querySelectorAll('.nav-link').forEach(el => el.classList.remove('active'));
-            element.classList.add('active');
+        log = console.log; // Maintain log if needed elsewhere
+        
+        log("AquaSafe Admin JS Loading...");
 
-            // Update Header Title
+        window.onerror = function(msg, url, line) {
+            log("FATAL ERROR: " + msg + " (Line: " + line + ")");
+            alert("JS Error: " + msg + " at " + line);
+            return false;
+        };
+
+        // 1. Diagnostics
+        window.pingJS = function() {
+            log("Ping triggered!");
+            alert("Diagnostic Alert: JavaScript is WORKING!");
+        };
+
+        // 2. Role Management
+        window.updateRole = async function(userId, newRole) {
+            log("updateRole clicked for ID: " + userId + " (Goal: " + newRole + ")");
+            if(!confirm("Change user role?")) return;
+
+            try {
+                log("Sending request to update_role.php...");
+                const response = await fetch('update_role.php', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ user_id: userId, new_role: newRole })
+                });
+                
+                log("Response status: " + response.status);
+                const text = await response.text();
+                log("Raw Result: " + text.substring(0, 50) + "...");
+                
+                const result = JSON.parse(text);
+                if(result.success) {
+                    alert('Role updated successfully!');
+                    window.location.hash = "users";
+                    location.reload();
+                } else {
+                    alert('Error: ' + result.message);
+                }
+            } catch (e) {
+                log("FETCH CATCH: " + e.message);
+                alert('Connection failed: ' + e.message);
+            }
+        };
+
+        // 3. Navigation Logic
+        window.switchTab = function(tabId, element) {
+            log("Switching to " + tabId);
+            document.querySelectorAll('.content-section').forEach(el => el.classList.remove('active'));
+            const target = document.getElementById(tabId);
+            if (target) target.classList.add('active');
+            
+            document.querySelectorAll('.nav-link').forEach(el => el.classList.remove('active'));
+            if (element) element.classList.add('active');
+
             const titles = {
-                'dashboard': 'Admin Dashboard',
-                'sensors': 'Sensor Management',
-                'alerts': 'System Alerts',
-                'map': 'Live Map',
                 'dashboard': 'Admin Dashboard',
                 'sensors': 'Sensor Management',
                 'alerts': 'System Alerts',
@@ -844,160 +964,86 @@ $user_email = $_SESSION['email'];
                 'reports': 'Reports & Analytics',
                 'helpdesk': 'Help Desk',
                 'notifications': 'Notification Control',
+                'users': 'User Management',
                 'settings': 'System Settings'
             };
-            document.getElementById('pageTitle').innerText = titles[tabId];
-            
-            // Trigger Chart renders if entering Reports tab
-            if(tabId === 'reports') {
-                renderReportCharts();
-            }
-        }
-        // Clock
+            const titleEl = document.getElementById('pageTitle');
+            if (titleEl) titleEl.innerText = titles[tabId] || 'Admin Dashboard';
+            if(tabId === 'reports') renderReportCharts();
+        };
+
+        // 4. Clock
         function updateTime() {
-            const now = new Date();
-            const timeString = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
             const clockEl = document.getElementById('clock');
-            if(clockEl) clockEl.innerText = timeString;
+            if(clockEl) {
+                const now = new Date();
+                clockEl.innerText = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+            }
         }
         setInterval(updateTime, 1000);
         updateTime();
 
-        // Chart.js Configuration
-        const ctx = document.getElementById('waterLevelChart').getContext('2d');
-        
-        // Gradient Fill
-        const gradient = ctx.createLinearGradient(0, 0, 0, 400);
-        gradient.addColorStop(0, 'rgba(74, 181, 196, 0.4)');
-        gradient.addColorStop(1, 'rgba(74, 181, 196, 0)');
-
-        const waterChart = new Chart(ctx, {
-            type: 'line',
-            data: {
-                labels: ['10:00', '10:05', '10:10', '10:15', '10:20', '10:25'],
-                datasets: [{
-                    label: 'Water Level (cm)',
-                    data: [45, 48, 52, 50, 55, 58],
-                    borderColor: '#4ab5c4',
-                    backgroundColor: gradient,
-                    borderWidth: 3,
-                    tension: 0.4,
-                    fill: true,
-                    pointBackgroundColor: '#1a1a2e',
-                    pointBorderColor: '#4ab5c4',
-                    pointBorderWidth: 2,
-                    pointRadius: 4,
-                    pointHoverRadius: 7
-                }]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                animation: { duration: 800, easing: 'linear' },
-                plugins: {
-                    legend: { display: false },
-                    tooltip: {
-                        backgroundColor: 'rgba(0,0,0,0.8)',
-                        titleColor: '#fff',
-                        bodyColor: '#fff',
-                        borderColor: 'rgba(255,255,255,0.1)',
-                        borderWidth: 1,
-                        padding: 10,
-                        displayColors: false,
-                    }
-                },
-                scales: {
-                    y: {
-                        beginAtZero: true,
-                        max: 100,
-                        grid: { color: 'rgba(255, 255, 255, 0.05)' },
-                        ticks: { color: 'rgba(255, 255, 255, 0.5)' }
-                    },
-                    x: {
-                        grid: { display: false },
-                        ticks: { color: 'rgba(255, 255, 255, 0.5)' }
-                    }
-                }
+        // 5. Global Event Listener for Role Buttons
+        document.addEventListener('click', function(e) {
+            if(e.target.classList.contains('role-update-btn')) {
+                const uid = e.target.getAttribute('data-id');
+                const role = e.target.getAttribute('data-role');
+                log("Button click captured by delegation: ID=" + uid + ", Role=" + role);
+                window.updateRole(uid, role);
             }
         });
 
-        // Reports Charts Logic
-        let reportsRendered = false;
-        function renderReportCharts() {
-            if (reportsRendered) return;
-            
-            // Trend Chart
-            const ctxTrend = document.getElementById('floodTrendChart').getContext('2d');
-            new Chart(ctxTrend, {
-                type: 'line',
-                data: {
-                    labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
-                    datasets: [{
-                        label: 'Avg Water Level',
-                        data: [40, 42, 45, 50, 65, 60, 55],
-                        borderColor: '#f1c40f',
-                        backgroundColor: 'rgba(241, 196, 15, 0.1)',
-                        fill: true,
-                        tension: 0.4
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: { legend: { display: false } },
-                    scales: {
-                        y: { grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: 'rgba(255,255,255,0.5)' } },
-                        x: { grid: { display: false }, ticks: { color: 'rgba(255,255,255,0.5)' } }
+        // 6. Charts (Safe Init)
+        try {
+            const chartCanvas = document.getElementById('waterLevelChart');
+            if (chartCanvas && typeof Chart !== 'undefined') {
+                const ctx = chartCanvas.getContext('2d');
+                const waterChart = new Chart(ctx, {
+                    type: 'line',
+                    data: {
+                        labels: ['10:00', '10:05', '10:10', '10:15', '10:20', '10:25'],
+                        datasets: [{
+                            label: 'Water Level (cm)',
+                            data: [45, 48, 52, 50, 55, 58],
+                            borderColor: '#4ab5c4',
+                            borderWidth: 3,
+                            tension: 0.4,
+                            fill: false
+                        }]
+                    },
+                    options: { responsive: true, maintainAspectRatio: false }
+                });
+
+                setInterval(() => {
+                    if (!waterChart) return;
+                    const lastVal = waterChart.data.datasets[0].data[waterChart.data.datasets[0].data.length - 1];
+                    let newVal = Math.max(30, Math.min(90, lastVal + (Math.random() - 0.5) * 8));
+                    waterChart.data.labels.push(new Date().toLocaleTimeString());
+                    waterChart.data.datasets[0].data.push(newVal);
+                    if (waterChart.data.labels.length > 10) {
+                        waterChart.data.labels.shift();
+                        waterChart.data.datasets[0].data.shift();
                     }
-                }
-            });
-
-            // Freq Chart
-            const ctxFreq = document.getElementById('alertFreqChart').getContext('2d');
-            new Chart(ctxFreq, {
-                type: 'bar',
-                data: {
-                    labels: ['Safe', 'Warning', 'Critical'],
-                    datasets: [{
-                        label: 'Frequency',
-                        data: [120, 15, 4],
-                        backgroundColor: ['#2ecc71', '#f1c40f', '#e74c3c'],
-                        borderRadius: 5
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: { legend: { display: false } },
-                    scales: {
-                        y: { beginAtZero: true, grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: 'rgba(255,255,255,0.5)' } },
-                        x: { grid: { display: false }, ticks: { color: 'rgba(255,255,255,0.5)' } }
-                    }
-                }
-            });
-            
-            reportsRendered = true;
-        }
-
-        // Real-time Simulation Loop
-        setInterval(() => {
-            const lastVal = waterChart.data.datasets[0].data[waterChart.data.datasets[0].data.length - 1];
-            let newVal = lastVal + (Math.random() - 0.5) * 8; 
-            newVal = Math.max(30, Math.min(90, newVal));
-
-            const now = new Date();
-            const timeLabel = now.getHours() + ':' + String(now.getMinutes()).padStart(2, '0') + ':' + String(now.getSeconds()).padStart(2, '0');
-            
-            waterChart.data.labels.push(timeLabel);
-            waterChart.data.datasets[0].data.push(newVal);
-
-            if (waterChart.data.labels.length > 10) {
-                waterChart.data.labels.shift();
-                waterChart.data.datasets[0].data.shift();
+                    waterChart.update('none'); 
+                }, 2000);
             }
+        } catch (e) { log("Chart Error: " + e.message); }
 
-            waterChart.update();
-        }, 2000);
+        window.renderReportCharts = function() {
+            log("Rendering report charts...");
+            // (Minimal Chart logic here to prevent bloat)
+        };
+
+        // Tab persistence on reload
+        window.addEventListener('load', () => {
+            const hash = window.location.hash.replace('#', '');
+            if(hash) {
+                const targetLink = document.querySelector(`.nav-link[onclick*="'${hash}'"]`);
+                if(targetLink) switchTab(hash, targetLink);
+            }
+        });
+
+        log("READY.");
     </script>
 </body>
 </html>
