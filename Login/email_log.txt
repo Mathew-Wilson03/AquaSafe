@@ -79,3 +79,10 @@ Link: http://localhost/AquaSafe/Login/reset_password.php?token=318dbc8912aad6498
 SMTP Status: Sent Successfully
 --------------------------------------------------
 
+--------------------------------------------------
+[2026-01-04 15:57:51] Reset Link Generated
+Email: mathewwilson2028@mca.ajce.in
+Link: http://localhost/AquaSafe/Login/reset_password.php?token=964b4713e9f1ebcb40c5994c33ba5b7c18c859ec941321bcec5b17daf47d3965
+SMTP Status: Sent Successfully
+--------------------------------------------------
+
