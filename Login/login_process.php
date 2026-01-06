@@ -31,6 +31,17 @@ if($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['login_btn'])){
     try {
         $email = trim($_POST['email']);
         $password = $_POST['password']; // Do not trim password to match signup process
+
+        // Hard-through Email Validation
+        $email_regex = "/^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/";
+        $disposable_domains = ['mailinator.com', 'yopmail.com', 'tempmail.com', '10minutemail.com', 'guerrillamail.com', 'sharklasers.com'];
+        $domain = strtolower(substr(strrchr($email, "@"), 1));
+
+        if(!filter_var($email, FILTER_VALIDATE_EMAIL) || !preg_match($email_regex, $email) || in_array($domain, $disposable_domains)){
+            $role_param = isset($_POST['role']) ? $_POST['role'] : '';
+            header("Location: login.php?role=$role_param&error=Please use a valid official email address.");
+            exit;
+        }
         
         // Prepare a select statement
         $sql = "SELECT id, name, `$role_col` AS user_role, password FROM `$table` WHERE email = ?";

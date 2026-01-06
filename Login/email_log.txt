@@ -86,3 +86,5 @@ Link: http://localhost/AquaSafe/Login/reset_password.php?token=964b4713e9f1ebcb4
 SMTP Status: Sent Successfully
 --------------------------------------------------
 
+[2026-01-05 11:14:01] To: mathew.akashwillson@gmail.com | OTP: 572265 | MailSent: Yes
+[2026-01-05 11:17:05] To: mathew.akashwillson@gmail.com | OTP: 909789 | MailSent: Yes

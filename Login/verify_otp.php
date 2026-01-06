@@ -19,17 +19,20 @@
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             background: #0f2027; background: linear-gradient(to bottom, #0f2027, #203a43, #2c5364);
-            height: 100vh; color: var(--text-light);
-            display: flex; justify-content: center; align-items: center; position: relative; overflow: hidden;
+            min-height: 100vh; color: var(--text-light);
+            display: flex; justify-content: center; align-items: center; position: relative; 
+            overflow-x: hidden;
+            overflow-y: auto;
+            padding: 20px 0;
         }
         
-        .waves-container { position: absolute; bottom: 0; left: 0; width: 100%; height: 50vh; z-index: 1; overflow: hidden; }
+        .waves-container { position: absolute; bottom: 0; left: 0; width: 100%; height: 50vh; z-index: 1; overflow: hidden; pointer-events: none; }
         .wave { position: absolute; bottom: 0; left: 0; width: 200%; height: 100%; background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 800 88.7'%3E%3Cpath d='M800 56.9c-155.5 0-204.9-50-405.5-49.9-200 0-250 49.9-394.5 49.9v31.8h800v-.2-31.6z' fill='%23ffffff'/%3E%3C/svg%3E"); background-repeat: repeat-x; background-size: 50% auto; opacity: 0.1; transform-origin: center bottom; }
         .wave:nth-child(1) { bottom: -5px; animation: moveWave 20s linear infinite; opacity: 0.1; animation-duration: 12s; }
         .wave:nth-child(2) { bottom: -10px; animation: moveWave 15s linear infinite; opacity: 0.05; animation-duration: 8s; background-position: 250px 0; }
         @keyframes moveWave { 0% { transform: translateX(0); } 50% { transform: translateX(-25%); } 100% { transform: translateX(-50%); } }
         
-        .particles { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 0; }
+        .particles { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 0; pointer-events: none; }
         .particle { position: absolute; background: rgba(255, 255, 255, 0.5); border-radius: 50%; animation: float 15s infinite linear; }
         @keyframes float { 0% { transform: translateY(100vh) scale(0); opacity: 0; } 100% { transform: translateY(-20vh) scale(1); opacity: 0; } }
 
@@ -59,6 +62,13 @@
             font-size: 12px; 
             text-align: center;
         }
+        /* Responsive adjustments */
+        @media (max-width: 480px) {
+            .wrapper { padding: 15px; }
+            .container { padding: 25px 20px; }
+            .header-title { font-size: 20px; }
+            input[type="text"] { font-size: 16px; letter-spacing: 3px; height: 44px; }
+        }
     </style>
 </head>
 <body>
@@ -74,13 +84,13 @@
                     </svg>
                     AquaSafe
                 </div>
-                <div class="header-title">Enter Code</div>
-                <div class="header-subtitle">We sent a code to <?php echo htmlspecialchars($_GET['email'] ?? 'your email'); ?>.</div>
+                <div class="header-title">Verify Code</div>
+                <div class="header-subtitle">We've sent a 6-digit verification code to <span style="color: var(--primary); font-weight: 600;"><?php echo htmlspecialchars($_GET['email'] ?? 'your email'); ?></span>.</div>
             </div>
 
             <?php if(isset($_GET['sent'])): ?>
                 <div style="background: rgba(39, 174, 96, 0.2); border: 1px solid rgba(39, 174, 96, 0.4); color: #2ecc71; padding: 10px; border-radius: 8px; margin-bottom: 20px; font-size: 13px; text-align: center;">
-                    Code sent! Please check your email inbox.
+                    Code sent successfully! Please check your inbox.
                 </div>
             <?php endif; ?>
 
@@ -89,29 +99,6 @@
                     <?php echo htmlspecialchars($_GET['error']); ?>
                 </div>
             <?php endif; ?>
-
-            <?php
-            // DEVELOPER MODE: Display OTP (Force Enabled for Debugging)
-            // Removed strict localhost check to ensure user sees the code regardless of network config
-            if (isset($_GET['email'])) {
-                 $check_email = trim($_GET['email']);
-                 $table = 'users'; 
-                 try { $r = mysqli_query($link, "SHOW TABLES LIKE 'user'"); if ($r && mysqli_num_rows($r) > 0) $table = 'user'; } catch (Throwable $e) {}
-                 
-                 $d_sql = "SELECT reset_token FROM `$table` WHERE email = ? AND reset_expiry > NOW()";
-                 if($d_stmt = mysqli_prepare($link, $d_sql)){
-                     mysqli_stmt_bind_param($d_stmt, "s", $check_email);
-                     mysqli_stmt_execute($d_stmt);
-                     mysqli_stmt_bind_result($d_stmt, $debug_otp);
-                     if(mysqli_stmt_fetch($d_stmt)){
-                         echo '<div style="background: rgba(255, 193, 7, 0.2); border: 1px solid rgba(255, 193, 7, 0.4); color: #ffc107; padding: 10px; border-radius: 8px; margin-bottom: 20px; font-size: 13px; text-align: center; font-family: monospace;">
-                                <strong>[DEBUG]</strong> Code: <span style="font-size: 1.2em; color: white;">' . htmlspecialchars($debug_otp) . '</span>
-                              </div>';
-                     }
-                     mysqli_stmt_close($d_stmt);
-                 }
-            }
-            ?>
 
             <form action="verify_otp_process.php" method="POST">
                 <input type="hidden" name="email" value="<?php echo htmlspecialchars($_GET['email'] ?? ''); ?>">

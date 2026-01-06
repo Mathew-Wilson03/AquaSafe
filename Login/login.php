@@ -26,13 +26,15 @@
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             background: #0f2027; /* Fallback */
             background: linear-gradient(to bottom, #0f2027, #203a43, #2c5364);
-            height: 100vh;
+            min-height: 100vh;
             color: var(--text-light);
             display: flex;
             justify-content: center;
             align-items: center;
             position: relative;
-            overflow: hidden;
+            overflow-x: hidden;
+            overflow-y: auto;
+            padding: 20px 0;
         }
 
         /* Animated Waves Background */
@@ -44,6 +46,7 @@
             height: 50vh;
             z-index: 1;
             overflow: hidden;
+            pointer-events: none;
         }
 
         .wave {
@@ -54,9 +57,12 @@
             height: 100%;
             background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 800 88.7'%3E%3Cpath d='M800 56.9c-155.5 0-204.9-50-405.5-49.9-200 0-250 49.9-394.5 49.9v31.8h800v-.2-31.6z' fill='%23ffffff'/%3E%3C/svg%3E");
             background-repeat: repeat-x;
+            background-repeat: repeat-x;
             background-size: 50% auto;
             opacity: 0.1;
             transform-origin: center bottom;
+            will-change: transform;
+            backface-visibility: hidden;
         }
 
         .wave:nth-child(1) {
@@ -96,6 +102,9 @@
             width: 100%;
             height: 100%;
             z-index: 0;
+            pointer-events: none;
+            will-change: transform;
+            overflow: hidden;
         }
         
         .particle {
@@ -327,6 +336,46 @@
         .back-btn:hover {
             color: white;
             transform: translateX(-5px);
+        }
+        /* Responsive Adjustments */
+        @media (max-width: 480px) {
+            .login-wrapper {
+                padding: 15px;
+            }
+            
+            .login-container {
+                padding: 25px 20px;
+                border-radius: 15px;
+            }
+            
+            .header-title {
+                font-size: 20px;
+            }
+            
+            .header-logo {
+                font-size: 16px;
+            }
+
+            .back-btn {
+                top: 20px;
+                left: 20px;
+                font-size: 14px;
+            }
+            
+            .submit-btn, .google-btn-custom, input {
+                height: 44px;
+                font-size: 14px;
+            }
+
+            .footer-links {
+                display: flex;
+                flex-direction: column;
+                gap: 10px;
+            }
+
+            .footer-links span {
+                display: none;
+            }
         }
     </style>
 

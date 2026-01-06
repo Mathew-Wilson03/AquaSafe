@@ -24,13 +24,15 @@
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             background: #0f2027; /* Fallback */
             background: linear-gradient(to bottom, #0f2027, #203a43, #2c5364);
-            height: 100vh;
+            min-height: 100vh;
             color: var(--text-light);
-            overflow: hidden;
             display: flex;
             justify-content: center;
             align-items: center;
             position: relative;
+            overflow-x: hidden;
+            overflow-y: auto;
+            padding: 40px 0;
         }
 
         /* Animated Waves Background */
@@ -42,6 +44,7 @@
             height: 50vh;
             z-index: 1;
             overflow: hidden;
+            pointer-events: none;
         }
 
         .wave {
@@ -55,6 +58,8 @@
             background-size: 50% auto;
             opacity: 0.1;
             transform-origin: center bottom;
+            will-change: transform;
+            backface-visibility: hidden;
         }
 
         .wave:nth-child(1) {
@@ -94,6 +99,9 @@
             width: 100%;
             height: 100%;
             z-index: 0;
+            pointer-events: none;
+            will-change: transform;
+            overflow: hidden;
         }
         
         .particle {
@@ -295,16 +303,27 @@
         @media (max-width: 900px) {
             .container {
                 flex-direction: column;
-                width: 90%;
+                width: 95%;
+                margin: 20px auto;
             }
             .visual-section {
                 width: 100%;
-                height: 200px;
+                height: 180px;
             }
             .hero-section {
-                padding: 40px 30px;
+                padding: 30px 20px;
+                text-align: center;
+                align-items: center;
             }
-            h1 { font-size: 32px; }
+            h1 { font-size: 28px; }
+            .subtitle { margin: 0 auto 30px; }
+            .brand-badge { margin: 0 auto 20px; }
+        }
+
+        @media (max-width: 480px) {
+            .hero-section { padding: 25px 15px; }
+            h1 { font-size: 24px; }
+            .card { padding: 20px 15px; }
         }
 
         @media (max-width: 600px) {

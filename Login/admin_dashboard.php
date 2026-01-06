@@ -47,6 +47,9 @@ if ($users_result) {
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Admin Dashboard - AquaSafe</title>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- Leaflet Map -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700&display=swap');
 
@@ -405,13 +408,58 @@ if ($users_result) {
             transform: translateX(-50%) translateY(0);
         }
 
-        /* Responsive */
+        /* Mobile Responsive Improvements */
         @media (max-width: 1024px) {
             .container { flex-direction: column; padding: 10px; }
-            .sidebar { width: 100%; height: auto; border-radius: 16px; margin-bottom: 20px; }
+            .sidebar { 
+                position: fixed;
+                left: -300px;
+                top: 0;
+                height: 100vh;
+                z-index: 1000;
+                width: 280px;
+                transition: left 0.3s ease;
+                border-radius: 0 24px 24px 0;
+            }
+            .sidebar.active { left: 0; }
             .dashboard-grid { grid-template-columns: 1fr; }
-            .status-row { grid-template-columns: 1fr 1fr; }
+            .status-row { grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 10px; }
+            .header { padding: 15px 20px; }
+            .header-left h1 { font-size: 20px; }
+            .mobile-toggle { display: block !important; }
         }
+
+        @media (max-width: 480px) {
+            .status-row { grid-template-columns: 1fr; }
+            .header-right { gap: 10px; }
+            .last-updated { padding: 6px 12px; font-size: 11px; }
+            #clock { display: none; }
+        }
+
+        .mobile-toggle {
+            display: none;
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            color: white;
+            padding: 10px;
+            border-radius: 12px;
+            cursor: pointer;
+            margin-right: 15px;
+        }
+
+        .sidebar-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(5px);
+            z-index: 999;
+        }
+
+        .sidebar-overlay.active { display: block; }
         /* Tab Logic */
         .content-section {
             display: none;
@@ -421,9 +469,52 @@ if ($users_result) {
         .content-section.active {
             display: block;
         }
+
+        /* Modal Styles */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.7);
+            backdrop-filter: blur(5px);
+            z-index: 2000;
+            justify-content: center;
+            align-items: center;
+        }
+        .modal-overlay.active { display: flex; }
+        .modal {
+            background: #2c3e50;
+            width: 500px;
+            max-width: 90%;
+            border-radius: 16px;
+            padding: 30px;
+            border: 1px solid rgba(255,255,255,0.1);
+            box-shadow: 0 25px 50px -12px rgba(0,0,0,0.5);
+            animation: fadeIn 0.3s ease;
+        }
+        .modal h2 { margin-bottom: 20px; color: #4ab5c4; }
+        .form-group { margin-bottom: 15px; }
+        .form-group label { display: block; margin-bottom: 8px; font-size: 14px; opacity: 0.8; }
+        .form-group input, .form-group select {
+            width: 100%;
+            padding: 12px;
+            background: rgba(255,255,255,0.05);
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 8px;
+            color: white;
+            font-size: 14px;
+        }
+        .form-group input:focus, .form-group select:focus { outline: none; border-color: #4ab5c4; }
+        .modal-actions { display: flex; justify-content: flex-end; gap: 10px; margin-top: 25px; }
+        .btn-cancel { padding: 10px 20px; background: transparent; border: 1px solid rgba(255,255,255,0.2); color: white; border-radius: 8px; cursor: pointer; }
+        .btn-save { padding: 10px 20px; background: #4ab5c4; border: none; color: white; border-radius: 8px; cursor: pointer; font-weight: 600; }
     </style>
 </head>
 <body>
+    <div class="sidebar-overlay" id="sidebarOverlay"></div>
     <div class="container">
         <!-- Sidebar -->
         <div class="sidebar">
@@ -460,7 +551,10 @@ if ($users_result) {
             <!-- Header -->
             <div class="header">
                 <div class="header-left">
-                    <h1 id="pageTitle">Admin Dashboard</h1>
+                    <div style="display: flex; align-items: center;">
+                        <button class="mobile-toggle" onclick="toggleSidebar()">☰</button>
+                        <h1 id="pageTitle">Admin Dashboard</h1>
+                    </div>
                 </div>
                 <div class="header-right">
                     <div class="last-updated" id="lastUpdated">
@@ -587,15 +681,15 @@ if ($users_result) {
 
              <!-- Map Section -->
             <div id="map" class="content-section">
-                 <div class="card" style="height: 600px; display: flex; align-items: center; justify-content: center; flex-direction: column;">
-                    <h3>🗺️ Global Sensor Map</h3>
-                    <p style="opacity: 0.6; margin-bottom: 20px;">Full-screen interactive map view would load here.</p>
-                    <div class="map-container" style="width: 100%; height: 100%;">
-                         <div class="map-grid"></div>
-                            <div class="map-pin safe" style="top: 40%; left: 50%;"></div>
-                            <div class="map-pin danger" style="top: 20%; left: 30%;"></div>
-                            <div class="map-pin warning" style="top: 70%; left: 80%;"></div>
+                 <div class="card" style="height: 600px; display: flex; flex-direction: column;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                        <h3>🗺️ Live Sensor Network</h3>
+                        <div style="display: flex; gap: 10px;">
+                            <button onclick="mapSetView(10.8505, 76.2711)" style="padding: 5px 10px; background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); color: white; border-radius: 4px; cursor: pointer;">Kerala</button>
+                            <button onclick="mapSetView(0,0,2)" style="padding: 5px 10px; background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); color: white; border-radius: 4px; cursor: pointer;">World</button>
+                        </div>
                     </div>
+                    <div id="leaflet-map" style="width: 100%; flex: 1; border-radius: 12px; z-index: 1;"></div>
                 </div>
             </div>
 
@@ -604,97 +698,140 @@ if ($users_result) {
                 <div class="card">
                     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
                         <h3>📍 Evacuation Points</h3>
-                        <button style="padding: 10px 20px; background: #4ab5c4; border: none; border-radius: 8px; color: white; font-weight: 600; cursor: pointer; transition: background 0.3s;" onmouseover="this.style.background='#3d9fab'" onmouseout="this.style.background='#4ab5c4'">+ Add Point</button>
+                        <button style="padding: 10px 20px; background: #4ab5c4; border: none; border-radius: 8px; color: white; font-weight: 600; cursor: pointer; transition: background 0.3s;" onclick="openAddModal()">+ Add Point</button>
                     </div>
                     <p style="opacity: 0.7; margin-bottom: 20px;">Admins can manage and update evacuation points dynamically based on flood severity.</p>
                     
-                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px;">
-                        <!-- Evacuation Point 1 -->
-                        <div style="background: rgba(255,255,255,0.05); padding: 20px; border-radius: 16px; border: 1px solid rgba(255,255,255,0.1);">
-                            <div style="display: flex; justify-content: space-between; margin-bottom: 15px;">
-                                <strong style="font-size: 18px;">Central Community Hall</strong>
-                                <span class="safe-text" style="font-size: 14px; background: rgba(46, 204, 113, 0.1); padding: 4px 10px; border-radius: 20px;">Available</span>
-                            </div>
-                            <div style="margin-bottom: 10px; font-size: 14px; opacity: 0.8;">
-                                <div>Capacity: <strong>120 / 500</strong></div>
-                                <div>Assigned Sensor: <strong>SNS-001 (North Tank)</strong></div>
-                            </div>
-                            <div style="display: flex; gap: 10px; margin-top: 15px;">
-                                <button style="flex: 1; padding: 8px; background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); color: white; border-radius: 6px; cursor: pointer;">Edit</button>
-                                <button style="flex: 1; padding: 8px; background: rgba(231, 76, 60, 0.1); border: 1px solid rgba(231, 76, 60, 0.3); color: #e74c3c; border-radius: 6px; cursor: pointer;">Remove</button>
-                            </div>
-                        </div>
-
-                        <!-- Evacuation Point 2 -->
-                        <div style="background: rgba(255,255,255,0.05); padding: 20px; border-radius: 16px; border: 1px solid rgba(255,255,255,0.1);">
-                            <div style="display: flex; justify-content: space-between; margin-bottom: 15px;">
-                                <strong style="font-size: 18px;">North High School</strong>
-                                <span class="danger-text" style="font-size: 14px; background: rgba(231, 76, 60, 0.1); padding: 4px 10px; border-radius: 20px;">Full</span>
-                            </div>
-                            <div style="margin-bottom: 10px; font-size: 14px; opacity: 0.8;">
-                                <div>Capacity: <strong>298 / 300</strong></div>
-                                <div>Assigned Sensor: <strong>SNS-002 (South Reservoir)</strong></div>
-                            </div>
-                            <div style="display: flex; gap: 10px; margin-top: 15px;">
-                                <button style="flex: 1; padding: 8px; background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); color: white; border-radius: 6px; cursor: pointer;">Edit</button>
-                                <button style="flex: 1; padding: 8px; background: rgba(231, 76, 60, 0.1); border: 1px solid rgba(231, 76, 60, 0.3); color: #e74c3c; border-radius: 6px; cursor: pointer;">Remove</button>
-                            </div>
-                        </div>
-                         <!-- Evacuation Point 3 -->
-                        <div style="background: rgba(255,255,255,0.05); padding: 20px; border-radius: 16px; border: 1px solid rgba(255,255,255,0.1); border-style: dashed; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: background 0.3s;" onmouseover="this.style.background='rgba(255,255,255,0.1)'" onmouseout="this.style.background='rgba(255,255,255,0.05)'">
-                           <div style="text-align: center; opacity: 0.6;">
-                                <div style="font-size: 24px;">+</div>
-                                <div>Add New Location</div>
-                           </div>
-                        </div>
+                    <div id="evacuationList" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px;">
+                        <!-- Dynamic Content Loaded via JS -->
                     </div>
+                </div>
+            </div>
+
+            <!-- Modal for Evacuation Points -->
+            <div class="modal-overlay" id="evacuationModal">
+                <div class="modal">
+                    <h2 id="modalTitle">Add Evacuation Point</h2>
+                    <form id="evacuationForm" onsubmit="saveEvacuationPoint(event)">
+                        <input type="hidden" id="pointId">
+                        <div class="form-group">
+                            <label>Location Name</label>
+                            <input type="text" id="pointName" required placeholder="e.g. City Hall">
+                        </div>
+                        <div class="form-group">
+                            <label>Area / Address</label>
+                            <input type="text" id="pointLocation" required placeholder="e.g. Downtown">
+                        </div>
+                        <div style="display: flex; gap: 15px;">
+                            <div class="form-group" style="flex:1;">
+                                <label>Latitude</label>
+                                <input type="number" step="any" id="pointLat" placeholder="10.8505">
+                            </div>
+                            <div class="form-group" style="flex:1;">
+                                <label>Longitude</label>
+                                <input type="number" step="any" id="pointLng" placeholder="76.2711">
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label>Capacity (Persons)</label>
+                            <input type="number" id="pointCapacity" required min="1">
+                        </div>
+                        <div class="form-group">
+                            <label>Status</label>
+                            <select id="pointStatus">
+                                <option value="Available">Available</option>
+                                <option value="Full">Full</option>
+                                <option value="Closed">Closed</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Assigned Sensor</label>
+                            <input type="text" id="pointSensor" placeholder="e.g. SNS-001">
+                        </div>
+                        <div class="modal-actions">
+                            <button type="button" class="btn-cancel" onclick="closeModal()">Cancel</button>
+                            <button type="submit" class="btn-save">Save Point</button>
+                        </div>
+                    </form>
                 </div>
             </div>
 
             <!-- Reports Section -->
             <div id="reports" class="content-section">
+                <!-- Filter Bar -->
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px; padding: 15px 25px; background: rgba(255,255,255,0.05); border-radius: 16px; border: 1px solid rgba(255,255,255,0.1);">
+                    <h2 style="font-size: 20px; font-weight: 600; color: #fff;">Analytics Overview</h2>
+                    <div style="display: flex; gap: 10px; align-items: center;">
+                        <span style="font-size: 14px; opacity: 0.7;">Time Range:</span>
+                        <select id="reportTimeRange" onchange="renderReportCharts()" style="padding: 8px 12px; border-radius: 8px; background: rgba(0,0,0,0.3); color: white; border: 1px solid rgba(255,255,255,0.2); outline: none;">
+                            <option value="24h">Last 24 Hours</option>
+                            <option value="7d">Last 7 Days</option>
+                            <option value="30d">Last 30 Days</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Stats Summary -->
+                <div class="dashboard-grid" style="grid-template-columns: repeat(3, 1fr); gap: 20px; margin-bottom: 25px;">
+                     <div class="status-card">
+                         <div class="status-label">Total Alerts</div>
+                         <div class="status-value warning-text">14</div>
+                     </div>
+                     <div class="status-card">
+                         <div class="status-label">Flood Events</div>
+                         <div class="status-value danger-text">3</div>
+                     </div>
+                     <div class="status-card">
+                         <div class="status-label">Safe Recoveries</div>
+                         <div class="status-value safe-text">98%</div>
+                     </div>
+                </div>
+
+                <!-- Charts Area -->
                 <div class="dashboard-grid">
                      <div class="card">
-                        <h3>📊 Daily Flood Reports</h3>
-                        <p style="opacity: 0.7; font-size: 14px; margin-bottom: 15px;">Water level trends over the last 24 hours.</p>
+                        <h3>📊 Water Level Trends</h3>
                         <div class="chart-container">
                             <canvas id="floodTrendChart"></canvas>
                         </div>
                      </div>
                      <div class="card">
-                        <h3>🚨 Alert Frequency</h3>
-                        <p style="opacity: 0.7; font-size: 14px; margin-bottom: 15px;">Alerts triggered by zone severity.</p>
+                        <h3>🚨 Alert Severity Distribution</h3>
                         <div class="chart-container">
                             <canvas id="alertFreqChart"></canvas>
                         </div>
                      </div>
                 </div>
+
+                <!-- Generated Reports Table -->
                 <div class="card">
                     <div style="display: flex; justify-content: space-between; align-items: center;">
-                         <h3>📑 Generated Reports</h3>
-                         <button style="padding: 8px 16px; background: #4ab5c4; border: none; border-radius: 6px; color: white;">Export All (PDF)</button>
+                         <h3>📑 Recent Generated Reports</h3>
+                         <button style="padding: 10px 20px; background: #4ab5c4; border: none; border-radius: 8px; color: white; font-weight: 600; transition: all 0.3s; box-shadow: 0 4px 15px rgba(74, 181, 196, 0.3);">
+                             Export All (CSV)
+                         </button>
                     </div>
-                    <table style="width: 100%; border-collapse: collapse; margin-top: 20px; color: rgba(255,255,255,0.8);">
+                    <table style="width: 100%; border-collapse: separate; border-spacing: 0 10px; margin-top: 20px; color: rgba(255,255,255,0.9);">
                         <thead>
-                            <tr style="border-bottom: 1px solid rgba(255,255,255,0.1);">
-                                <th style="padding: 12px; text-align: left;">Date</th>
-                                <th style="padding: 12px; text-align: left;">Report Type</th>
-                                <th style="padding: 12px; text-align: left;">Status</th>
-                                <th style="padding: 12px; text-align: right;">Action</th>
+                            <tr>
+                                <th style="padding: 12px; text-align: left; opacity: 0.6; font-weight: 500;">Date</th>
+                                <th style="padding: 12px; text-align: left; opacity: 0.6; font-weight: 500;">Report Type</th>
+                                <th style="padding: 12px; text-align: left; opacity: 0.6; font-weight: 500;">Status</th>
+                                <th style="padding: 12px; text-align: right; opacity: 0.6; font-weight: 500;">Action</th>
                             </tr>
                         </thead>
                         <tbody>
-                            <tr style="border-bottom: 1px solid rgba(255,255,255,0.05);">
-                                <td style="padding: 12px;">Dec 19, 2025</td>
-                                <td style="padding: 12px;">Daily Summary</td>
-                                <td style="padding: 12px;"><span class="safe-text">Completed</span></td>
-                                <td style="padding: 12px; text-align: right;"><a href="#" style="color: #4ab5c4; text-decoration: none;">Download</a></td>
+                            <tr style="background: rgba(255,255,255,0.03);">
+                                <td style="padding: 15px; border-radius: 10px 0 0 10px;">Dec 19, 2025</td>
+                                <td style="padding: 15px;">Daily Operations Summary</td>
+                                <td style="padding: 15px;"><span style="background: rgba(46, 204, 113, 0.15); color: #2ecc71; padding: 4px 10px; border-radius: 20px; font-size: 13px;">Completed</span></td>
+                                <td style="padding: 15px; text-align: right; border-radius: 0 10px 10px 0;"><a href="#" style="color: #4ab5c4; text-decoration: none; font-weight: 500;">Download PDF</a></td>
                             </tr>
-                            <tr style="border-bottom: 1px solid rgba(255,255,255,0.05);">
-                                <td style="padding: 12px;">Dec 18, 2025</td>
-                                <td style="padding: 12px;">Critical Event Log</td>
-                                <td style="padding: 12px;"><span class="warning-text">Flagged</span></td>
-                                <td style="padding: 12px; text-align: right;"><a href="#" style="color: #4ab5c4; text-decoration: none;">Download</a></td>
+                            <tr style="background: rgba(255,255,255,0.03);">
+                                <td style="padding: 15px; border-radius: 10px 0 0 10px;">Dec 18, 2025</td>
+                                <td style="padding: 15px;">Critical Incident Log - North Zone</td>
+                                <td style="padding: 15px;"><span style="background: rgba(241, 196, 15, 0.15); color: #f1c40f; padding: 4px 10px; border-radius: 20px; font-size: 13px;">Review Needed</span></td>
+                                <td style="padding: 15px; text-align: right; border-radius: 0 10px 10px 0;"><a href="#" style="color: #4ab5c4; text-decoration: none; font-weight: 500;">Download PDF</a></td>
                             </tr>
                         </tbody>
                     </table>
@@ -818,7 +955,7 @@ if ($users_result) {
                         </label>
                     </div>
 
-                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px;">
                         <!-- Thresholds -->
                         <div style="padding: 20px; background: rgba(255,255,255,0.05); border-radius: 12px;">
                             <h4 style="margin-bottom: 15px; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 10px;">Severity Thresholds</h4>
@@ -864,9 +1001,8 @@ if ($users_result) {
                 </div>
             </div>
 
-             <!-- Settings Section -->
             <div id="settings" class="content-section">
-                 <div class="dashboard-grid">
+                 <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px;">
                     <div class="card">
                         <h3>⚙️ System Settings</h3>
                         <div style="margin-top: 20px;">
@@ -898,9 +1034,168 @@ if ($users_result) {
     </div>
 
     <script>
-        log = console.log; // Maintain log if needed elsewhere
-        
+        // 1. GLOBAL STORE & DIAGNOSTICS
+        var allEvacPoints = {}; 
+        var log = console.log;
         log("AquaSafe Admin JS Loading...");
+
+        // 2. GLOBAL EVACUATION FUNCTIONS (Explicit window assignment)
+        window.openAddModal = function() {
+            log("Opening Add Modal");
+            const modal = document.getElementById('evacuationModal');
+            if(!modal) return alert("System Error: Modal Overlay not found in DOM!");
+            
+            document.getElementById('modalTitle').innerText = 'Add Evacuation Point';
+            document.getElementById('pointId').value = ''; 
+            document.getElementById('evacuationForm').reset();
+            modal.classList.add('active');
+        };
+
+        window.openEditModal = function(id) {
+            log("openEditModal called for ID:", id);
+            alert("Diagnostic: openEditModal triggered for ID " + id);
+            
+            const pt = allEvacPoints[id] || allEvacPoints[String(id)] || allEvacPoints[parseInt(id)];
+
+            if(!pt) {
+                log("Lookup failed for ID:", id, "Cache content:", allEvacPoints);
+                return alert("Critical Error: Point data not found in browser memory for #" + id);
+            }
+
+            log("Editing Point:", pt.name);
+            const modal = document.getElementById('evacuationModal');
+            if(!modal) return alert("System Error: Modal Overlay not found!");
+
+            document.getElementById('modalTitle').innerText = 'Edit Evacuation Point';
+            document.getElementById('pointId').value = pt.id;
+            document.getElementById('pointName').value = pt.name || '';
+            document.getElementById('pointLocation').value = pt.location || '';
+            document.getElementById('pointLat').value = pt.latitude || '';
+            document.getElementById('pointLng').value = pt.longitude || '';
+            document.getElementById('pointCapacity').value = pt.capacity || '';
+            document.getElementById('pointStatus').value = pt.status || 'Available';
+            document.getElementById('pointSensor').value = pt.assigned_sensor || '';
+            
+            modal.classList.add('active');
+            log("Modal should now be visible (class .active added)");
+        };
+
+        window.closeModal = function() {
+            const modal = document.getElementById('evacuationModal');
+            if(modal) modal.classList.remove('active');
+        };
+
+        window.saveEvacuationPoint = async function(e) {
+            if(e) e.preventDefault();
+            const id = document.getElementById('pointId').value;
+            const action = id ? 'update' : 'add';
+            log("Save triggered:", { action, id });
+
+            const form = document.getElementById('evacuationForm');
+            const formData = new FormData(form);
+            formData.append('action', action);
+            if(id) formData.append('id', id);
+            
+            // Critical: Ensure status is captured from select
+            formData.set('status', document.getElementById('pointStatus').value);
+
+            try {
+                const res = await fetch('manage_evacuation.php', { method: 'POST', body: formData });
+                const data = await res.json();
+                if(data.status === 'success') {
+                    alert("SUCCESS: " + (data.message || "Data saved."));
+                    closeModal();
+                    fetchEvacuationPoints();
+                    if(typeof refreshMapMarkers === 'function') refreshMapMarkers();
+                } else {
+                    alert("SERVER ERROR: " + data.message);
+                }
+            } catch(err) {
+                alert("NETWORK ERROR: " + err.message);
+            }
+        };
+
+        window.deletePoint = async function(id) {
+            if(!confirm("Permanently remove this location?")) return;
+            log("Delete triggered for ID:", id);
+
+            const formData = new FormData();
+            formData.append('action', 'delete');
+            formData.append('id', id);
+
+            try {
+                const res = await fetch('manage_evacuation.php', { method: 'POST', body: formData });
+                const data = await res.json();
+                if(data.status === 'success') {
+                    alert("Location deleted.");
+                    fetchEvacuationPoints();
+                    if(typeof refreshMapMarkers === 'function') refreshMapMarkers();
+                } else {
+                    alert("Delete failed: " + data.message);
+                }
+            } catch(err) {
+                alert("Network error: " + err.message);
+            }
+        };
+
+        window.fetchEvacuationPoints = async function() {
+            const listEl = document.getElementById('evacuationList');
+            if(!listEl) return;
+            listEl.innerHTML = '<div style="color:white; text-align:center; padding: 20px;">Refreshing list...</div>';
+
+            try {
+                const res = await fetch('manage_evacuation.php?action=fetch_all');
+                const json = await res.json();
+                listEl.innerHTML = '';
+                allEvacPoints = {}; 
+
+                if(json.data && json.data.length > 0) {
+                    json.data.forEach(pt => {
+                        allEvacPoints[pt.id] = pt;
+                        const statusColor = pt.status === 'Available' ? 'safe-text' : (pt.status === 'Full' ? 'danger-text' : 'warning-text');
+                        
+                        const card = document.createElement('div');
+                        card.style.cssText = "background: rgba(255,255,255,0.05); padding: 20px; border-radius: 16px; border: 1px solid rgba(255,255,255,0.1);";
+                        card.innerHTML = `
+                            <div style="display: flex; justify-content: space-between; margin-bottom: 15px;">
+                                <strong style="font-size: 18px;">${pt.name}</strong>
+                                <span class="${statusColor}" style="font-size: 14px; background: rgba(255,255,255,0.1); padding: 4px 10px; border-radius: 20px;">${pt.status}</span>
+                            </div>
+                            <div style="margin-bottom: 10px; font-size: 14px; opacity: 0.8;">
+                                <div>Location: <strong>${pt.location}</strong></div>
+                                <div>Capacity: <strong>${pt.capacity}</strong></div>
+                                <div>Assigned Sensor: <strong>${pt.assigned_sensor || 'N/A'}</strong></div>
+                            </div>
+                            <div style="display: flex; gap: 10px; margin-top: 15px;">
+                                <button onclick="window.openEditModal('${pt.id}')" style="flex: 1; padding: 10px; background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); color: white; border-radius: 8px; cursor: pointer; font-weight: 500;">Edit</button>
+                                <button onclick="window.deletePoint('${pt.id}')" style="flex: 1; padding: 10px; background: rgba(231, 76, 60, 0.1); border: 1px solid rgba(231, 76, 60, 0.3); color: #e74c3c; border-radius: 8px; cursor: pointer; font-weight: 500;">Remove</button>
+                            </div>
+                        `;
+                        listEl.appendChild(card);
+                    });
+                }
+                
+                const addCard = document.createElement('div');
+                addCard.style.cssText = "background: rgba(255,255,255,0.03); padding: 20px; border-radius: 16px; border: 2px dashed rgba(255,255,255,0.1); display: flex; align-items: center; justify-content: center; cursor: pointer; min-height: 180px; transition: all 0.3s;";
+                addCard.innerHTML = '<div style="text-align: center; opacity: 0.6;"><div style="font-size: 30px; margin-bottom: 5px;">+</div><div style="font-weight: 500;">Add New Location</div></div>';
+                addCard.onclick = window.openAddModal;
+                addCard.onmouseover = function(){ this.style.background='rgba(255,255,255,0.08)'; this.style.borderColor='rgba(74, 181, 196, 0.4)'; };
+                addCard.onmouseout = function(){ this.style.background='rgba(255,255,255,0.03)'; this.style.borderColor='rgba(255,255,255,0.1)'; };
+                listEl.appendChild(addCard);
+
+            } catch (err) {
+                log("Fetch Error:", err);
+                listEl.innerHTML = '<p style="color:#e74c3c; text-align:center;">Failed to load evacuation points.</p>';
+            }
+        };
+
+        // Simplified global click tracking (Optional but helpful)
+        document.addEventListener('click', function(e) {
+            log("Global Interaction:", e.target.tagName, e.target.className);
+        });
+
+
+        // -----------------------------------------------------
 
         window.onerror = function(msg, url, line) {
             log("FATAL ERROR: " + msg + " (Line: " + line + ")");
@@ -945,7 +1240,7 @@ if ($users_result) {
             }
         };
 
-        // 3. Navigation Logic
+        // 3. Navigation Logic (Enhanced)
         window.switchTab = function(tabId, element) {
             log("Switching to " + tabId);
             document.querySelectorAll('.content-section').forEach(el => el.classList.remove('active'));
@@ -954,6 +1249,8 @@ if ($users_result) {
             
             document.querySelectorAll('.nav-link').forEach(el => el.classList.remove('active'));
             if (element) element.classList.add('active');
+
+            if (window.innerWidth <= 1024) toggleSidebar();
 
             const titles = {
                 'dashboard': 'Admin Dashboard',
@@ -969,10 +1266,148 @@ if ($users_result) {
             };
             const titleEl = document.getElementById('pageTitle');
             if (titleEl) titleEl.innerText = titles[tabId] || 'Admin Dashboard';
+
+            if(tabId === 'map') initMap();
             if(tabId === 'reports') renderReportCharts();
+            if(tabId === 'evacuation') {
+                fetchEvacuationPoints();
+                // Ensure map logic is ready if needed, or refresh markers just in case
+                refreshMapMarkers(); 
+            }
         };
 
-        // 4. Clock
+        // 4. Map Logic (Leaflet)
+        let map;
+        let markersObj = {}; // Track markers
+
+        function initMap() {
+            if (map) {
+                 refreshMapMarkers(); // Just refresh if already init
+                 return;
+            }
+            
+            setTimeout(() => {
+                const mapEl = document.getElementById('leaflet-map');
+                if(!mapEl) return;
+                
+                map = L.map('leaflet-map').setView([10.8505, 76.2711], 7);
+                L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                    attribution: '&copy; OpenStreetMap contributors'
+                }).addTo(map);
+
+                refreshMapMarkers();
+                
+                map.invalidateSize();
+            }, 300);
+        }
+
+        window.refreshMapMarkers = function() {
+            if(!map) return;
+            
+            // Fetch points for map
+            fetch('manage_evacuation.php?action=fetch_all')
+                .then(res => res.json())
+                .then(res => {
+                    if(res.data) {
+                        // Clear existing
+                        for(let id in markersObj) {
+                            map.removeLayer(markersObj[id]);
+                        }
+                        markersObj = {};
+
+                        res.data.forEach(p => {
+                            // Default lat/lng if missing (fallback for old dummy data)
+                             // Since our DB schema has lat/long but maybe empty, let's fake it if needed or skip
+                             // Actually user dashboard requirement implies we need location.
+                             // For now, let's map location names to coordinates or use dummy offsets if 0,0
+                            let lat = parseFloat(p.latitude);
+                            let lng = parseFloat(p.longitude);
+
+                            // Check if valid coords (not 0,0 and not NaN)
+                            // If 0,0 try parsing location if it has comma
+                            if((!lat && !lng) || (lat === 0 && lng === 0)) {
+                                if(p.location && p.location.includes(',')) {
+                                     const parts = p.location.split(',');
+                                     if(parts.length === 2 && !isNaN(parts[0])) {
+                                         lat = parseFloat(parts[0]);
+                                         lng = parseFloat(parts[1]);
+                                     }
+                                }
+                            }
+
+                            // If still invalid, skip or put in default center
+                            if(isNaN(lat) || isNaN(lng) || (lat === 0 && lng === 0)) {
+                                // console.warn("Skipping point with invalid coords:", p.name);
+                                return; 
+                            }
+
+                            const color = p.status === 'Available' ? '#2ecc71' : (p.status === 'Full' ? '#e74c3c' : '#f1c40f');
+                            const marker = L.circleMarker([lat, lng], {
+                                color: color,
+                                fillColor: color,
+                                fillOpacity: 0.8,
+                                radius: 10
+                            }).addTo(map).bindPopup(`<b>${p.name}</b><br>Status: ${p.status}<br>Cap: ${p.capacity}`);
+                            
+                            markersObj[p.id] = marker;
+                        });
+                    }
+                });
+        };
+
+        window.mapSetView = function(lat, lng, zoom = 7) {
+            if(map) map.setView([lat, lng], zoom);
+        };
+
+        // 5. Reports Logic (Chart.js)
+        let floodChart, alertChart;
+        window.renderReportCharts = function() {
+            const ctx1 = document.getElementById('floodTrendChart');
+            const ctx2 = document.getElementById('alertFreqChart');
+            if (!ctx1 || !ctx2) return;
+
+            if (floodChart) floodChart.destroy();
+            if (alertChart) alertChart.destroy();
+
+            const range = document.getElementById('reportTimeRange') ? document.getElementById('reportTimeRange').value : '24h';
+            // Simulate data change based on range
+            const labels = range === '24h' ? ['00:00', '04:00', '08:00', '12:00', '16:00', '20:00'] : (range === '7d' ? ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'] : ['Week 1', 'Week 2', 'Week 3', 'Week 4']);
+            const data1 = range === '24h' ? [30, 35, 40, 45, 42, 38] : [40, 55, 45, 60, 65, 50, 55];
+
+            floodChart = new Chart(ctx1, {
+                type: 'line',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: 'Average Water Level (cm)',
+                        data: data1,
+                        borderColor: '#4ab5c4',
+                        backgroundColor: 'rgba(74, 181, 196, 0.1)',
+                        tension: 0.4,
+                        fill: true
+                    }]
+                },
+                options: { responsive: true, maintainAspectRatio: false }
+            });
+
+            alertChart = new Chart(ctx2, {
+                type: 'bar',
+                data: {
+                    labels: ['Safe', 'Warning', 'Critical'],
+                    datasets: [{
+                        label: 'Alerts',
+                        data: range === '24h' ? [120, 15, 5] : [500, 80, 20],
+                        backgroundColor: ['#2ecc71', '#f1c40f', '#e74c3c']
+                    }]
+                },
+                options: { responsive: true, maintainAspectRatio: false }
+            });
+        };
+
+        // REMOVED DUPLICATE LOGIC - NOW CONSOLIDATED ABOVE
+
+
+         // 7. Clock & Utilities
         function updateTime() {
             const clockEl = document.getElementById('clock');
             if(clockEl) {
@@ -983,17 +1418,18 @@ if ($users_result) {
         setInterval(updateTime, 1000);
         updateTime();
 
-        // 5. Global Event Listener for Role Buttons
-        document.addEventListener('click', function(e) {
-            if(e.target.classList.contains('role-update-btn')) {
-                const uid = e.target.getAttribute('data-id');
-                const role = e.target.getAttribute('data-role');
-                log("Button click captured by delegation: ID=" + uid + ", Role=" + role);
-                window.updateRole(uid, role);
+        // 8. Sidebar Toggle
+        window.toggleSidebar = function() {
+            const sidebar = document.querySelector('.sidebar');
+            const overlay = document.getElementById('sidebarOverlay');
+            if (sidebar && overlay) {
+                sidebar.classList.toggle('active');
+                overlay.classList.toggle('active');
             }
-        });
+        };
+        document.getElementById('sidebarOverlay').addEventListener('click', toggleSidebar);
 
-        // 6. Charts (Safe Init)
+        // 9. Charts on Dashboard (Safe Init)
         try {
             const chartCanvas = document.getElementById('waterLevelChart');
             if (chartCanvas && typeof Chart !== 'undefined') {
@@ -1029,21 +1465,17 @@ if ($users_result) {
             }
         } catch (e) { log("Chart Error: " + e.message); }
 
-        window.renderReportCharts = function() {
-            log("Rendering report charts...");
-            // (Minimal Chart logic here to prevent bloat)
-        };
-
-        // Tab persistence on reload
+        // Tab persistence
         window.addEventListener('load', () => {
-            const hash = window.location.hash.replace('#', '');
-            if(hash) {
-                const targetLink = document.querySelector(`.nav-link[onclick*="'${hash}'"]`);
-                if(targetLink) switchTab(hash, targetLink);
-            }
+             const hash = window.location.hash.replace('#', '');
+             if(hash) {
+                 const targetLink = document.querySelector(`.nav-link[onclick*="'${hash}'"]`);
+                 if(targetLink) switchTab(hash, targetLink);
+             }
         });
 
         log("READY.");
+        alert("AquaSafe Admin System: LOADED SUCCESSFULLY!");
     </script>
 </body>
 </html>

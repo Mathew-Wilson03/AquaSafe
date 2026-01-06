@@ -38,22 +38,61 @@ if($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['send_otp_btn'])){
                 mysqli_stmt_bind_param($ustmt, "ss", $otp, $email); // Removed expiry param, using SQL function
                 if(mysqli_stmt_execute($ustmt)){
                     
-                    // 1. Send Email
-                    $subject = "Your AquaSafe Verification Code";
-                    $message = "Your verification code is: $otp\n\nThis code expires in 24 hours.";
-                    $headers = "From: no-reply@aquasafe.com\r\n";
-                    $headers .= "Reply-To: support@aquasafe.com\r\n";
-                    $headers .= "Content-Type: text/plain; charset=UTF-8\r\n";
-                    
-                    $mailSent = @mail($email, $subject, $message, $headers);
+                    // 1. Send Email via PHPMailer
+                    require 'vendor/autoload.php';
+                    $mailSent = false;
+                    $mailError = '';
+
+                    try {
+                        $mail = new PHPMailer\PHPMailer\PHPMailer(true);
+
+                        // Server settings
+                        $mail->isSMTP();
+                        $mail->Host       = 'smtp.gmail.com';
+                        $mail->SMTPAuth   = true;
+                        $mail->Username   = 'mathewwilson2028@mca.ajce.in'; 
+                        $mail->Password   = 'xocstgimffcjbvva';
+                        $mail->SMTPSecure = PHPMailer\PHPMailer\PHPMailer::ENCRYPTION_STARTTLS;
+                        $mail->Port       = 587;
+
+                        // Recipients
+                        $mail->setFrom('mathewwilson2028@mca.ajce.in', 'AquaSafe Support');
+                        $mail->addAddress($email);
+
+                        // Content
+                        $mail->isHTML(true);
+                        $mail->Subject = 'Your AquaSafe Verification Code';
+                        $mail->Body    = "
+                            <div style='font-family: sans-serif; padding: 20px; background: #f4f4f4;'>
+                                <div style='max-width: 600px; margin: 0 auto; background: white; padding: 30px; border-radius: 10px; box-shadow: 0 2px 5px rgba(0,0,0,0.1);'>
+                                    <h2 style='color: #4ab5c4; text-align: center;'>Verification Code</h2>
+                                    <p>Hello,</p>
+                                    <p>We received a request to reset your password. Use the verification code below to proceed:</p>
+                                    <div style='text-align: center; margin: 30px 0;'>
+                                        <div style='display: inline-block; background: #f0f7f8; color: #3a97a5; padding: 15px 40px; border-radius: 8px; font-size: 32px; font-weight: bold; letter-spacing: 5px; border: 2px dashed #4ab5c4;'>
+                                            $otp
+                                        </div>
+                                    </div>
+                                    <p>This code expires in 24 hours.</p>
+                                    <p style='color: #666; font-size: 13px;'>If you did not request this, please ignore this email.</p>
+                                </div>
+                            </div>
+                        ";
+                        $mail->AltBody = "Your AquaSafe verification code is: $otp (Expires in 24 hours)";
+
+                        $mail->send();
+                        $mailSent = true;
+
+                    } catch (Exception $e) {
+                        $mailError = "Mailer Error: {$mail->ErrorInfo}";
+                    }
                     
                     // 2. Local Logging (Fallback for Dev/XAMPP)
                     $logFile = 'email_log.txt';
-                    $logMessage = "[" . date('Y-m-d H:i:s') . "] To: $email | OTP: $otp | MailSent: " . ($mailSent ? 'Yes' : 'No') . "\n";
+                    $logMessage = "[" . date('Y-m-d H:i:s') . "] To: $email | OTP: $otp | MailSent: " . ($mailSent ? 'Yes' : 'No') . ($mailSent ? '' : " | Error: $mailError") . "\n";
                     file_put_contents($logFile, $logMessage, FILE_APPEND);
 
                     // Redirect to verification page
-                    // Pass email so the user doesn't have to re-type it
                     header("Location: verify_otp.php?email=" . urlencode($email) . "&sent=true");
                     exit;
                     

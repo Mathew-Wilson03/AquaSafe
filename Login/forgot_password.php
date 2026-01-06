@@ -25,13 +25,15 @@
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             background: #0f2027; /* Fallback */
             background: linear-gradient(to bottom, #0f2027, #203a43, #2c5364);
-            height: 100vh;
+            min-height: 100vh;
             color: var(--text-light);
             display: flex;
             justify-content: center;
             align-items: center;
             position: relative;
-            overflow: hidden;
+            overflow-x: hidden;
+            overflow-y: auto;
+            padding: 20px 0;
         }
 
         /* Animated Waves Background */
@@ -43,6 +45,7 @@
             height: 50vh;
             z-index: 1;
             overflow: hidden;
+            pointer-events: none;
         }
 
         .wave {
@@ -54,8 +57,11 @@
             background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 800 88.7'%3E%3Cpath d='M800 56.9c-155.5 0-204.9-50-405.5-49.9-200 0-250 49.9-394.5 49.9v31.8h800v-.2-31.6z' fill='%23ffffff'/%3E%3C/svg%3E");
             background-repeat: repeat-x;
             background-size: 50% auto;
+            background-size: 50% auto;
             opacity: 0.1;
             transform-origin: center bottom;
+            will-change: transform;
+            backface-visibility: hidden;
         }
 
         .wave:nth-child(1) {
@@ -95,6 +101,9 @@
             width: 100%;
             height: 100%;
             z-index: 0;
+            pointer-events: none;
+            will-change: transform;
+            overflow: hidden;
         }
         
         .particle {
@@ -295,7 +304,7 @@
                     AquaSafe
                 </div>
                 <div class="header-title">Forgot Password?</div>
-                <div class="header-subtitle">Enter your email address to receive instructions on how to reset your password.</div>
+                <div class="header-subtitle">Enter your email address to receive a verification code to reset your password.</div>
             </div>
 
             <?php if(isset($_GET['error'])): ?>
@@ -304,12 +313,12 @@
                 </div>
             <?php endif; ?>
 
-            <form action="send_reset_link.php" method="POST">
+            <form action="send_otp.php" method="POST">
                 <div class="form-group">
                     <label class="form-label">Email Address</label>
                     <input type="email" name="email" placeholder="example@aquasafe.com" required>
                 </div>
-                <button class="submit-btn" type="submit" name="send_link_btn">Send Reset Link</button>
+                <button class="submit-btn" type="submit" name="send_otp_btn">Send Verification Code</button>
             </form>
 
             <a href="login.php" class="back-link">Remember your password? Login</a>

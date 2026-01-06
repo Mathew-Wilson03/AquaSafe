@@ -217,7 +217,7 @@ if (file_exists($help_file)) {
         .content-section { display: none; width: 100%; }
         .content-section.active { display: block; animation: fadeInUp 0.5s ease both; }
 
-        .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; }
+        .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 24px; }
         .grid.full { grid-template-columns: 1fr; }
 
         .card { 
@@ -238,11 +238,12 @@ if (file_exists($help_file)) {
         }
 
         /* Status Pills */
-        .status-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-bottom: 20px; }
+        .status-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(100px, 1fr)); gap: 12px; margin-bottom: 20px; }
         .status-pill { 
-            padding: 16px; 
+            padding: 12px 10px; 
             border-radius: 12px; 
             text-align: center; 
+            font-size: 14px;
             font-weight: 700; 
             transition: all 0.3s ease;
             opacity: 0.5;
@@ -341,15 +342,62 @@ if (file_exists($help_file)) {
         }
 
         @media (max-width: 1100px) { 
-            .container { flex-direction: column; }
-            .sidebar { width: 100%; height: auto; position: static; }
-            .grid { grid-template-columns: 1fr; }
+            .container { flex-direction: column; padding: 15px; }
+            .sidebar { 
+                position: fixed;
+                left: -320px;
+                top: 0;
+                height: 100vh;
+                z-index: 2000;
+                width: 280px;
+                transition: left 0.3s ease;
+                border-radius: 0 20px 20px 0;
+            }
+            .sidebar.active { left: 0; }
+            .main { gap: 15px; }
+            .grid { grid-template-columns: 1fr; gap: 15px; }
+            .mobile-toggle { display: block !important; }
+            .header { padding: 15px; }
+            .header-right { gap: 10px; }
+            .user-profile span { display: none; }
         }
+
+        @media (max-width: 600px) {
+            .status-row { grid-template-columns: 1fr; }
+            .weather-widget { flex-direction: column; text-align: center; }
+            .weather-widget div:last-child { margin-left: 0; text-align: center; }
+        }
+
+        .mobile-toggle {
+            display: none;
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            color: white;
+            padding: 10px;
+            border-radius: 12px;
+            cursor: pointer;
+            margin-right: 15px;
+        }
+
+        .sidebar-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(5px);
+            z-index: 1999;
+        }
+
+        .sidebar-overlay.active { display: block; }
     </style>
 </head>
 <body>
+    <div class="sidebar-overlay" id="sidebarOverlay"></div>
     <div class="container">
-        <div class="sidebar glass animate__animated animate__fadeInLeft">
+        <div class="sidebar glass animate__animated animate__fadeInLeft" id="sidebar">
             <div class="sidebar-header">
                 <i data-lucide="waves"></i> AquaSafe
             </div>
@@ -371,7 +419,10 @@ if (file_exists($help_file)) {
 
         <div class="main">
             <div class="header glass animate__animated animate__fadeInDown">
-                <div class="header-left">
+                <div class="header-left" style="display: flex; align-items: center;">
+                    <button class="mobile-toggle" onclick="toggleSidebar()">
+                        <i data-lucide="menu"></i>
+                    </button>
                     <h1>User Dashboard</h1>
                 </div>
                 <div class="header-right">
@@ -423,18 +474,8 @@ if (file_exists($help_file)) {
                     <div id="section-evac" class="content-section">
                         <div class="card glass">
                                 <h3><i data-lucide="map-pin"></i> Evacuation Points</h3>
-                                <div class="list-container">
-                                    <?php foreach($evac_points as $e): ?>
-                                    <div class="list-item">
-                                        <div>
-                                            <strong style="color: #fff;"><?php echo htmlspecialchars($e['name']); ?></strong>
-                                            <div style="font-size: 12px; color: rgba(255,255,255,0.6); margin-top: 4px;">
-                                                <i data-lucide="navigation" style="width: 10px; display: inline-block;"></i> Distance: <?php echo htmlspecialchars($e['distance']); ?>
-                                            </div>
-                                        </div>
-                                        <a class="small-btn" href="https://www.google.com/maps/search/?api=1&query=<?php echo $e['query']; ?>" target="_blank">Directions</a>
-                                    </div>
-                                    <?php endforeach; ?>
+                                <div class="list-container" id="evacuation-list-container">
+                                    <div style="text-align:center; padding:20px; color:rgba(255,255,255,0.5);">Loading points...</div>
                                 </div>
                         </div>
                     </div>
@@ -614,8 +655,21 @@ if (file_exists($help_file)) {
                     e.preventDefault();
                     const target = this.getAttribute('href').replace('#','');
                     showSection(target);
+                    if (window.innerWidth <= 1100) {
+                        toggleSidebar();
+                    }
                 });
             });
+
+            // Sidebar Toggle Logic
+            window.toggleSidebar = function() {
+                const sidebar = document.getElementById('sidebar');
+                const overlay = document.getElementById('sidebarOverlay');
+                sidebar.classList.toggle('active');
+                overlay.classList.toggle('active');
+            };
+
+            document.getElementById('sidebarOverlay').addEventListener('click', toggleSidebar);
 
             // Live Clock
             function updateClock() {
@@ -700,6 +754,43 @@ if (file_exists($help_file)) {
             // Initial Section
             const initial = (location.hash && location.hash.replace('#','')) || 'section-flood';
             showSection(initial);
+
+            // Fetch Evacuation Points (Dynamic)
+            function loadEvacuationPoints() {
+                fetch('fetch_evacuation_points.php')
+                    .then(r => r.json())
+                    .then(res => {
+                        const container = document.getElementById('evacuation-list-container');
+                        if(res.status === 'success' && res.data.length > 0) {
+                            let html = '';
+                            res.data.forEach(pt => {
+                                const statusColor = pt.status === 'Available' ? 'var(--safe)' : (pt.status === 'Full' ? 'var(--danger)' : 'var(--warning)');
+                                const statusLabel = pt.status === 'Available' ? 'Open' : pt.status;
+                                
+                                html += `
+                                <div class="list-item">
+                                    <div>
+                                        <div style="display:flex; align-items:center; gap:8px;">
+                                            <strong style="color: #fff;">${pt.name}</strong>
+                                            <span style="font-size:10px; padding:2px 8px; border-radius:10px; border:1px solid ${statusColor}; color:${statusColor};">${statusLabel}</span>
+                                        </div>
+                                        <div style="font-size: 12px; color: rgba(255,255,255,0.6); margin-top: 4px;">
+                                            Location: ${pt.location} • Capacity: ${pt.current_occupancy || 0}/${pt.capacity}
+                                        </div>
+                                    </div>
+                                    <a class="small-btn" href="https://www.google.com/maps/search/?api=1&query=${pt.query}" target="_blank">Directions</a>
+                                </div>`;
+                            });
+                            container.innerHTML = html;
+                        } else {
+                            container.innerHTML = '<div style="padding:20px; text-align:center; opacity:0.6;">No safe points found nearby.</div>';
+                        }
+                    })
+                    .catch(() => {
+                        document.getElementById('evacuation-list-container').innerHTML = '<div style="color:var(--danger)">Failed to load data.</div>';
+                    });
+            }
+            loadEvacuationPoints();
         });
     </script>
     

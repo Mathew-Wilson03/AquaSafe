@@ -31,13 +31,32 @@ if($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['signup_btn'])){
         exit;
     }
 
+    // Hard-through Email Validation
+    $email_regex = "/^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/";
+    $disposable_domains = ['mailinator.com', 'yopmail.com', 'tempmail.com', '10minutemail.com', 'guerrillamail.com', 'sharklasers.com'];
+    
+    $domain = strtolower(substr(strrchr($email, "@"), 1));
+
+    if(!filter_var($email, FILTER_VALIDATE_EMAIL) || !preg_match($email_regex, $email)){
+        header("Location: signup.php?role=$role&error=Please enter a valid official email address");
+        exit;
+    }
+
+    if(in_array($domain, $disposable_domains)){
+        header("Location: signup.php?role=$role&error=Disposable email addresses are not allowed. Please use a permanent email.");
+        exit;
+    }
+
     if($password !== $confirm_password){
         header("Location: signup.php?role=$role&error=Passwords do not match");
         exit;
     }
 
-    if(strlen($password) < 6){
-        header("Location: signup.php?role=$role&error=Password must be at least 6 characters");
+    // Password Strength Validation
+    // At least 8 characters, at least one uppercase, one lowercase, one number and one special character
+    $password_regex = "/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/";
+    if(!preg_match($password_regex, $password)){
+        header("Location: signup.php?role=$role&error=Password must be at least 8 characters and include uppercase, lowercase, number, and special character");
         exit;
     }
 

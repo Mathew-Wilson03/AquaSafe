@@ -254,6 +254,76 @@
             margin-top: -15px;
             margin-bottom: 15px;
         }
+        @media (max-width: 480px) {
+            .signup-wrapper { padding: 15px; }
+            .signup-container { padding: 25px 20px; border-radius: 15px; }
+            .header-title { font-size: 20px; }
+            .submit-btn, input { height: 44px; font-size: 14px; }
+            .role-notice { font-size: 11px; }
+        }
+        @media (max-width: 480px) {
+            .signup-wrapper { padding: 15px; }
+            .signup-container { padding: 25px 20px; border-radius: 15px; }
+            .header-title { font-size: 20px; }
+            .submit-btn, input { height: 44px; font-size: 14px; }
+            .role-notice { font-size: 11px; }
+        }
+
+        /* Password Strength Styles */
+        .password-requirements {
+            margin-top: 0;
+            font-size: 12px;
+            color: rgba(255, 255, 255, 0.5);
+            list-style: none;
+            padding-left: 0;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 5px;
+            opacity: 0;
+            visibility: hidden;
+            height: 0;
+            overflow: hidden;
+            transition: all 0.3s ease;
+        }
+        .password-requirements.show {
+            margin-top: 10px;
+            opacity: 1;
+            visibility: visible;
+            height: auto;
+        }
+        .requirement {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            transition: all 0.3s ease;
+        }
+        .requirement.met {
+            color: var(--primary);
+        }
+        .requirement.met i {
+            transform: scale(1.2);
+        }
+        .strength-meter {
+            height: 0;
+            background: rgba(255, 255, 255, 0.1);
+            margin-top: 0;
+            border-radius: 2px;
+            overflow: hidden;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s ease;
+        }
+        .strength-meter.show {
+            height: 4px;
+            margin-top: 10px;
+            opacity: 1;
+            visibility: visible;
+        }
+        .strength-bar {
+            height: 100%;
+            width: 0;
+            transition: all 0.3s ease;
+        }
     </style>
     <script src="https://accounts.google.com/gsi/client" async defer onload="gsiLoaded()"></script>
 </head>
@@ -319,7 +389,17 @@
                 </div>
                 <div class="form-group">
                     <label class="form-label">Password</label>
-                    <input type="password" name="password" placeholder="••••••••" required>
+                    <input type="password" name="password" id="password" placeholder="••••••••" required>
+                    <div class="strength-meter">
+                        <div id="strengthBar" class="strength-bar"></div>
+                    </div>
+                    <ul class="password-requirements">
+                        <li id="reqLength" class="requirement"><span>○</span> 8+ Chars</li>
+                        <li id="reqUpper" class="requirement"><span>○</span> Uppercase</li>
+                        <li id="reqLower" class="requirement"><span>○</span> Lowercase</li>
+                        <li id="reqNumber" class="requirement"><span>○</span> Number</li>
+                        <li id="reqSpecial" class="requirement"><span>○</span> Special</li>
+                    </ul>
                 </div>
                 <div class="form-group">
                     <label class="form-label">Confirm Password</label>
@@ -349,6 +429,62 @@
                 p.style.animationDelay = `${Math.random() * 10}s`;
                 container.appendChild(p);
             }
+
+            // Password Validation Logic
+            const passwordInput = document.getElementById('password');
+            const strengthBar = document.getElementById('strengthBar');
+            const strengthMeter = document.querySelector('.strength-meter');
+            const requirementsList = document.querySelector('.password-requirements');
+            
+            const requirements = {
+                length: { el: document.getElementById('reqLength'), regex: /.{8,}/ },
+                upper: { el: document.getElementById('reqUpper'), regex: /[A-Z]/ },
+                lower: { el: document.getElementById('reqLower'), regex: /[a-z]/ },
+                number: { el: document.getElementById('reqNumber'), regex: /[0-9]/ },
+                special: { el: document.getElementById('reqSpecial'), regex: /[@$!%*?&]/ }
+            };
+
+            const showRequirements = () => {
+                strengthMeter.classList.add('show');
+                requirementsList.classList.add('show');
+            };
+
+            const hideRequirements = () => {
+                if (passwordInput.value.length === 0) {
+                    strengthMeter.classList.remove('show');
+                    requirementsList.classList.remove('show');
+                }
+            };
+
+            passwordInput.addEventListener('focus', showRequirements);
+            passwordInput.addEventListener('blur', hideRequirements);
+
+            passwordInput.addEventListener('input', () => {
+                const val = passwordInput.value;
+                if (val.length > 0) showRequirements();
+                
+                let metCount = 0;
+
+                Object.keys(requirements).forEach(key => {
+                    const req = requirements[key];
+                    if (req.regex.test(val)) {
+                        req.el.classList.add('met');
+                        req.el.querySelector('span').innerText = '●';
+                        metCount++;
+                    } else {
+                        req.el.classList.remove('met');
+                        req.el.querySelector('span').innerText = '○';
+                    }
+                });
+
+                // Update Bar
+                const width = (metCount / 5) * 100;
+                strengthBar.style.width = width + '%';
+                
+                if (metCount <= 2) strengthBar.style.background = '#e74c3c';
+                else if (metCount <= 4) strengthBar.style.background = '#f1c40f';
+                else strengthBar.style.background = '#2ecc71';
+            });
         });
 
         // Google Sign-In Logic (OAuth2 Popup Flow)
