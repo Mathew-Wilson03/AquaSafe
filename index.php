@@ -46,9 +46,10 @@
             gap: 10px;
         }
 
-        .logo svg {
-            width: 32px;
-            height: 32px;
+        .logo-img {
+            width: 40px;
+            height: 40px;
+            object-fit: contain;
         }
 
         .nav-menu {
@@ -233,9 +234,7 @@
     <header>
         <nav>
             <div class="logo">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <path d="M12 2v8m0 4v8M2 12h8m4 0h8M4 4l5.66 5.66M14.34 4l5.66 5.66M4 20l5.66-5.66M14.34 20l5.66-5.66"/>
-                </svg>
+                <img src="assets/logo.png" alt="AquaSafe Logo" class="logo-img">
                 AquaSafe
             </div>
             <ul class="nav-menu">

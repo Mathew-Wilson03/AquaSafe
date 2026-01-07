@@ -106,7 +106,13 @@ if (file_exists($help_file)) {
             margin-bottom: 30px; 
             display: flex;
             align-items: center;
-            gap: 10px;
+            gap: 12px;
+        }
+
+        .interactive-logo {
+            width: 45px;
+            height: 45px;
+            object-fit: contain;
         }
 
         .sidebar-menu { 
@@ -352,20 +358,25 @@ if (file_exists($help_file)) {
                 width: 280px;
                 transition: left 0.3s ease;
                 border-radius: 0 20px 20px 0;
+                overflow-y: auto; /* Allow scrolling if menu is long */
+                max-height: 100vh;
             }
             .sidebar.active { left: 0; }
             .main { gap: 15px; }
             .grid { grid-template-columns: 1fr; gap: 15px; }
             .mobile-toggle { display: block !important; }
-            .header { padding: 15px; }
-            .header-right { gap: 10px; }
+            .header { padding: 15px; flex-wrap: wrap; gap: 15px; }
+            .header-right { gap: 10px; width: 100%; justify-content: space-between; }
             .user-profile span { display: none; }
+            .last-updated { flex: 1; justify-content: center; }
         }
 
         @media (max-width: 600px) {
             .status-row { grid-template-columns: 1fr; }
-            .weather-widget { flex-direction: column; text-align: center; }
-            .weather-widget div:last-child { margin-left: 0; text-align: center; }
+            .weather-widget { flex-direction: column; text-align: center; gap: 10px; }
+            .weather-widget div:last-child { margin-left: 0; text-align: center; width: 100%; display: flex; justify-content: space-around; }
+            .header-left h1 { font-size: 18px; }
+            .card { padding: 15px; }
         }
 
         .mobile-toggle {
@@ -399,7 +410,8 @@ if (file_exists($help_file)) {
     <div class="container">
         <div class="sidebar glass animate__animated animate__fadeInLeft" id="sidebar">
             <div class="sidebar-header">
-                <i data-lucide="waves"></i> AquaSafe
+                <img src="../assets/logo.png" alt="AquaSafe Logo" class="interactive-logo">
+                AquaSafe
             </div>
             <div class="sidebar-menu">
                 <a href="#section-flood" class="active" data-target="section-flood"><i data-lucide="activity"></i> Flood Status</a>

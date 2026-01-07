@@ -164,6 +164,13 @@
             letter-spacing: 1px;
         }
 
+        .header-logo-img {
+            width: 80px;
+            height: 80px;
+            object-fit: contain;
+            margin-bottom: 15px;
+        }
+
         h1 {
             font-size: 48px;
             font-weight: 700;
@@ -347,6 +354,7 @@
     <!-- Main Content -->
     <div class="container">
         <div class="hero-section">
+            <img src="../assets/logo.png" alt="AquaSafe Logo" class="header-logo-img">
             <div class="brand-badge">
                 <span class="pulse-dot">●</span> System Operational
             </div>

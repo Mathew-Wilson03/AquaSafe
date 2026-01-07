@@ -98,11 +98,10 @@ if ($users_result) {
             padding-left: 10px;
         }
 
-        .sidebar-header svg {
-            width: 32px;
-            height: 32px;
-            stroke: #4ab5c4;
-            filter: drop-shadow(0 0 5px rgba(74, 181, 196, 0.5));
+        .interactive-logo {
+            width: 40px;
+            height: 40px;
+            object-fit: contain;
         }
 
         .sidebar-nav {
@@ -214,6 +213,66 @@ if ($users_result) {
             animation: pulse-green 2s infinite;
         }
 
+        /* Custom Premium Area Selector */
+        .area-selector-wrapper {
+            position: relative;
+            min-width: 200px;
+        }
+
+        .area-selector-wrapper select {
+            width: 100%;
+            padding: 10px 40px 10px 16px;
+            font-size: 14px;
+            font-family: inherit;
+            color: #ffffff;
+            background: rgba(0, 0, 0, 0.4);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            appearance: none;
+            -webkit-appearance: none;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+        }
+
+        .area-selector-wrapper select:hover {
+            background: rgba(255, 255, 255, 0.05);
+            border-color: rgba(74, 181, 196, 0.5);
+            box-shadow: 0 0 15px rgba(74, 181, 196, 0.2);
+        }
+
+        .area-selector-wrapper select:focus {
+            outline: none;
+            border-color: #4ab5c4;
+            box-shadow: 0 0 20px rgba(74, 181, 196, 0.3);
+        }
+
+        .area-selector-wrapper select option {
+            background-color: #1a3a4a; /* Solid background for visibility */
+            color: #ffffff;
+            padding: 10px;
+        }
+
+        .area-selector-wrapper::after {
+            content: "";
+            position: absolute;
+            right: 16px;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 12px;
+            height: 12px;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%234ab5c4' stroke-width='3'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' d='M19.5 8.25l-7.5 7.5-7.5-7.5' /%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: center;
+            pointer-events: none;
+            transition: transform 0.3s ease;
+        }
+
+        .area-selector-wrapper:focus-within::after {
+            transform: translateY(-50%) rotate(180deg);
+        }
+
         /* Dashboard Grid */
         .dashboard-content {
             flex: 1;
@@ -319,12 +378,18 @@ if ($users_result) {
             border-radius: 20px;
             padding: 20px;
             text-align: center;
-            transition: all 0.3s ease;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            cursor: pointer;
+            position: relative;
+            z-index: 10;
+            overflow: hidden;
         }
 
         .status-card:hover {
-            transform: translateY(-5px);
-            background: rgba(255, 255, 255, 0.1);
+            transform: translateY(-8px);
+            background: rgba(74, 181, 196, 0.1);
+            border-color: rgba(74, 181, 196, 0.3);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
         }
 
         .status-label {
@@ -344,6 +409,13 @@ if ($users_result) {
         .warning-text { color: #f1c40f; text-shadow: 0 0 10px rgba(241, 196, 15, 0.3); }
         .danger-text { color: #e74c3c; text-shadow: 0 0 10px rgba(231, 76, 60, 0.3); }
         .info-text { color: #4ab5c4; text-shadow: 0 0 10px rgba(74, 181, 196, 0.3); }
+
+        .alert-btn-wrapper button:hover {
+            background: rgba(74, 181, 196, 0.2) !important;
+            border-color: rgba(74, 181, 196, 0.5) !important;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+        }
 
         /* Animations */
         @keyframes fadeIn {
@@ -420,13 +492,53 @@ if ($users_result) {
                 width: 280px;
                 transition: left 0.3s ease;
                 border-radius: 0 24px 24px 0;
+                overflow-y: auto; /* Enable vertical scroll for long menus on mobile */
+                max-height: 100vh;
             }
             .sidebar.active { left: 0; }
             .dashboard-grid { grid-template-columns: 1fr; }
             .status-row { grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 10px; }
-            .header { padding: 15px 20px; }
+            .header { padding: 15px 20px; flex-wrap: wrap; gap: 10px; }
             .header-left h1 { font-size: 20px; }
             .mobile-toggle { display: block !important; }
+
+            /* Table Responsiveness (Manage Users & Sensors) */
+            table, thead, tbody, th, td, tr { 
+                display: block; 
+            }
+            
+            thead tr { 
+                position: absolute;
+                top: -9999px;
+                left: -9999px;
+            }
+            
+            tr { border: 1px solid rgba(255,255,255,0.1); border-radius: 12px; margin-bottom: 10px; padding: 10px; background: rgba(255,255,255,0.02); }
+            
+            td { 
+                border: none;
+                border-bottom: 1px solid rgba(255,255,255,0.05); 
+                position: relative;
+                padding-left: 50% !important; 
+                text-align: left !important;
+                min-height: 40px;
+                display: flex;
+                align-items: center;
+            }
+
+            td:last-child { border-bottom: none; justify-content: flex-start; }
+            
+            td:before { 
+                position: absolute;
+                left: 15px;
+                width: 45%; 
+                padding-right: 10px; 
+                white-space: nowrap;
+                font-weight: 600;
+                color: #4ab5c4;
+                font-size: 13px;
+                content: attr(data-label);
+            }
         }
 
         @media (max-width: 480px) {
@@ -511,6 +623,31 @@ if ($users_result) {
         .modal-actions { display: flex; justify-content: flex-end; gap: 10px; margin-top: 25px; }
         .btn-cancel { padding: 10px 20px; background: transparent; border: 1px solid rgba(255,255,255,0.2); color: white; border-radius: 8px; cursor: pointer; }
         .btn-save { padding: 10px 20px; background: #4ab5c4; border: none; color: white; border-radius: 8px; cursor: pointer; font-weight: 600; }
+
+        /* Notification Badge */
+        .nav-link { position: relative; }
+        #alertBadge {
+            position: absolute;
+            right: 15px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: #e74c3c;
+            color: white;
+            font-size: 11px;
+            font-weight: 700;
+            padding: 2px 8px;
+            border-radius: 12px;
+            min-width: 18px;
+            text-align: center;
+            display: none;
+            box-shadow: 0 2px 5px rgba(231, 76, 60, 0.4);
+            animation: badgePulse 2s infinite;
+        }
+        @keyframes badgePulse {
+            0% { transform: translateY(-50%) scale(1); }
+            50% { transform: translateY(-50%) scale(1.1); }
+            100% { transform: translateY(-50%) scale(1); }
+        }
     </style>
 </head>
 <body>
@@ -519,22 +656,20 @@ if ($users_result) {
         <!-- Sidebar -->
         <div class="sidebar">
             <div class="sidebar-header">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3">
-                    <path d="M12 2v8m0 4v8M2 12h8m4 0h8M4 4l5.66 5.66M14.34 4l5.66 5.66M4 20l5.66-5.66M14.34 20l5.66-5.66"/>
-                </svg>
+                <img src="../assets/logo.png" alt="AquaSafe Logo" class="interactive-logo">
                 AquaSafe
             </div>
             <ul class="sidebar-nav">
-                <li><a href="#" class="nav-link active" onclick="switchTab('dashboard', this)">📊 Dashboard</a></li>
-                <li><a href="#" class="nav-link" onclick="switchTab('sensors', this)">📡 Sensors</a></li>
-                <li><a href="#" class="nav-link" onclick="switchTab('alerts', this)">🚨 Alerts</a></li>
-                <li><a href="#" class="nav-link" onclick="switchTab('map', this)">🗺️ Map</a></li>
-                <li><a href="#" class="nav-link" onclick="switchTab('evacuation', this)">📍 Evacuation Points</a></li>
-                <li><a href="#" class="nav-link" onclick="switchTab('reports', this)">📊 Reports</a></li>
-                <li><a href="#" class="nav-link" onclick="switchTab('helpdesk', this)">🆘 Help Desk</a></li>
-                <li><a href="#" class="nav-link" onclick="switchTab('notifications', this)">🔔 Notifications</a></li>
-                <li><a href="#" class="nav-link" onclick="switchTab('users', this)">👥 Manage Users</a></li>
-                <li><a href="#" class="nav-link" onclick="switchTab('settings', this)">⚙️ Settings</a></li>
+                <li><a href="#" id="nav-dashboard" class="nav-link active" onclick="switchTab('dashboard', this)">📊 Dashboard</a></li>
+                <li><a href="#" id="nav-sensors" class="nav-link" onclick="switchTab('sensors', this)">📡 Sensors</a></li>
+                <li><a href="#" id="nav-alerts" class="nav-link" onclick="switchTab('alerts', this)">🚨 Alerts <span id="alertBadge"></span></a></li>
+                <li><a href="#" id="nav-map" class="nav-link" onclick="switchTab('map', this)">🗺️ Map</a></li>
+                <li><a href="#" id="nav-evacuation" class="nav-link" onclick="switchTab('evacuation', this)">📍 Evacuation Points</a></li>
+                <li><a href="#" id="nav-reports" class="nav-link" onclick="switchTab('reports', this)">📊 Reports</a></li>
+                <li><a href="#" id="nav-helpdesk" class="nav-link" onclick="switchTab('helpdesk', this)">🆘 Help Desk</a></li>
+                <li><a href="#" id="nav-notifications" class="nav-link" onclick="switchTab('notifications', this)">🔔 Notifications</a></li>
+                <li><a href="#" id="nav-users" class="nav-link" onclick="switchTab('users', this)">👥 Manage Users</a></li>
+                <li><a href="#" id="nav-settings" class="nav-link" onclick="switchTab('settings', this)">⚙️ Settings</a></li>
             </ul>
             <div class="sidebar-logout">
                 <a href="logout.php">
@@ -571,7 +706,14 @@ if ($users_result) {
                     <div class="dashboard-grid">
                         <!-- Chart -->
                         <div class="card">
-                            <h3>📈 Real-time Water Levels</h3>
+                            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; gap: 15px;">
+                                <h3 id="currentGraphTitle" style="margin-bottom: 0;">📈 Real-time Water Levels - South Reservoir</h3>
+                                <div class="area-selector-wrapper">
+                                    <select id="areaSelector" onchange="window.switchAreaGraph(this.value)">
+                                        <option value="South Reservoir">South Reservoir</option>
+                                    </select>
+                                </div>
+                            </div>
                             <div class="chart-container">
                                 <canvas id="waterLevelChart"></canvas>
                             </div>
@@ -599,23 +741,41 @@ if ($users_result) {
 
                     <!-- Status Cards -->
                     <div class="status-row">
-                        <div class="status-card">
+                        <div class="status-card" onclick="window.switchTab('reports')">
                             <div class="status-label">Overall Safety</div>
-                            <div class="status-value safe-text">98%</div>
+                            <div class="status-value safe-text" id="overallSafetyValue">98%</div>
                         </div>
-                        <div class="status-card">
+                        <div class="status-card" onclick="window.switchTab('alerts')">
                             <div class="status-label">Active Alerts</div>
-                            <div class="status-value warning-text">2 New</div>
+                            <div class="status-value warning-text" id="activeAlertCount">0 New</div>
                         </div>
-                        <div class="status-card">
+                        <div class="status-card" onclick="window.switchTab('map')">
                             <div class="status-label">Critical Zones</div>
-                            <div class="status-value danger-text">1 Zone</div>
+                            <div class="status-value danger-text" id="criticalZoneCount">0 Zones</div>
                         </div>
-                        <div class="status-card">
+                        <div class="status-card" onclick="window.switchTab('sensors')">
                             <div class="status-label">System Health</div>
-                            <div class="status-value info-text">Optimal</div>
+                            <div class="status-value info-text" id="systemHealthText">Optimal</div>
                         </div>
                     </div>
+
+                    <!-- Recent Alerts Summary for Dashboard -->
+                    <div class="card" style="margin-top: 20px;">
+                        <h3>🚨 Recent Critical Alerts</h3>
+                        <div id="dashboardRecentAlerts" style="margin-top: 15px;">
+                            <p style="opacity: 0.5; font-size: 14px;">Loading latest alerts...</p>
+                        </div>
+                        <div class="alert-btn-wrapper" style="margin-top: 25px; text-align: left; position: relative; z-index: 10;">
+                            <button id="mainShowAlertsBtn" 
+                                    onclick="window.switchTab('alerts')" 
+                                    style="background: rgba(74, 181, 196, 0.2); color: #4ab5c4; border: 1px solid rgba(74, 181, 196, 0.5); padding: 12px 24px; border-radius: 12px; font-weight: 700; cursor: pointer; display: flex; align-items: center; gap: 8px; transition: all 0.3s; position: relative; z-index: 11;">
+                                Show All Alerts 
+                                <span style="font-size: 18px; line-height: 1;">→</span>
+                            </button>
+                        </div>
+                 </div>
+                    
+
                 </div>
             </div>
 
@@ -698,7 +858,7 @@ if ($users_result) {
                 <div class="card">
                     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
                         <h3>📍 Evacuation Points</h3>
-                        <button style="padding: 10px 20px; background: #4ab5c4; border: none; border-radius: 8px; color: white; font-weight: 600; cursor: pointer; transition: background 0.3s;" onclick="openAddModal()">+ Add Point</button>
+                        <button style="padding: 10px 20px; background: #4ab5c4; border: none; border-radius: 8px; color: white; font-weight: 600; cursor: pointer; transition: background 0.3s; position: relative; z-index: 10;" onclick="window.openAddModal()">+ Add Point</button>
                     </div>
                     <p style="opacity: 0.7; margin-bottom: 20px;">Admins can manage and update evacuation points dynamically based on flood severity.</p>
                     
@@ -713,32 +873,35 @@ if ($users_result) {
                 <div class="modal">
                     <h2 id="modalTitle">Add Evacuation Point</h2>
                     <form id="evacuationForm" onsubmit="saveEvacuationPoint(event)">
-                        <input type="hidden" id="pointId">
+                        <input type="hidden" id="pointId" name="id">
                         <div class="form-group">
                             <label>Location Name</label>
-                            <input type="text" id="pointName" required placeholder="e.g. City Hall">
+                            <input type="text" id="pointName" name="name" required placeholder="e.g. City Hall">
                         </div>
                         <div class="form-group">
                             <label>Area / Address</label>
-                            <input type="text" id="pointLocation" required placeholder="e.g. Downtown">
+                            <div style="display: flex; gap: 10px;">
+                                <input type="text" id="pointLocation" name="location" required placeholder="e.g. Downtown" style="flex: 1;">
+                                <button type="button" onclick="window.autoLocate()" style="padding: 0 15px; background: rgba(74, 181, 196, 0.2); border: 1px solid #4ab5c4; color: #4ab5c4; border-radius: 8px; cursor: pointer; font-size: 13px; font-weight: 600; white-space: nowrap; transition: all 0.3s;" id="autoLocateBtn">📍 Auto-Locate</button>
+                            </div>
                         </div>
                         <div style="display: flex; gap: 15px;">
                             <div class="form-group" style="flex:1;">
                                 <label>Latitude</label>
-                                <input type="number" step="any" id="pointLat" placeholder="10.8505">
+                                <input type="number" step="any" id="pointLat" name="latitude" placeholder="10.8505">
                             </div>
                             <div class="form-group" style="flex:1;">
                                 <label>Longitude</label>
-                                <input type="number" step="any" id="pointLng" placeholder="76.2711">
+                                <input type="number" step="any" id="pointLng" name="longitude" placeholder="76.2711">
                             </div>
                         </div>
                         <div class="form-group">
                             <label>Capacity (Persons)</label>
-                            <input type="number" id="pointCapacity" required min="1">
+                            <input type="number" id="pointCapacity" name="capacity" required min="1" step="1" style="background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.2); position: relative; z-index: 10;">
                         </div>
                         <div class="form-group">
                             <label>Status</label>
-                            <select id="pointStatus">
+                            <select id="pointStatus" name="status">
                                 <option value="Available">Available</option>
                                 <option value="Full">Full</option>
                                 <option value="Closed">Closed</option>
@@ -746,7 +909,7 @@ if ($users_result) {
                         </div>
                         <div class="form-group">
                             <label>Assigned Sensor</label>
-                            <input type="text" id="pointSensor" placeholder="e.g. SNS-001">
+                            <input type="text" id="pointSensor" name="sensor" placeholder="e.g. SNS-001">
                         </div>
                         <div class="modal-actions">
                             <button type="button" class="btn-cancel" onclick="closeModal()">Cancel</button>
@@ -790,7 +953,7 @@ if ($users_result) {
                 <!-- Charts Area -->
                 <div class="dashboard-grid">
                      <div class="card">
-                        <h3>📊 Water Level Trends</h3>
+                        <h3>📊 Water Level Trends (System Average)</h3>
                         <div class="chart-container">
                             <canvas id="floodTrendChart"></canvas>
                         </div>
@@ -807,7 +970,7 @@ if ($users_result) {
                 <div class="card">
                     <div style="display: flex; justify-content: space-between; align-items: center;">
                          <h3>📑 Recent Generated Reports</h3>
-                         <button style="padding: 10px 20px; background: #4ab5c4; border: none; border-radius: 8px; color: white; font-weight: 600; transition: all 0.3s; box-shadow: 0 4px 15px rgba(74, 181, 196, 0.3);">
+                         <button onclick="window.exportReportCSV()" style="padding: 10px 20px; background: #4ab5c4; border: none; border-radius: 8px; color: white; font-weight: 600; transition: all 0.3s; box-shadow: 0 4px 15px rgba(74, 181, 196, 0.3); cursor: pointer;">
                              Export All (CSV)
                          </button>
                     </div>
@@ -825,13 +988,13 @@ if ($users_result) {
                                 <td style="padding: 15px; border-radius: 10px 0 0 10px;">Dec 19, 2025</td>
                                 <td style="padding: 15px;">Daily Operations Summary</td>
                                 <td style="padding: 15px;"><span style="background: rgba(46, 204, 113, 0.15); color: #2ecc71; padding: 4px 10px; border-radius: 20px; font-size: 13px;">Completed</span></td>
-                                <td style="padding: 15px; text-align: right; border-radius: 0 10px 10px 0;"><a href="#" style="color: #4ab5c4; text-decoration: none; font-weight: 500;">Download PDF</a></td>
+                                <td style="padding: 15px; text-align: right; border-radius: 0 10px 10px 0;"><a href="javascript:void(0)" onclick="window.downloadReportPDF('Daily Operations')" style="color: #4ab5c4; text-decoration: none; font-weight: 500;">Download PDF</a></td>
                             </tr>
                             <tr style="background: rgba(255,255,255,0.03);">
                                 <td style="padding: 15px; border-radius: 10px 0 0 10px;">Dec 18, 2025</td>
                                 <td style="padding: 15px;">Critical Incident Log - North Zone</td>
                                 <td style="padding: 15px;"><span style="background: rgba(241, 196, 15, 0.15); color: #f1c40f; padding: 4px 10px; border-radius: 20px; font-size: 13px;">Review Needed</span></td>
-                                <td style="padding: 15px; text-align: right; border-radius: 0 10px 10px 0;"><a href="#" style="color: #4ab5c4; text-decoration: none; font-weight: 500;">Download PDF</a></td>
+                                <td style="padding: 15px; text-align: right; border-radius: 0 10px 10px 0;"><a href="javascript:void(0)" onclick="window.downloadReportPDF('Incident Log')" style="color: #4ab5c4; text-decoration: none; font-weight: 500;">Download PDF</a></td>
                             </tr>
                         </tbody>
                     </table>
@@ -902,9 +1065,9 @@ if ($users_result) {
                             <tbody>
                                 <?php foreach($all_users as $u): ?>
                                 <tr style="border-bottom: 1px solid rgba(255,255,255,0.05);">
-                                    <td style="padding: 15px;"><?php echo htmlspecialchars((string)$u['name']); ?></td>
-                                    <td style="padding: 15px;"><?php echo htmlspecialchars((string)$u['email']); ?></td>
-                                    <td style="padding: 15px;">
+                                    <td style="padding: 15px;" data-label="Name"><?php echo htmlspecialchars((string)$u['name']); ?></td>
+                                    <td style="padding: 15px;" data-label="Email"><?php echo htmlspecialchars((string)$u['email']); ?></td>
+                                    <td style="padding: 15px;" data-label="Role">
                                         <span class="<?php echo ($u['user_role'] === 'admin' || $u['user_role'] === 'administrator') ? 'danger-text' : 'info-text'; ?>" style="font-weight: 600;">
                                             <?php 
                                                 $display_role = !empty($u['user_role']) ? ucfirst($u['user_role']) : 'Not Set';
@@ -913,7 +1076,7 @@ if ($users_result) {
                                             ?>
                                         </span>
                                     </td>
-                                    <td style="padding: 15px; text-align: right;">
+                                    <td style="padding: 15px; text-align: right;" data-label="Action">
                                         <?php if($u['email'] !== $user_email): ?>
                                             <?php 
                                                 $role = strtolower(trim((string)$u['user_role']));
@@ -1034,9 +1197,95 @@ if ($users_result) {
     </div>
 
     <script>
+        // 0. CORE NAVIGATION & LOGGING (Top of script for reliability)
+        function log(...args) {
+            console.log("[AquaSafe]", ...args);
+        }
+        
+        window.toggleSidebar = function() {
+            const sidebar = document.querySelector('.sidebar');
+            const overlay = document.getElementById('sidebarOverlay');
+            if (sidebar && overlay) {
+                sidebar.classList.toggle('active');
+                overlay.classList.toggle('active');
+            }
+        };
+
+        // Primary navigation function
+        window.switchTab = function(tabId, element) {
+            console.log("[AquaSafe] Navigation Engine: Targeting", tabId);
+            
+            try {
+                // 1. Hide all sections & activate target
+                document.querySelectorAll('.content-section').forEach(el => el.classList.remove('active'));
+                const target = document.getElementById(tabId);
+                if (target) {
+                    target.classList.add('active');
+                } else {
+                    log("Navigation Error: Section '" + tabId + "' not found!");
+                    return;
+                }
+                
+                // 2. Clear all sidebar active states
+                document.querySelectorAll('.nav-link').forEach(el => el.classList.remove('active'));
+                
+                // 3. Handle Sidebar Highlighting
+                let activeLink = element;
+                if (!activeLink) {
+                    // Use new IDs for robust matching
+                    activeLink = document.getElementById('nav-' + tabId);
+                }
+                if (activeLink) activeLink.classList.add('active');
+
+                // 4. Mobile Handling
+                if (window.innerWidth <= 1024) {
+                    const sidebar = document.querySelector('.sidebar');
+                    if(sidebar && sidebar.classList.contains('active')) toggleSidebar();
+                }
+
+                // 5. Scroll & Title Updates
+                window.scrollTo({ top: 0, behavior: 'auto' });
+                
+                const titles = {
+                    'dashboard': 'Admin Dashboard', 'sensors': 'Sensor Management', 'alerts': 'System Alerts',
+                    'map': 'Live Map', 'evacuation': 'Evacuation Management', 'reports': 'Reports & Analytics',
+                    'helpdesk': 'Help Desk', 'notifications': 'Notification Control', 'users': 'User Management', 'settings': 'System Settings'
+                };
+                const titleEl = document.getElementById('pageTitle');
+                if (titleEl) titleEl.innerText = titles[tabId] || 'Admin Dashboard';
+
+                // 6. Data Refresh Logic
+                if(tabId === 'map') initMap();
+                if(tabId === 'reports') renderReportCharts();
+                if(tabId === 'evacuation') fetchEvacuationPoints();
+                if(tabId === 'alerts') {
+                    fetchSystemAlerts();
+                    const badge = document.getElementById('alertBadge');
+                    if(badge) badge.style.display = 'none';
+                }
+                if(tabId === 'sensors') fetchSensorStatus();
+                if(tabId === 'dashboard') {
+                    fetchSystemAlerts();
+                    fetchSensorStatus();
+                }
+            } catch (err) {
+                log("switchTab CRITICAL ERROR:", err);
+            }
+        };
+
+        // Support for local switchTab() calls
+        var switchTab = window.switchTab;
+
         // 1. GLOBAL STORE & DIAGNOSTICS
         var allEvacPoints = {}; 
-        var log = console.log;
+        var waterChart; 
+        var chartDataStore = {
+            'South Reservoir': {
+                labels: ['10:00', '10:05', '10:10', '10:15', '10:20', '10:25'],
+                data: [45, 48, 52, 50, 55, 58]
+            }
+        };
+        var currentArea = 'South Reservoir';
         log("AquaSafe Admin JS Loading...");
 
         // 2. GLOBAL EVACUATION FUNCTIONS (Explicit window assignment)
@@ -1053,7 +1302,6 @@ if ($users_result) {
 
         window.openEditModal = function(id) {
             log("openEditModal called for ID:", id);
-            alert("Diagnostic: openEditModal triggered for ID " + id);
             
             const pt = allEvacPoints[id] || allEvacPoints[String(id)] || allEvacPoints[parseInt(id)];
 
@@ -1105,8 +1353,11 @@ if ($users_result) {
                 if(data.status === 'success') {
                     alert("SUCCESS: " + (data.message || "Data saved."));
                     closeModal();
-                    fetchEvacuationPoints();
-                    if(typeof refreshMapMarkers === 'function') refreshMapMarkers();
+                    // Refreshes
+                    await fetchEvacuationPoints();
+                    if(typeof window.refreshMapMarkers === 'function') {
+                        await window.refreshMapMarkers();
+                    }
                 } else {
                     alert("SERVER ERROR: " + data.message);
                 }
@@ -1128,8 +1379,10 @@ if ($users_result) {
                 const data = await res.json();
                 if(data.status === 'success') {
                     alert("Location deleted.");
-                    fetchEvacuationPoints();
-                    if(typeof refreshMapMarkers === 'function') refreshMapMarkers();
+                    await fetchEvacuationPoints();
+                    if(typeof window.refreshMapMarkers === 'function') {
+                        await window.refreshMapMarkers();
+                    }
                 } else {
                     alert("Delete failed: " + data.message);
                 }
@@ -1155,7 +1408,7 @@ if ($users_result) {
                         const statusColor = pt.status === 'Available' ? 'safe-text' : (pt.status === 'Full' ? 'danger-text' : 'warning-text');
                         
                         const card = document.createElement('div');
-                        card.style.cssText = "background: rgba(255,255,255,0.05); padding: 20px; border-radius: 16px; border: 1px solid rgba(255,255,255,0.1);";
+                        card.style.cssText = "background: rgba(255,255,255,0.05); padding: 20px; border-radius: 16px; border: 1px solid rgba(255,255,255,0.1); position: relative; z-index: 10;";
                         card.innerHTML = `
                             <div style="display: flex; justify-content: space-between; margin-bottom: 15px;">
                                 <strong style="font-size: 18px;">${pt.name}</strong>
@@ -1167,8 +1420,8 @@ if ($users_result) {
                                 <div>Assigned Sensor: <strong>${pt.assigned_sensor || 'N/A'}</strong></div>
                             </div>
                             <div style="display: flex; gap: 10px; margin-top: 15px;">
-                                <button onclick="window.openEditModal('${pt.id}')" style="flex: 1; padding: 10px; background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); color: white; border-radius: 8px; cursor: pointer; font-weight: 500;">Edit</button>
-                                <button onclick="window.deletePoint('${pt.id}')" style="flex: 1; padding: 10px; background: rgba(231, 76, 60, 0.1); border: 1px solid rgba(231, 76, 60, 0.3); color: #e74c3c; border-radius: 8px; cursor: pointer; font-weight: 500;">Remove</button>
+                                <button onclick="window.openEditModal('${pt.id}')" style="flex: 1; padding: 10px; background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); color: white; border-radius: 8px; cursor: pointer; font-weight: 500; position: relative; z-index: 11;">Edit</button>
+                                <button onclick="window.deletePoint('${pt.id}')" style="flex: 1; padding: 10px; background: rgba(231, 76, 60, 0.1); border: 1px solid rgba(231, 76, 60, 0.3); color: #e74c3c; border-radius: 8px; cursor: pointer; font-weight: 500; position: relative; z-index: 11;">Remove</button>
                             </div>
                         `;
                         listEl.appendChild(card);
@@ -1189,6 +1442,257 @@ if ($users_result) {
             }
         };
 
+        window.autoLocate = async function() {
+            const address = document.getElementById('pointLocation').value;
+            const btn = document.getElementById('autoLocateBtn');
+            const latInput = document.getElementById('pointLat');
+            const lngInput = document.getElementById('pointLng');
+
+            if (!address || address.length < 3) {
+                return alert("Please enter a more specific location address first.");
+            }
+
+            const originalText = btn.innerHTML;
+            btn.innerHTML = "⏳ Searching...";
+            btn.style.opacity = "0.7";
+            btn.disabled = true;
+
+            try {
+                log("Requesting Server-Side Geocode for:", address);
+                const formData = new FormData();
+                formData.append('action', 'geocode');
+                formData.append('address', address);
+
+                const response = await fetch('manage_evacuation.php', {
+                    method: 'POST',
+                    body: formData
+                });
+                const res = await response.json();
+
+                if (res.status === 'success' && res.data) {
+                    const result = res.data;
+                    latInput.value = parseFloat(result.lat).toFixed(6);
+                    lngInput.value = parseFloat(result.lon).toFixed(6);
+                    log("Location Found via Proxy:", result.display_name);
+                    
+                    // Flash success
+                    latInput.style.borderColor = "#4ab5c4";
+                    lngInput.style.borderColor = "#4ab5c4";
+                    setTimeout(() => {
+                        latInput.style.borderColor = "";
+                        lngInput.style.borderColor = "";
+                    }, 2000);
+                } else {
+                    alert(res.message || "Could not find coordinates for this address. Try adding more details like a district name.");
+                }
+            } catch (err) {
+                log("Geocoding Proxy Error:", err);
+                alert("Search service currently unavailable. Please enter coordinates manually.");
+            } finally {
+                btn.innerHTML = originalText;
+                btn.style.opacity = "1";
+                btn.disabled = false;
+            }
+        };
+
+        window.fetchSystemAlerts = async function() {
+            const container = document.querySelector('#alerts .card > div');
+            const dashboardContainer = document.getElementById('dashboardRecentAlerts');
+            const countEl = document.getElementById('activeAlertCount');
+            const badgeEl = document.getElementById('alertBadge');
+            if(!container && !dashboardContainer) return;
+
+            try {
+                const res = await fetch('manage_alerts.php?action=fetch_all');
+                const json = await res.json();
+                
+                if(json.status === 'success') {
+                    const alerts = json.data || [];
+                    
+                    // Update Count on Dashboard
+                    if(countEl) countEl.innerText = alerts.length + " New";
+
+                    // Update Sidebar Badge (only if NOT currently on alerts tab)
+                    if(badgeEl) {
+                        const isAlertsActive = document.getElementById('alerts').classList.contains('active');
+                        if(alerts.length > 0 && !isAlertsActive) {
+                            badgeEl.innerText = alerts.length;
+                            badgeEl.style.display = 'block';
+                        } else if (isAlertsActive) {
+                            badgeEl.style.display = 'none';
+                        }
+                    }
+                    
+                    // Update Main Alerts Tab
+                    if(container) {
+                        if(alerts.length > 0) {
+                            let html = '';
+                            alerts.forEach(alert => {
+                                const borderCol = alert.severity === 'Critical' ? '#e74c3c' : (alert.severity === 'Warning' ? '#f1c40f' : '#2ecc71');
+                                const bgCol = alert.severity === 'Critical' ? 'rgba(231, 76, 60, 0.1)' : (alert.severity === 'Warning' ? 'rgba(241, 196, 15, 0.1)' : 'rgba(46, 204, 113, 0.1)');
+                                const textCol = alert.severity === 'Critical' ? '#e74c3c' : (alert.severity === 'Warning' ? '#f1c40f' : '#2ecc71');
+                                
+                                html += `
+                                    <div style="background: ${bgCol}; border-left: 4px solid ${borderCol}; padding: 15px; margin-bottom: 15px; border-radius: 0 8px 8px 0;">
+                                        <strong style="color: ${textCol};">${alert.severity} Alert</strong>
+                                        <p style="font-size: 14px; margin-top: 5px; opacity: 0.8;">${alert.message}</p>
+                                        <div style="font-size: 12px; opacity: 0.5; margin-top: 5px;">${new Date(alert.timestamp).toLocaleTimeString()}</div>
+                                    </div>
+                                `;
+                            });
+                            container.innerHTML = html;
+                        } else {
+                            container.innerHTML = '<p style="text-align:center; opacity:0.5;">No active alerts at this time.</p>';
+                        }
+                    }
+
+                    // Update Dashboard Summary (Top 3)
+                    if(dashboardContainer) {
+                        if(alerts.length > 0) {
+                            let html = '';
+                            alerts.slice(0, 3).forEach(alert => {
+                                const dotCol = alert.severity === 'Critical' ? '#e74c3c' : '#f1c40f';
+                                html += `
+                                    <div style="display: flex; gap: 10px; margin-bottom: 10px; font-size: 14px; border-bottom: 1px solid rgba(255,255,255,0.05); padding-bottom: 8px;">
+                                        <div style="width: 8px; height: 8px; background: ${dotCol}; border-radius: 50%; margin-top: 5px; flex-shrink: 0;"></div>
+                                        <div>
+                                            <div style="font-weight: 600;">${alert.message}</div>
+                                            <div style="font-size: 11px; opacity: 0.5;">${new Date(alert.timestamp).toLocaleTimeString()}</div>
+                                        </div>
+                                    </div>
+                                `;
+                            });
+                            dashboardContainer.innerHTML = html;
+                        } else {
+                            dashboardContainer.innerHTML = '<p style="opacity: 0.5; font-size: 14px;">No recent alerts.</p>';
+                        }
+                    }
+                }
+            } catch (err) {
+                log("Alert Fetch Error:", err);
+            }
+        };
+
+        window.fetchSensorStatus = async function() {
+            const tbody = document.querySelector('#sensors tbody');
+            const zoneEl = document.getElementById('criticalZoneCount');
+            if(!tbody && !zoneEl) return;
+
+            try {
+                const res = await fetch('manage_alerts.php?action=fetch_sensors');
+                const json = await res.json();
+                
+                if(json.status === 'success') {
+                    const sensors = json.data || [];
+                    let criticalCount = 0;
+
+                    if(tbody) tbody.innerHTML = '';
+                    
+                    sensors.forEach(s => {
+                        const isCritical = (s.status === 'Offline' || s.status === 'Maintenance');
+                        if(isCritical) criticalCount++;
+
+                        if(tbody) {
+                            const statusClass = s.status === 'Active' ? 'safe-text' : (s.status === 'Offline' ? 'danger-text' : 'warning-text');
+                            const tr = document.createElement('tr');
+                            tr.style.cssText = "border-bottom: 1px solid rgba(255,255,255,0.05);";
+                            tr.innerHTML = `
+                                <td style="padding: 15px;" data-label="ID">${s.sensor_id}</td>
+                                <td style="padding: 15px;" data-label="Location">${s.location_name}</td>
+                                <td style="padding: 15px;" data-label="Status"><span class="${statusClass}">${s.status}</span></td>
+                                <td style="padding: 15px;" data-label="Battery">${s.battery_level}%</td>
+                                <td style="padding: 15px;" data-label="Last Ping">${new Date(s.last_ping).toLocaleTimeString()}</td>
+                            `;
+                            tbody.appendChild(tr);
+                        }
+                    });
+
+                    if(tbody) {
+                        zoneEl.innerText = criticalCount + (criticalCount === 1 ? " Zone" : " Zones");
+                        
+                        // Calculate Overall Safety % (Ratio of Active sensors)
+                        const safetyPercent = sensors.length > 0 ? Math.round(((sensors.length - criticalCount) / sensors.length) * 100) : 100;
+                        const safetyEl = document.getElementById('overallSafetyValue');
+                        if (safetyEl) {
+                            safetyEl.innerText = safetyPercent + "%";
+                            safetyEl.className = 'status-value ' + (safetyPercent > 90 ? 'safe-text' : (safetyPercent > 70 ? 'warning-text' : 'danger-text'));
+                        }
+
+                        // Update System Health Text
+                        const healthEl = document.getElementById('systemHealthText');
+                        if (healthEl) {
+                            if (criticalCount === 0) {
+                                healthEl.innerText = "Optimal";
+                                healthEl.className = 'status-value safe-text';
+                            } else if (criticalCount < sensors.length / 2) {
+                                healthEl.innerText = "Degraded";
+                                healthEl.className = 'status-value warning-text';
+                            } else {
+                                healthEl.innerText = "Critical";
+                                healthEl.className = 'status-value danger-text';
+                            }
+                        }
+                    }
+
+                    // Dynamic Graph Area Support: Populate dropdown
+                    const areaDropdown = document.getElementById('areaSelector');
+                    if(areaDropdown && sensors.length > 0) {
+                        const currentVal = areaDropdown.value;
+                        const uniqueAreas = [...new Set(['South Reservoir', ...sensors.map(s => s.location_name)])].sort();
+                        
+                        // Only update DOM if the set of areas has changed to prevent flickering/focus loss
+                        const existingOptions = Array.from(areaDropdown.options).map(o => o.value).sort();
+                        const areasString = uniqueAreas.join('|');
+                        const existingString = existingOptions.join('|');
+
+                        if(areasString !== existingString) {
+                            log("Updating Area Selector Options...");
+                            let optionsHtml = '';
+                            uniqueAreas.forEach(area => {
+                                optionsHtml += `<option value="${area}">${area}</option>`;
+                            });
+                            areaDropdown.innerHTML = optionsHtml;
+                            
+                            // Restore value if it still exists, else default to South Reservoir
+                            if (uniqueAreas.includes(currentVal)) {
+                                areaDropdown.value = currentVal;
+                            } else {
+                                areaDropdown.value = 'South Reservoir';
+                            }
+                        }
+
+                        // Init data for new areas if not exists
+                        uniqueAreas.forEach(area => {
+                            if(!chartDataStore[area]) {
+                                chartDataStore[area] = {
+                                    labels: Array.from({length:6}, (_,i) => new Date(Date.now() - (5-i)*300000).toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'})),
+                                    data: Array.from({length:6}, () => 40 + Math.random() * 20)
+                                };
+                            }
+                        });
+                    }
+                }
+            } catch (err) {
+                log("Sensor Fetch Error:", err);
+            }
+        };
+
+        window.switchAreaGraph = function(area) {
+            if(!waterChart || !chartDataStore[area]) return;
+            currentArea = area;
+            
+            // Update Title
+            const titleEl = document.getElementById('currentGraphTitle');
+            if(titleEl) titleEl.innerText = `📈 Real-time Water Levels - ${area}`;
+
+            // Update Chart Data
+            waterChart.data.labels = chartDataStore[area].labels;
+            waterChart.data.datasets[0].data = chartDataStore[area].data;
+            waterChart.update();
+            log("Switched graph to area: " + area);
+        };
+
+
         // Simplified global click tracking (Optional but helpful)
         document.addEventListener('click', function(e) {
             log("Global Interaction:", e.target.tagName, e.target.className);
@@ -1198,15 +1702,12 @@ if ($users_result) {
         // -----------------------------------------------------
 
         window.onerror = function(msg, url, line) {
-            log("FATAL ERROR: " + msg + " (Line: " + line + ")");
-            alert("JS Error: " + msg + " at " + line);
+            log("GLOBAL ERROR: " + msg + " at " + url + ":" + line);
             return false;
         };
 
-        // 1. Diagnostics
         window.pingJS = function() {
             log("Ping triggered!");
-            alert("Diagnostic Alert: JavaScript is WORKING!");
         };
 
         // 2. Role Management
@@ -1228,7 +1729,7 @@ if ($users_result) {
                 
                 const result = JSON.parse(text);
                 if(result.success) {
-                    alert('Role updated successfully!');
+                    log('Role updated successfully!');
                     window.location.hash = "users";
                     location.reload();
                 } else {
@@ -1240,41 +1741,8 @@ if ($users_result) {
             }
         };
 
-        // 3. Navigation Logic (Enhanced)
-        window.switchTab = function(tabId, element) {
-            log("Switching to " + tabId);
-            document.querySelectorAll('.content-section').forEach(el => el.classList.remove('active'));
-            const target = document.getElementById(tabId);
-            if (target) target.classList.add('active');
-            
-            document.querySelectorAll('.nav-link').forEach(el => el.classList.remove('active'));
-            if (element) element.classList.add('active');
+        // REMOVED DUPLICATE switchTab LOGIC - NOW AT TOP OF SCRIPT
 
-            if (window.innerWidth <= 1024) toggleSidebar();
-
-            const titles = {
-                'dashboard': 'Admin Dashboard',
-                'sensors': 'Sensor Management',
-                'alerts': 'System Alerts',
-                'map': 'Live Map',
-                'evacuation': 'Evacuation Management',
-                'reports': 'Reports & Analytics',
-                'helpdesk': 'Help Desk',
-                'notifications': 'Notification Control',
-                'users': 'User Management',
-                'settings': 'System Settings'
-            };
-            const titleEl = document.getElementById('pageTitle');
-            if (titleEl) titleEl.innerText = titles[tabId] || 'Admin Dashboard';
-
-            if(tabId === 'map') initMap();
-            if(tabId === 'reports') renderReportCharts();
-            if(tabId === 'evacuation') {
-                fetchEvacuationPoints();
-                // Ensure map logic is ready if needed, or refresh markers just in case
-                refreshMapMarkers(); 
-            }
-        };
 
         // 4. Map Logic (Leaflet)
         let map;
@@ -1301,13 +1769,13 @@ if ($users_result) {
             }, 300);
         }
 
-        window.refreshMapMarkers = function() {
+        window.refreshMapMarkers = async function() {
             if(!map) return;
             
-            // Fetch points for map
-            fetch('manage_evacuation.php?action=fetch_all')
-                .then(res => res.json())
-                .then(res => {
+            try {
+                // Add cache-buster to avoid stale browser data
+                const response = await fetch(`manage_evacuation.php?action=fetch_all&t=${Date.now()}`);
+                const res = await response.json();
                     if(res.data) {
                         // Clear existing
                         for(let id in markersObj) {
@@ -1315,30 +1783,17 @@ if ($users_result) {
                         }
                         markersObj = {};
 
+                        const markerGroup = [];
+
                         res.data.forEach(p => {
-                            // Default lat/lng if missing (fallback for old dummy data)
-                             // Since our DB schema has lat/long but maybe empty, let's fake it if needed or skip
-                             // Actually user dashboard requirement implies we need location.
-                             // For now, let's map location names to coordinates or use dummy offsets if 0,0
                             let lat = parseFloat(p.latitude);
                             let lng = parseFloat(p.longitude);
 
-                            // Check if valid coords (not 0,0 and not NaN)
-                            // If 0,0 try parsing location if it has comma
-                            if((!lat && !lng) || (lat === 0 && lng === 0)) {
-                                if(p.location && p.location.includes(',')) {
-                                     const parts = p.location.split(',');
-                                     if(parts.length === 2 && !isNaN(parts[0])) {
-                                         lat = parseFloat(parts[0]);
-                                         lng = parseFloat(parts[1]);
-                                     }
-                                }
-                            }
-
-                            // If still invalid, skip or put in default center
+                            // Fallback for legacy points or points without coords
                             if(isNaN(lat) || isNaN(lng) || (lat === 0 && lng === 0)) {
-                                // console.warn("Skipping point with invalid coords:", p.name);
-                                return; 
+                                log("Legacy point detected:", p.name, "Placing at default center.");
+                                lat = 10.8505 + (Math.random() - 0.5) * 0.1; // Slight random offset around center
+                                lng = 76.2711 + (Math.random() - 0.5) * 0.1;
                             }
 
                             const color = p.status === 'Available' ? '#2ecc71' : (p.status === 'Full' ? '#e74c3c' : '#f1c40f');
@@ -1350,9 +1805,17 @@ if ($users_result) {
                             }).addTo(map).bindPopup(`<b>${p.name}</b><br>Status: ${p.status}<br>Cap: ${p.capacity}`);
                             
                             markersObj[p.id] = marker;
+                            markerGroup.push([lat, lng]);
                         });
+
+                        // Auto-fit bounds if we have markers
+                        if (markerGroup.length > 0) {
+                            map.fitBounds(L.latLngBounds(markerGroup), { padding: [50, 50] });
+                        }
                     }
-                });
+                } catch (e) {
+                    log("Map Marker Refresh Error:", e);
+                }
         };
 
         window.mapSetView = function(lat, lng, zoom = 7) {
@@ -1370,39 +1833,101 @@ if ($users_result) {
             if (alertChart) alertChart.destroy();
 
             const range = document.getElementById('reportTimeRange') ? document.getElementById('reportTimeRange').value : '24h';
-            // Simulate data change based on range
-            const labels = range === '24h' ? ['00:00', '04:00', '08:00', '12:00', '16:00', '20:00'] : (range === '7d' ? ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'] : ['Week 1', 'Week 2', 'Week 3', 'Week 4']);
-            const data1 = range === '24h' ? [30, 35, 40, 45, 42, 38] : [40, 55, 45, 60, 65, 50, 55];
+            
+            let labels, dataPoints, alertData;
+            
+            if (range === '24h') {
+                labels = ['00:00', '04:00', '08:00', '12:00', '16:00', '20:00', '23:59'];
+                dataPoints = [35, 38, 45, 50, 48, 42, 40];
+                alertData = [2, 1, 4, 3, 2, 1, 1];
+            } else if (range === '7d') {
+                labels = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+                dataPoints = [40, 55, 45, 60, 65, 50, 55];
+                alertData = [12, 18, 15, 22, 25, 14, 16];
+            } else { // 30d
+                labels = ['Week 1', 'Week 2', 'Week 3', 'Week 4'];
+                dataPoints = [45, 62, 58, 52];
+                alertData = [85, 120, 95, 110];
+            }
 
             floodChart = new Chart(ctx1, {
                 type: 'line',
                 data: {
                     labels: labels,
                     datasets: [{
-                        label: 'Average Water Level (cm)',
-                        data: data1,
+                        label: 'Avg Water Level (%)',
+                        data: dataPoints,
                         borderColor: '#4ab5c4',
                         backgroundColor: 'rgba(74, 181, 196, 0.1)',
+                        borderWidth: 3,
                         tension: 0.4,
                         fill: true
                     }]
                 },
-                options: { responsive: true, maintainAspectRatio: false }
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { display: false } },
+                    scales: {
+                        y: { beginAtZero: true, max: 100, grid: { color: 'rgba(255,255,255,0.1)' }, ticks: { color: 'rgba(255,255,255,0.7)' } },
+                        x: { grid: { display: false }, ticks: { color: 'rgba(255,255,255,0.7)' } }
+                    }
+                }
             });
 
             alertChart = new Chart(ctx2, {
                 type: 'bar',
                 data: {
-                    labels: ['Safe', 'Warning', 'Critical'],
+                    labels: labels,
                     datasets: [{
-                        label: 'Alerts',
-                        data: range === '24h' ? [120, 15, 5] : [500, 80, 20],
-                        backgroundColor: ['#2ecc71', '#f1c40f', '#e74c3c']
+                        label: 'Alert Counts',
+                        data: alertData,
+                        backgroundColor: '#e74c3c',
+                        borderRadius: 5
                     }]
                 },
-                options: { responsive: true, maintainAspectRatio: false }
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { display: false } },
+                    scales: {
+                        y: { beginAtZero: true, grid: { color: 'rgba(255,255,255,0.1)' }, ticks: { color: 'rgba(255,255,255,0.7)' } },
+                        x: { grid: { display: false }, ticks: { color: 'rgba(255,255,255,0.7)' } }
+                    }
+                }
             });
         };
+
+        // Simulated Export Functions
+        window.exportReportCSV = function() {
+            log("Generating CSV Export...");
+            const csvContent = "Date,Report Type,Status\nDec 19 2025,Daily Operations Summary,Completed\nDec 18 2025,Critical Incident Log,Review Needed";
+            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+            const link = document.createElement("a");
+            const url = URL.createObjectURL(blob);
+            link.setAttribute("href", url);
+            link.setAttribute("download", "AquaSafe_Reports_All_" + new Date().toISOString().split('T')[0] + ".csv");
+            link.style.visibility = 'hidden';
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            log("CSV Export Downloaded.");
+        };
+
+        window.downloadReportPDF = function(type) {
+            log("Simulating PDF Generation for:", type);
+            const btn = event.currentTarget;
+            const originalText = btn.innerText;
+            btn.innerText = "⏳ Generating...";
+            btn.style.opacity = "0.7";
+            
+            setTimeout(() => {
+                alert("Report Generated: " + type + " PDF is ready.\n\n(Note: In a live production environment, this would call a server-side PDF engine like TCPDF or Dompdf to generate the file based on real sensor history.)");
+                btn.innerText = originalText;
+                btn.style.opacity = "1";
+            }, 1200);
+        };
+
 
         // REMOVED DUPLICATE LOGIC - NOW CONSOLIDATED ABOVE
 
@@ -1418,29 +1943,21 @@ if ($users_result) {
         setInterval(updateTime, 1000);
         updateTime();
 
-        // 8. Sidebar Toggle
-        window.toggleSidebar = function() {
-            const sidebar = document.querySelector('.sidebar');
-            const overlay = document.getElementById('sidebarOverlay');
-            if (sidebar && overlay) {
-                sidebar.classList.toggle('active');
-                overlay.classList.toggle('active');
-            }
-        };
-        document.getElementById('sidebarOverlay').addEventListener('click', toggleSidebar);
+        // REMOVED DUPLICATE toggleSidebar LOGIC - NOW AT TOP OF SCRIPT
+        document.getElementById('sidebarOverlay').addEventListener('click', () => window.toggleSidebar());
 
         // 9. Charts on Dashboard (Safe Init)
         try {
             const chartCanvas = document.getElementById('waterLevelChart');
             if (chartCanvas && typeof Chart !== 'undefined') {
                 const ctx = chartCanvas.getContext('2d');
-                const waterChart = new Chart(ctx, {
+                waterChart = new Chart(ctx, {
                     type: 'line',
                     data: {
-                        labels: ['10:00', '10:05', '10:10', '10:15', '10:20', '10:25'],
+                        labels: chartDataStore[currentArea].labels,
                         datasets: [{
                             label: 'Water Level (cm)',
-                            data: [45, 48, 52, 50, 55, 58],
+                            data: chartDataStore[currentArea].data,
                             borderColor: '#4ab5c4',
                             borderWidth: 3,
                             tension: 0.4,
@@ -1452,30 +1969,62 @@ if ($users_result) {
 
                 setInterval(() => {
                     if (!waterChart) return;
-                    const lastVal = waterChart.data.datasets[0].data[waterChart.data.datasets[0].data.length - 1];
-                    let newVal = Math.max(30, Math.min(90, lastVal + (Math.random() - 0.5) * 8));
-                    waterChart.data.labels.push(new Date().toLocaleTimeString());
-                    waterChart.data.datasets[0].data.push(newVal);
-                    if (waterChart.data.labels.length > 10) {
-                        waterChart.data.labels.shift();
-                        waterChart.data.datasets[0].data.shift();
+                    
+                    // Update ALL areas in background to keep history fresh
+                    for(let area in chartDataStore) {
+                        const store = chartDataStore[area];
+                        const lastVal = store.data[store.data.length - 1];
+                        let newVal = Math.max(30, Math.min(90, lastVal + (Math.random() - 0.5) * 8));
+                        
+                        store.labels.push(new Date().toLocaleTimeString([], {hour:'2-digit', minute:'2-digit', second:'2-digit'}));
+                        store.data.push(newVal);
+                        
+                        if (store.labels.length > 10) {
+                            store.labels.shift();
+                            store.data.shift();
+                        }
                     }
+                    
+                    // Refresh current view
                     waterChart.update('none'); 
-                }, 2000);
+                }, 3000);
             }
         } catch (e) { log("Chart Error: " + e.message); }
 
-        // Tab persistence
-        window.addEventListener('load', () => {
-             const hash = window.location.hash.replace('#', '');
-             if(hash) {
-                 const targetLink = document.querySelector(`.nav-link[onclick*="'${hash}'"]`);
-                 if(targetLink) switchTab(hash, targetLink);
-             }
-        });
+        // Tab persistence & Hash Navigation
+        function handleHash() {
+            const hash = window.location.hash.replace('#', '');
+            if(hash) {
+                console.log("[AquaSafe] Hash Change Detected:", hash);
+                const targetLink = document.querySelector(`.nav-link[onclick*="'${hash}'"]`) || document.getElementById('nav-' + hash);
+                window.switchTab(hash, targetLink);
+            }
+        }
+        window.addEventListener('load', handleHash);
+        window.addEventListener('hashchange', handleHash);
 
-        log("READY.");
-        alert("AquaSafe Admin System: LOADED SUCCESSFULLY!");
+        // Initialize
+        updateTime();
+        setInterval(updateTime, 1000);
+        
+        // Initial data load for dashboard
+        fetchSystemAlerts();
+        fetchSensorStatus();
+
+        // Auto-refresh data every 30 seconds
+        setInterval(() => {
+            if (document.getElementById('dashboard').classList.contains('active')) {
+                fetchSystemAlerts();
+                fetchSensorStatus();
+            } else if (document.getElementById('alerts').classList.contains('active')) {
+                fetchSystemAlerts();
+            } else if (document.getElementById('sensors').classList.contains('active')) {
+                fetchSensorStatus();
+            }
+        }, 30000);
+
+        // 10. Removed problematic centralized listener - sticking to robust inline calls
+        log("AquaSafe Admin System: LOADED SUCCESSFULLY!");
     </script>
 </body>
-</html>
+</html>```

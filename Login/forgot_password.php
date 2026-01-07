@@ -153,18 +153,17 @@
             display: inline-flex;
             align-items: center;
             justify-content: center;
-            gap: 10px;
+            gap: 12px;
             margin-bottom: 15px;
             color: var(--primary);
             font-size: 18px;
             font-weight: 700;
         }
 
-        .header-logo svg {
-            width: 32px;
-            height: 32px;
-            stroke: var(--primary);
-            filter: drop-shadow(0 0 8px rgba(74, 181, 196, 0.4));
+        .header-logo img {
+            width: 40px;
+            height: 40px;
+            object-fit: contain;
         }
 
         .header-title {
@@ -298,9 +297,7 @@
         <div class="container">
             <div class="header">
                 <div class="header-logo">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <path d="M12 2v8m0 4v8M2 12h8m4 0h8M4 4l5.66 5.66M14.34 4l5.66 5.66M4 20l5.66-5.66M14.34 20l5.66-5.66"/>
-                    </svg>
+                    <img src="../assets/logo.png" alt="AquaSafe Logo">
                     AquaSafe
                 </div>
                 <div class="header-title">Forgot Password?</div>
