@@ -379,9 +379,82 @@
     </style>
 
     <script src="https://accounts.google.com/gsi/client" async defer onload="gsiLoaded()"></script>
+    <!-- SweetAlert2 Plugin -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 </head>
 <body>
     <!-- Background Particles -->
+    <div class="particles" id="particles"></div>
+
+    <?php
+    // Fetch Public Alerts Logic
+    $alert_js = "";
+    if(isset($link)){
+        // Modified query: Fetch top 5 recent alerts
+        $sql_alert = "SELECT * FROM sensor_alerts ORDER BY timestamp DESC LIMIT 5";
+        $res_alert = mysqli_query($link, $sql_alert);
+        
+        if($res_alert && mysqli_num_rows($res_alert) > 0){
+            $alerts_html = '<div style="text-align:left; max-height:300px; overflow-y:auto; padding-right:5px;">';
+            
+            while($row = mysqli_fetch_assoc($res_alert)){
+                $sev = $row['severity'];
+                $msg = htmlspecialchars($row['message']);
+                $loc = htmlspecialchars($row['location']);
+                $time = date('H:i', strtotime($row['timestamp']));
+                
+                // Color coding
+                $border = '#4ab5c4';
+                $bg = 'rgba(74, 181, 196, 0.1)';
+                $icon_char = 'ℹ️';
+                
+                if(stripos($sev, 'Critical') !== false) { 
+                    $border = '#e74c3c'; 
+                    $bg = 'rgba(231, 76, 60, 0.15)';
+                    $icon_char = '🚨';
+                }
+                elseif(stripos($sev, 'Warning') !== false) { 
+                    $border = '#f1c40f'; 
+                    $bg = 'rgba(241, 196, 15, 0.15)'; 
+                    $icon_char = '⚠️';
+                }
+                
+                $alerts_html .= "
+                    <div style='margin-bottom:10px; border-left:4px solid $border; background:$bg; padding:10px; border-radius:4px;'>
+                        <div style='display:flex; justify-content:space-between; align-items:center; margin-bottom:5px;'>
+                            <strong style='color:$border; font-size:14px;'>$icon_char " . strtoupper($sev) . "</strong>
+                            <span style='font-size:11px; opacity:0.6;'>$time</span>
+                        </div>
+                        <div style='font-size:13px; margin-bottom:5px;'>$msg</div>
+                        <div style='font-size:11px; opacity:0.7;'><i style='font-style:normal'>📍</i> $loc</div>
+                    </div>
+                ";
+            }
+            $alerts_html .= '</div>';
+            
+            // Escape for JS
+            $alerts_html_js = json_encode($alerts_html); // Safe output
+            
+            $alert_js = "
+                document.addEventListener('DOMContentLoaded', function() {
+                    Swal.fire({
+                        title: 'Active System Alerts',
+                        html: $alerts_html_js,
+                        icon: 'info',
+                        confirmButtonText: 'Understood',
+                        confirmButtonColor: '#4ab5c4',
+                        background: '#0f2027',
+                        color: '#fff',
+                        backdrop: `rgba(0,0,0,0.8)`,
+                        width: '500px'
+                    });
+                });
+            ";
+        }
+    }
+    ?>
+
+    <?php if($alert_js) echo "<script>$alert_js</script>"; ?>
     <div class="particles" id="particles"></div>
 
     <!-- Animated Waves -->

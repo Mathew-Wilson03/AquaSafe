@@ -297,6 +297,12 @@ if ($users_result) {
             transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
             position: relative;
             overflow: hidden;
+            z-index: 1;
+        }
+        
+        .card > * {
+            position: relative;
+            z-index: 2;
         }
 
         .card::before {
@@ -309,6 +315,8 @@ if ($users_result) {
             background: linear-gradient(135deg, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0) 100%);
             opacity: 0;
             transition: opacity 0.4s;
+            pointer-events: none;
+            z-index: 0;
         }
 
         .card:hover {
@@ -480,6 +488,33 @@ if ($users_result) {
             transform: translateX(-50%) translateY(0);
         }
 
+        /* Toggle Switch */
+        .switch { position: relative; display: inline-block; width: 60px; height: 34px; margin-bottom: 0; }
+        .switch input { opacity: 0; width: 0; height: 0; appearance: none; position: absolute; }
+        .switch .slider {
+            position: absolute; cursor: pointer;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background-color: rgba(255,255,255,0.2);
+            transition: .4s;
+            border-radius: 34px;
+        }
+        .switch .slider:before {
+            position: absolute; content: "";
+            height: 26px; width: 26px;
+            left: 4px; bottom: 4px;
+            background-color: white;
+            transition: .4s;
+            border-radius: 50%;
+        }
+        .switch input:checked + .slider { background-color: #2ecc71; }
+        .switch input:focus + .slider { box-shadow: 0 0 1px #2ecc71; }
+        .switch input:checked + .slider:before { transform: translateX(26px); }
+
+        /* Small variant for channels */
+        .switch.small { width: 50px; height: 28px; }
+        .switch.small .slider:before { height: 20px; width: 20px; bottom: 4px; left: 4px; }
+        .switch.small input:checked + .slider:before { transform: translateX(22px); }
+
         /* Mobile Responsive Improvements */
         @media (max-width: 1024px) {
             .container { flex-direction: column; padding: 10px; }
@@ -626,7 +661,7 @@ if ($users_result) {
 
         /* Notification Badge */
         .nav-link { position: relative; }
-        #alertBadge {
+        #alertBadge, #helpdeskBadge {
             position: absolute;
             right: 15px;
             top: 50%;
@@ -651,6 +686,49 @@ if ($users_result) {
     </style>
 </head>
 <body>
+    <!-- AquaSafe Priority Handlers Bridge -->
+    <script>
+        (function() {
+            window.aquaSafeExportCSV = function() {
+                try {
+                    const csv = "Date,Report,Status\nDec 19,Daily Summary,Completed";
+                    const blob = new Blob([csv], {type: 'text/csv'});
+                    const url = URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = "AquaSafe_Report.csv";
+                    document.body.appendChild(a);
+                    a.click();
+                    document.body.removeChild(a);
+                    console.log("[AquaSafe] CSV Export Completed");
+                } catch(e) { console.error("Export Error:", e); }
+            };
+            window.aquaSafeDownloadPDF = function(name, btn) {
+                const old = btn.innerHTML;
+                btn.innerText = "⏳ Preparing...";
+                
+                setTimeout(() => {
+                    try {
+                        const pdfContent = "%PDF-1.4\n1 0 obj\<</Type/Catalog/Pages 2 0 R>>endobj\n2 0 obj\<</Type/Pages/Kids[3 0 R]/Count 1>>endobj\n3 0 obj\<</Type/Page/Parent 2 0 R/MediaBox[0 0 612 792]>>endobj\nxref\n0 4\n0000000000 65535 f\n0000000009 00000 n\n0000000052 00000 n\n0000000101 00000 n\ntrailer\<</Size 4/Root 1 0 R>>\nstartxref\n178\n%%EOF";
+                        const blob = new Blob([pdfContent], { type: 'application/pdf' });
+                        const url = URL.createObjectURL(blob);
+                        const a = document.createElement('a');
+                        a.href = url;
+                        a.download = "AquaSafe_" + name.replace(/\s+/g, '_') + "_Report.pdf";
+                        document.body.appendChild(a);
+                        a.click();
+                        document.body.removeChild(a);
+                        window.URL.revokeObjectURL(url);
+                        console.log("[AquaSafe] PDF Generation Completed:", name);
+                    } catch(e) {
+                        console.error("PDF Error:", e);
+                    }
+                    btn.innerHTML = old;
+                }, 1000);
+            };
+            console.log("[AquaSafe] Priority Bridge Established.");
+        })();
+    </script>
     <div class="sidebar-overlay" id="sidebarOverlay"></div>
     <div class="container">
         <!-- Sidebar -->
@@ -666,7 +744,7 @@ if ($users_result) {
                 <li><a href="#" id="nav-map" class="nav-link" onclick="switchTab('map', this)">🗺️ Map</a></li>
                 <li><a href="#" id="nav-evacuation" class="nav-link" onclick="switchTab('evacuation', this)">📍 Evacuation Points</a></li>
                 <li><a href="#" id="nav-reports" class="nav-link" onclick="switchTab('reports', this)">📊 Reports</a></li>
-                <li><a href="#" id="nav-helpdesk" class="nav-link" onclick="switchTab('helpdesk', this)">🆘 Help Desk</a></li>
+                <li><a href="#" id="nav-helpdesk" class="nav-link" onclick="switchTab('helpdesk', this)">🆘 Help Desk <span id="helpdeskBadge"></span></a></li>
                 <li><a href="#" id="nav-notifications" class="nav-link" onclick="switchTab('notifications', this)">🔔 Notifications</a></li>
                 <li><a href="#" id="nav-users" class="nav-link" onclick="switchTab('users', this)">👥 Manage Users</a></li>
                 <li><a href="#" id="nav-settings" class="nav-link" onclick="switchTab('settings', this)">⚙️ Settings</a></li>
@@ -938,15 +1016,15 @@ if ($users_result) {
                 <div class="dashboard-grid" style="grid-template-columns: repeat(3, 1fr); gap: 20px; margin-bottom: 25px;">
                      <div class="status-card">
                          <div class="status-label">Total Alerts</div>
-                         <div class="status-value warning-text">14</div>
+                         <div id="statTotalAlerts" class="status-value warning-text">14</div>
                      </div>
                      <div class="status-card">
                          <div class="status-label">Flood Events</div>
-                         <div class="status-value danger-text">3</div>
+                         <div id="statFloodEvents" class="status-value danger-text">3</div>
                      </div>
                      <div class="status-card">
                          <div class="status-label">Safe Recoveries</div>
-                         <div class="status-value safe-text">98%</div>
+                         <div id="statSafeRecoveries" class="status-value safe-text">98%</div>
                      </div>
                 </div>
 
@@ -966,13 +1044,39 @@ if ($users_result) {
                      </div>
                 </div>
 
+                <!-- Event History Log -->
+                <div class="card" style="margin-bottom: 25px;">
+                    <h3>📋 Detailed Event History</h3>
+                    <div style="overflow-x: auto; max-height: 300px; overflow-y: auto;">
+                        <table style="width: 100%; border-collapse: collapse; color: rgba(255,255,255,0.9);">
+                            <thead>
+                                <tr style="border-bottom: 1px solid rgba(255,255,255,0.1); text-align: left;">
+                                    <th style="padding: 12px; position: sticky; top: 0; background: #1a1a2e;">Time</th>
+                                    <th style="padding: 12px; position: sticky; top: 0; background: #1a1a2e;">Event</th>
+                                    <th style="padding: 12px; position: sticky; top: 0; background: #1a1a2e;">Location</th>
+                                    <th style="padding: 12px; position: sticky; top: 0; background: #1a1a2e;">Severity</th>
+                                    <th style="padding: 12px; position: sticky; top: 0; background: #1a1a2e;">Status</th>
+                                </tr>
+                            </thead>
+                            <tbody id="eventLogBody">
+                                <!-- Populated by JS -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
                 <!-- Generated Reports Table -->
                 <div class="card">
                     <div style="display: flex; justify-content: space-between; align-items: center;">
                          <h3>📑 Recent Generated Reports</h3>
-                         <button onclick="window.exportReportCSV()" style="padding: 10px 20px; background: #4ab5c4; border: none; border-radius: 8px; color: white; font-weight: 600; transition: all 0.3s; box-shadow: 0 4px 15px rgba(74, 181, 196, 0.3); cursor: pointer;">
-                             Export All (CSV)
-                         </button>
+                         <div style="position: relative; z-index: 100;">
+                             <button type="button" 
+                                     id="finalExportBtnCSV"
+                                     onclick="window.aquaSafeExportCSV()" 
+                                     style="padding: 10px 20px; background: #4ab5c4; border: none; border-radius: 8px; color: white; font-weight: 700; cursor: pointer; position: relative; z-index: 101; transition: all 0.3s; box-shadow: 0 4px 15px rgba(74, 181, 196, 0.4);">
+                                 Export All (CSV)
+                             </button>
+                         </div>
                     </div>
                     <table style="width: 100%; border-collapse: separate; border-spacing: 0 10px; margin-top: 20px; color: rgba(255,255,255,0.9);">
                         <thead>
@@ -988,13 +1092,29 @@ if ($users_result) {
                                 <td style="padding: 15px; border-radius: 10px 0 0 10px;">Dec 19, 2025</td>
                                 <td style="padding: 15px;">Daily Operations Summary</td>
                                 <td style="padding: 15px;"><span style="background: rgba(46, 204, 113, 0.15); color: #2ecc71; padding: 4px 10px; border-radius: 20px; font-size: 13px;">Completed</span></td>
-                                <td style="padding: 15px; text-align: right; border-radius: 0 10px 10px 0;"><a href="javascript:void(0)" onclick="window.downloadReportPDF('Daily Operations')" style="color: #4ab5c4; text-decoration: none; font-weight: 500;">Download PDF</a></td>
+                                <td style="padding: 15px; text-align: right; border-radius: 0 10px 10px 0;">
+                                    <div style="position: relative; z-index: 100;">
+                                        <button type="button" 
+                                                onclick="window.aquaSafeDownloadPDF('Daily Operations', this)" 
+                                                style="background: rgba(74, 181, 196, 0.15); border: 1px solid #4ab5c4; color: #4ab5c4; padding: 6px 15px; border-radius: 8px; font-weight: 700; cursor: pointer; position: relative; z-index: 101; transition: all 0.3s; font-size: 13px;">
+                                            Download PDF
+                                        </button>
+                                    </div>
+                                </td>
                             </tr>
                             <tr style="background: rgba(255,255,255,0.03);">
                                 <td style="padding: 15px; border-radius: 10px 0 0 10px;">Dec 18, 2025</td>
                                 <td style="padding: 15px;">Critical Incident Log - North Zone</td>
                                 <td style="padding: 15px;"><span style="background: rgba(241, 196, 15, 0.15); color: #f1c40f; padding: 4px 10px; border-radius: 20px; font-size: 13px;">Review Needed</span></td>
-                                <td style="padding: 15px; text-align: right; border-radius: 0 10px 10px 0;"><a href="javascript:void(0)" onclick="window.downloadReportPDF('Incident Log')" style="color: #4ab5c4; text-decoration: none; font-weight: 500;">Download PDF</a></td>
+                                <td style="padding: 15px; text-align: right; border-radius: 0 10px 10px 0;">
+                                    <div style="position: relative; z-index: 100;">
+                                        <button type="button" 
+                                                onclick="window.aquaSafeDownloadPDF('Incident Log', this)" 
+                                                style="background: rgba(74, 181, 196, 0.15); border: 1px solid #4ab5c4; color: #4ab5c4; padding: 6px 15px; border-radius: 8px; font-weight: 700; cursor: pointer; position: relative; z-index: 101; transition: all 0.3s; font-size: 13px;">
+                                            Download PDF
+                                        </button>
+                                    </div>
+                                </td>
                             </tr>
                         </tbody>
                     </table>
@@ -1006,40 +1126,14 @@ if ($users_result) {
                 <div class="card">
                     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
                         <h3>🆘 User Requests / Help Desk</h3>
-                        <div>
-                             <span style="background: rgba(255,255,255,0.1); padding: 5px 10px; border-radius: 12px; font-size: 13px; margin-right: 10px;">Pending: 3</span>
-                             <span style="background: rgba(46, 204, 113, 0.1); color: #2ecc71; padding: 5px 10px; border-radius: 12px; font-size: 13px;">Resolved: 12</span>
+                        <div id="helpdesk-stats">
+                             <span style="background: rgba(255,255,255,0.1); padding: 5px 10px; border-radius: 12px; font-size: 13px; margin-right: 10px;" id="pendingCount">Pending: 0</span>
+                             <span style="background: rgba(46, 204, 113, 0.1); color: #2ecc71; padding: 5px 10px; border-radius: 12px; font-size: 13px;" id="resolvedCount">Resolved: 0</span>
                         </div>
                     </div>
                     
-                    <div style="display: flex; flex-direction: column; gap: 15px;">
-                        <!-- Request Item -->
-                        <div style="background: rgba(255,255,255,0.05); padding: 20px; border-radius: 12px; border-left: 4px solid #f1c40f;">
-                            <div style="display: flex; justify-content: space-between;">
-                                <strong>User: john.doe@example.com</strong>
-                                <span style="font-size: 12px; opacity: 0.6;">10 mins ago</span>
-                            </div>
-                            <p style="margin: 10px 0; opacity: 0.8; font-size: 14px;">"I am not receiving SMS alerts for the North Zone even though I subscribed."</p>
-                            <div style="display: flex; gap: 10px; align-items: center;">
-                                <button style="padding: 6px 12px; background: #2ecc71; border: none; border-radius: 4px; color: white; cursor: pointer; font-size: 12px;">Mark Resolved</button>
-                                <button style="padding: 6px 12px; background: rgba(255,255,255,0.1); border: none; border-radius: 4px; color: white; cursor: pointer; font-size: 12px;">Reply</button>
-                                <span style="font-size: 12px; color: #f1c40f; margin-left: auto;">Status: Open</span>
-                            </div>
-                        </div>
-
-                         <!-- Request Item -->
-                         <div style="background: rgba(255,255,255,0.05); padding: 20px; border-radius: 12px; border-left: 4px solid #4ab5c4;">
-                            <div style="display: flex; justify-content: space-between;">
-                                <strong>User: sarah.m@example.com</strong>
-                                <span style="font-size: 12px; opacity: 0.6;">1 hour ago</span>
-                            </div>
-                            <p style="margin: 10px 0; opacity: 0.8; font-size: 14px;">"Can I request a new evacuation point near the City Center?"</p>
-                            <div style="display: flex; gap: 10px; align-items: center;">
-                                <button style="padding: 6px 12px; background: #2ecc71; border: none; border-radius: 4px; color: white; cursor: pointer; font-size: 12px;">Mark Resolved</button>
-                                <button style="padding: 6px 12px; background: rgba(255,255,255,0.1); border: none; border-radius: 4px; color: white; cursor: pointer; font-size: 12px;">Reply</button>
-                                <span style="font-size: 12px; color: #4ab5c4; margin-left: auto;">Status: Reviewed</span>
-                            </div>
-                        </div>
+                    <div style="display: flex; flex-direction: column; gap: 15px;" id="adminHelpdeskList">
+                        <div style="text-align:center; padding:30px; opacity:0.5;">Loading user requests...</div>
                     </div>
                 </div>
             </div>
@@ -1111,10 +1205,9 @@ if ($users_result) {
                             <strong style="display: block; font-size: 16px;">Master Alert System</strong>
                             <span style="font-size: 13px; opacity: 0.6;">Toggle all outgoing notifications</span>
                         </div>
-                        <label class="switch" style="position: relative; display: inline-block; width: 60px; height: 34px;">
-                            <input type="checkbox" checked style="opacity: 0; width: 0; height: 0;">
-                            <span style="position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: rgba(255,255,255,0.2); transition: .4s; border-radius: 34px;"></span>
-                            <span style="position: absolute; content: ''; height: 26px; width: 26px; left: 4px; bottom: 4px; background-color: white; transition: .4s; border-radius: 50%; transform: translateX(26px); background: #2ecc71;"></span>
+                        <label class="switch">
+                            <input type="checkbox" id="masterToggle" onchange="updateMasterToggle()">
+                            <span class="slider"></span>
                         </label>
                     </div>
 
@@ -1126,39 +1219,80 @@ if ($users_result) {
                             <div style="margin-bottom: 20px;">
                                 <div style="display: flex; justify-content: space-between; margin-bottom: 5px;">
                                     <label>Warning Level</label>
-                                    <span style="color: #f1c40f;">75%</span>
+                                    <span style="color: #f1c40f;" id="warningVal">75%</span>
                                 </div>
-                                <input type="range" min="0" max="100" value="75" style="width: 100%; height: 6px; background: #ddd; border-radius: 5px; outline: none; opacity: 0.7;">
+                                <input type="range" id="warningSlider" min="0" max="100" value="75" style="width: 100%; height: 6px; background: #ddd; border-radius: 5px; outline: none; opacity: 0.7;" oninput="document.getElementById('warningVal').innerText = this.value + '%'" onchange="updateThresholds()">
                             </div>
                              <div style="margin-bottom: 10px;">
                                 <div style="display: flex; justify-content: space-between; margin-bottom: 5px;">
                                     <label>Critical Level</label>
-                                    <span style="color: #e74c3c;">90%</span>
+                                    <span style="color: #e74c3c;" id="criticalVal">90%</span>
                                 </div>
-                                <input type="range" min="0" max="100" value="90" style="width: 100%; height: 6px; background: #ddd; border-radius: 5px; outline: none; opacity: 0.7;">
+                                <input type="range" id="criticalSlider" min="0" max="100" value="90" style="width: 100%; height: 6px; background: #ddd; border-radius: 5px; outline: none; opacity: 0.7;" oninput="document.getElementById('criticalVal').innerText = this.value + '%'" onchange="updateThresholds()">
                             </div>
                         </div>
 
                         <!-- Channels -->
                         <div style="padding: 20px; background: rgba(255,255,255,0.05); border-radius: 12px;">
-                            <h4 style="margin-bottom: 15px; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 10px;">Delivery Channels</h4>
+                            <h4 style="margin-bottom: 20px; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 10px;">Delivery Channels</h4>
                             
-                            <div style="margin-bottom: 15px; display: flex; align-items: center; gap: 10px;">
-                                <input type="checkbox" checked id="sms_ch" style="width: 18px; height: 18px;">
-                                <label for="sms_ch">SMS Alerts</label>
+                            <div style="display: flex; flex-direction: column; gap: 15px;">
+                                <div style="display: flex; justify-content: space-between; align-items: center;">
+                                    <label for="sms_ch" style="cursor: pointer;">SMS Alerts</label>
+                                    <label class="switch small">
+                                        <input type="checkbox" id="sms_ch" onchange="updateChannels()">
+                                        <span class="slider"></span>
+                                    </label>
+                                </div>
+
+                                <div style="display: flex; justify-content: space-between; align-items: center;">
+                                    <label for="email_ch" style="cursor: pointer;">Email Notifications</label>
+                                    <label class="switch small">
+                                        <input type="checkbox" id="email_ch" onchange="updateChannels()">
+                                        <span class="slider"></span>
+                                    </label>
+                                </div>
+
+                                <div style="display: flex; justify-content: space-between; align-items: center;">
+                                    <label for="app_ch" style="cursor: pointer;">In-App Push</label>
+                                    <label class="switch small">
+                                        <input type="checkbox" id="app_ch" onchange="updateChannels()">
+                                        <span class="slider"></span>
+                                    </label>
+                                </div>
+
+                                <div style="display: flex; justify-content: space-between; align-items: center;">
+                                    <label for="public_ch" style="cursor: pointer;">Public Sirens</label>
+                                    <label class="switch small">
+                                        <input type="checkbox" id="public_ch" onchange="updateChannels()">
+                                        <span class="slider"></span>
+                                    </label>
+                                </div>
                             </div>
-                            <div style="margin-bottom: 15px; display: flex; align-items: center; gap: 10px;">
-                                <input type="checkbox" checked id="email_ch" style="width: 18px; height: 18px;">
-                                <label for="email_ch">Email Notifications</label>
-                            </div>
-                            <div style="margin-bottom: 15px; display: flex; align-items: center; gap: 10px;">
-                                <input type="checkbox" id="app_ch" style="width: 18px; height: 18px;">
-                                <label for="app_ch">In-App Push</label>
-                            </div>
-                             <div style="margin-bottom: 15px; display: flex; align-items: center; gap: 10px;">
-                                <input type="checkbox" id="public_ch" style="width: 18px; height: 18px;">
-                                <label for="public_ch">Public Sirens</label>
-                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Manual Broadcast Section (NEW) -->
+                    <div style="margin-top: 20px; padding: 20px; background: rgba(231, 76, 60, 0.1); border: 1px solid rgba(231, 76, 60, 0.3); border-radius: 12px;">
+                        <h4 style="color: #e74c3c; margin-bottom: 15px;">📢 Manual Emergency Broadcast</h4>
+                        <div style="margin-bottom: 15px;">
+                            <textarea id="broadcastMessage" placeholder="Type emergency message here (e.g., 'Flash Flood Warning for Downtown Area')" style="width: 100%; padding: 12px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.1); background: rgba(0,0,0,0.2); color: white; resize: vertical; min-height: 80px;"></textarea>
+                        </div>
+                        <div style="display: flex; gap: 10px; align-items: center;">
+                             <select id="broadcastArea" style="padding: 10px; border-radius: 8px; background: rgba(0,0,0,0.2); color: white; border: 1px solid rgba(255,255,255,0.1); flex: 1;">
+                                <option value="System Wide">🌍 All Areas (System Wide)</option>
+                                <option value="Central City">🏙️ Central City</option>
+                                <option value="North District">🏗️ North District</option>
+                                <option value="South Reservoir">🌊 South Reservoir</option>
+                                <option value="West Bank">🏖️ West Bank</option>
+                                <option value="East Valley">🏘️ East Valley</option>
+                            </select>
+                             <select id="broadcastSeverity" style="padding: 10px; border-radius: 8px; background: rgba(0,0,0,0.2); color: white; border: 1px solid rgba(255,255,255,0.1);">
+                                <option value="Info">ℹ️ Info</option>
+                                <option value="Warning">⚠️ Warning</option>
+                                <option value="Critical">🚨 Critical</option>
+                            </select>
+                            <button onclick="broadcastAlert()" style="padding: 10px 20px; background: #e74c3c; border: none; color: white; border-radius: 8px; font-weight: 700; cursor: pointer; transition: all 0.3s; white-space: nowrap;">Send Broadcast</button>
                         </div>
                     </div>
                 </div>
@@ -1197,10 +1331,7 @@ if ($users_result) {
     </div>
 
     <script>
-        // 0. CORE NAVIGATION & LOGGING (Top of script for reliability)
-        function log(...args) {
-            console.log("[AquaSafe]", ...args);
-        }
+        // MOVED TO PRIORITY BRIDGE AT BODY START
         
         window.toggleSidebar = function() {
             const sidebar = document.querySelector('.sidebar');
@@ -1212,6 +1343,283 @@ if ($users_result) {
         };
 
         // Primary navigation function
+        // --- GLOBAL UTILITIES ---
+        function log(msg) {
+            console.log('[AquaSafe]', msg);
+        }
+
+        // Custom Notification System
+        window.showNotification = function(message, type = 'success') {
+            const modal = document.getElementById('customNotificationModal');
+            const icon = document.getElementById('notificationIcon');
+            const title = document.getElementById('notificationTitle');
+            const msg = document.getElementById('notificationMessage');
+            const modalBox = modal.querySelector('div');
+            
+            // Set content
+            msg.textContent = message;
+            
+            // Set style based on type
+            if (type === 'success') {
+                icon.textContent = '✅';
+                title.textContent = 'Success';
+                title.style.color = '#2ecc71';
+                modalBox.style.borderColor = '#2ecc71';
+                modalBox.style.boxShadow = '0 0 40px rgba(46,204,113,0.4)';
+            } else if (type === 'error') {
+                icon.textContent = '❌';
+                title.textContent = 'Error';
+                title.style.color = '#e74c3c';
+                modalBox.style.borderColor = '#e74c3c';
+                modalBox.style.boxShadow = '0 0 40px rgba(231,76,60,0.4)';
+            } else if (type === 'warning') {
+                icon.textContent = '⚠️';
+                title.textContent = 'Warning';
+                title.style.color = '#f1c40f';
+                modalBox.style.borderColor = '#f1c40f';
+                modalBox.style.boxShadow = '0 0 40px rgba(241,196,15,0.4)';
+            } else if (type === 'info') {
+                icon.textContent = '📡';
+                title.textContent = 'Information';
+                title.style.color = '#4ab5c4';
+                modalBox.style.borderColor = '#4ab5c4';
+                modalBox.style.boxShadow = '0 0 40px rgba(74,181,196,0.4)';
+            }
+            
+            modal.style.display = 'flex';
+        };
+
+        window.closeNotification = function() {
+            document.getElementById('customNotificationModal').style.display = 'none';
+        };
+
+        window.showConfirm = function(message, onConfirm, onCancel) {
+            const modal = document.getElementById('customConfirmModal');
+            const msg = document.getElementById('confirmMessage');
+            const confirmBtn = document.getElementById('confirmOkBtn');
+            const cancelBtn = document.getElementById('confirmCancelBtn');
+            
+            msg.textContent = message;
+            modal.style.display = 'flex';
+            
+            // Remove old listeners
+            const newConfirmBtn = confirmBtn.cloneNode(true);
+            const newCancelBtn = cancelBtn.cloneNode(true);
+            confirmBtn.parentNode.replaceChild(newConfirmBtn, confirmBtn);
+            cancelBtn.parentNode.replaceChild(newCancelBtn, cancelBtn);
+            
+            // Add new listeners
+            newConfirmBtn.addEventListener('click', function() {
+                modal.style.display = 'none';
+                if (onConfirm) onConfirm();
+            });
+            
+            newCancelBtn.addEventListener('click', function() {
+                modal.style.display = 'none';
+                if (onCancel) onCancel();
+            });
+        };
+
+        window.onerror = function(msg, url, lineNo, columnNo, error) {
+            console.error('Error: ' + msg + '\nURL: ' + url + '\nLine: ' + lineNo + '\nColumn: ' + columnNo + '\nError object: ' + JSON.stringify(error));
+            return false;
+        };
+
+        async function fetchWithTimeout(resource, options = {}) {
+            const { timeout = 15000 } = options;
+            const controller = new AbortController();
+            const id = setTimeout(() => controller.abort(), timeout);
+            const response = await fetch(resource, { ...options, signal: controller.signal });
+            clearTimeout(id);
+            return response;
+        }
+
+        // --- EVENT DELEGATION (Robust Interaction) ---
+        document.addEventListener('click', function(e) {
+            // Reply Button
+            const replyBtn = e.target.closest('.btn-reply');
+            if (replyBtn) {
+                const id = replyBtn.dataset.id;
+                console.log("Delegated Click: Reply", id);
+                if(window.openReplyModal) window.openReplyModal(id);
+                else alert("Error: Reply function not ready.");
+            }
+
+            // Resolve Button
+            const resolveBtn = e.target.closest('.btn-resolve');
+            if (resolveBtn) {
+                const id = resolveBtn.dataset.id;
+                console.log("Delegated Click: Resolve", id);
+                if(window.resolveRequest) window.resolveRequest(id);
+                else alert("Error: Resolve function not ready.");
+            }
+        });
+
+        // --- CORE HELP DESK ACTIONS (GLOBAL START) ---
+        window.openReplyModal = function(id) {
+            const modal = document.getElementById('adminReplyModal');
+            if(!modal) {
+                window.showNotification('Modal not found. Please refresh the page.', 'error');
+                return;
+            }
+            document.getElementById('currentReplyId').value = id;
+            document.getElementById('adminReplyText').value = '';
+            modal.style.display = 'flex';
+            setTimeout(() => document.getElementById('adminReplyText').focus(), 100);
+        };
+
+        window.closeReplyModal = function() {
+            const modal = document.getElementById('adminReplyModal');
+            if(modal) modal.style.display = 'none';
+        };
+
+        window.submitAdminReply = async function() {
+            const id = document.getElementById('currentReplyId').value;
+            const reply = document.getElementById('adminReplyText').value;
+            if(!reply.trim()) {
+                window.showNotification('Please enter a reply before sending.', 'warning');
+                return;
+            }
+
+            const btn = document.getElementById('submitReplyBtn');
+            const originalText = btn ? btn.innerText : "Send";
+            if(btn) { btn.innerText = "⏳ Sending..."; btn.disabled = true; }
+
+            const formData = new FormData();
+            formData.append('action', 'reply');
+            formData.append('id', id);
+            formData.append('reply', reply);
+
+            try {
+                const res = await fetchWithTimeout('manage_helpdesk.php', { method: 'POST', body: formData });
+                const json = await res.json();
+                
+                if(json.status === 'success') {
+                    window.closeReplyModal();
+                    window.showNotification('Reply sent successfully! The user will see your message on their dashboard.', 'success');
+                    window.fetchHelpdeskRequests();
+                } else {
+                    window.showNotification('Error: ' + json.message, 'error');
+                }
+            } catch (err) {
+                window.showNotification('Connectivity issue. Please check your connection and try again.', 'error');
+            } finally {
+                if(btn) { btn.innerText = originalText; btn.disabled = false; }
+            }
+        };
+
+        window.resolveRequest = async function(id) {
+            window.showConfirm(
+                'Are you sure you want to mark this request as resolved? This action will update the status and notify the user.',
+                async function() {
+                    const formData = new FormData();
+                    formData.append('action', 'resolve');
+                    formData.append('id', id);
+
+                    try {
+                        const res = await fetchWithTimeout('manage_helpdesk.php', { method: 'POST', body: formData });
+                        const json = await res.json();
+                        
+                        if (json.status === 'success') {
+                            window.showNotification('Request marked as resolved successfully!', 'success');
+                            window.fetchHelpdeskRequests();
+                        } else {
+                            window.showNotification('Error: ' + json.message, 'error');
+                        }
+                    } catch (err) {
+                        window.showNotification('Network error. Please try again.', 'error');
+                    }
+                }
+            );
+        };
+
+        // --- HELP DESK ADMIN LOGIC (PRE-DEFINED) ---
+        window.fetchHelpdeskRequests = async function() {
+            const listEl = document.getElementById('adminHelpdeskList');
+            if(!listEl) return;
+
+            if(listEl.innerHTML.includes('Loading') || listEl.innerHTML.includes('found') || listEl.innerHTML === '') {
+                listEl.innerHTML = '<div style="text-align:center; padding:30px; opacity:0.8; color:var(--info);">📡 Fetching user requests... (Please wait)</div>';
+            }
+
+            try {
+                const res = await fetchWithTimeout('manage_helpdesk.php?action=fetch_all', { timeout: 15000 });
+                const json = await res.json();
+                
+                if(json.status === 'success') {
+                    let html = '';
+                    let pending = 0;
+                    let resolved = 0;
+
+                    if(json.data.length > 0) {
+                        json.data.forEach(req => {
+                            if(req.status === 'Resolved') resolved++; else pending++;
+                            const borderColor = req.status === 'Resolved' ? '#2ecc71' : (req.status === 'Pending' ? '#f1c40f' : '#4ab5c4');
+                            const statusLabel = req.status;
+                            const isResolved = req.status === 'Resolved';
+                            html += `
+                                <div style="background: rgba(255,255,255,0.05); padding: 20px; border-radius: 12px; border-left: 4px solid ${borderColor}; margin-bottom: 15px;">
+                                    <div style="display: flex; justify-content: space-between; align-items: center;">
+                                        <div>
+                                            <strong style="color: #fff;">${req.user_name}</strong>
+                                            <span style="font-size: 11px; opacity: 0.5; margin-left: 8px;">(${req.user_email})</span>
+                                        </div>
+                                        <span style="font-size: 11px; opacity: 0.6;">${req.created_at}</span>
+                                    </div>
+                                    <div style="margin: 10px 0; color: #4ab5c4; font-weight: 600;">Subject: ${req.title}</div>
+                                    <p style="margin-bottom: 15px; opacity: 0.8; font-size: 14px;">"${req.details}"</p>
+                                    ${req.admin_reply ? `
+                                        <div style="background: rgba(74, 181, 196, 0.1); padding: 12px; border-radius: 8px; margin-bottom: 15px; border: 1px dashed rgba(74, 181, 196, 0.3);">
+                                            <div style="font-size: 11px; font-weight: 800; color: #4ab5c4; margin-bottom: 5px;">YOUR REPLY:</div>
+                                            <div style="font-size: 13px;">${req.admin_reply}</div>
+                                        </div>
+                                    ` : ''}
+                                    <div style="display: flex; gap: 10px; align-items: center;">
+                                        ${!isResolved ? `
+                                            <button class="btn-reply" data-id="${req.id}" style="padding: 8px 18px; background: rgba(74, 181, 196, 0.2); border: 2px solid #4ab5c4; color: #4ab5c4; border-radius: 8px; cursor: pointer; font-size: 13px; font-weight: 700; transition:all 0.2s; position:relative; z-index:100;">Reply</button>
+                                            <button class="btn-resolve" data-id="${req.id}" style="padding: 8px 18px; background: rgba(46, 204, 113, 0.2); border: 2px solid #2ecc71; color: #2ecc71; border-radius: 8px; cursor: pointer; font-size: 13px; font-weight: 700; transition:all 0.2s; position:relative; z-index:100;">Mark Resolved</button>
+                                        ` : `
+                                            <span style="color: #2ecc71; font-size: 13px; font-weight: 800; display:flex; align-items:center; gap:6px;"><i class="fas fa-check-circle"></i> RESOLVED</span>
+                                        `}
+                                        <span style="font-size: 12px; color: ${borderColor}; margin-left: auto; font-weight: 800; text-transform:uppercase; letter-spacing:1px;">${statusLabel}</span>
+                                    </div>
+                                </div>
+                            `;
+                        });
+                        listEl.innerHTML = html;
+                    } else {
+                        listEl.innerHTML = '<div style="text-align:center; padding:50px; opacity:0.3;">No help requests found in the system.</div>';
+                    }
+
+                    const pCount = document.getElementById('pendingCount');
+                    const rCount = document.getElementById('resolvedCount');
+                    if(pCount) pCount.innerText = 'Pending: ' + pending;
+                    if(rCount) rCount.innerText = 'Resolved: ' + resolved;
+
+                    const hBadge = document.getElementById('helpdeskBadge');
+                    if (hBadge) {
+                        if (pending > 0 && !document.getElementById('helpdesk').classList.contains('active')) {
+                            hBadge.innerText = pending;
+                            hBadge.style.display = 'block';
+                        }
+                    }
+                } else {
+                    listEl.innerHTML = `<div style="text-align:center; padding:50px; color:#e74c3c;">Error: ${json.message}</div>`;
+                }
+            } catch (err) {
+                console.error("Helpdesk fetch error:", err);
+                listEl.innerHTML = `<div style="text-align:center; padding:30px; color:#e74c3c;">
+                    <p>Failed to connect to Help Desk service.</p>
+                    <small style="opacity:0.5;">${err.name === 'AbortError' ? 'Request Timed Out' : err.message}</small>
+                    <br><br>
+                    <button onclick="fetchHelpdeskRequests()" style="padding:8px 20px; background:rgba(255,255,255,0.1); border:1px solid rgba(255,255,255,0.2); color:white; border-radius:8px; cursor:pointer;">Retry</button>
+                </div>`;
+            }
+        };
+
+        // Consolidating logic
+        // MOVED TO TOP OF SCRIPT
+
         window.switchTab = function(tabId, element) {
             console.log("[AquaSafe] Navigation Engine: Targeting", tabId);
             
@@ -1260,10 +1668,13 @@ if ($users_result) {
                 if(tabId === 'evacuation') fetchEvacuationPoints();
                 if(tabId === 'alerts') {
                     fetchSystemAlerts();
-                    const badge = document.getElementById('alertBadge');
-                    if(badge) badge.style.display = 'none';
                 }
                 if(tabId === 'sensors') fetchSensorStatus();
+                if(tabId === 'helpdesk') {
+                    fetchHelpdeskRequests();
+                    const hb = document.getElementById('helpdeskBadge');
+                    if(hb) hb.style.display = 'none';
+                }
                 if(tabId === 'dashboard') {
                     fetchSystemAlerts();
                     fetchSensorStatus();
@@ -1286,11 +1697,13 @@ if ($users_result) {
             }
         };
         var currentArea = 'South Reservoir';
-        log("AquaSafe Admin JS Loading...");
+        var currentArea = 'South Reservoir';
+        console.log("AquaSafe Admin JS Loading...");
 
         // 2. GLOBAL EVACUATION FUNCTIONS (Explicit window assignment)
+        // 2. GLOBAL EVACUATION FUNCTIONS (Explicit window assignment)
         window.openAddModal = function() {
-            log("Opening Add Modal");
+            console.log("Opening Add Modal");
             const modal = document.getElementById('evacuationModal');
             if(!modal) return alert("System Error: Modal Overlay not found in DOM!");
             
@@ -1301,16 +1714,16 @@ if ($users_result) {
         };
 
         window.openEditModal = function(id) {
-            log("openEditModal called for ID:", id);
+            console.log("openEditModal called for ID:", id);
             
             const pt = allEvacPoints[id] || allEvacPoints[String(id)] || allEvacPoints[parseInt(id)];
 
             if(!pt) {
-                log("Lookup failed for ID:", id, "Cache content:", allEvacPoints);
+                console.log("Lookup failed for ID:", id, "Cache content:", allEvacPoints);
                 return alert("Critical Error: Point data not found in browser memory for #" + id);
             }
 
-            log("Editing Point:", pt.name);
+            console.log("Editing Point:", pt.name);
             const modal = document.getElementById('evacuationModal');
             if(!modal) return alert("System Error: Modal Overlay not found!");
 
@@ -1495,6 +1908,76 @@ if ($users_result) {
             }
         };
 
+        window.showConfirm = function(message, onConfirm) {
+            const modal = document.getElementById('customConfirmModal');
+            const msgEl = document.getElementById('confirmMessage');
+            const okBtn = document.getElementById('confirmOkBtn');
+            const cancelBtn = document.getElementById('confirmCancelBtn');
+
+            if(!modal || !msgEl || !okBtn || !cancelBtn) {
+                console.warn("Custom confirm modal elements missing, falling back to native confirm.");
+                if(confirm(message)) onConfirm(); 
+                return;
+            }
+
+            msgEl.innerText = message;
+            modal.style.display = 'flex';
+
+            // Clone buttons to clear previous event listeners
+            const newOk = okBtn.cloneNode(true);
+            const newCancel = cancelBtn.cloneNode(true);
+            okBtn.parentNode.replaceChild(newOk, okBtn);
+            cancelBtn.parentNode.replaceChild(newCancel, cancelBtn);
+
+            newOk.addEventListener('click', function() {
+                modal.style.display = 'none';
+                if (typeof onConfirm === 'function') onConfirm();
+            });
+
+            newCancel.addEventListener('click', function() {
+                modal.style.display = 'none';
+            });
+        };
+
+        window.deleteAlert = function(id) {
+            console.log("Delete alert requested for ID:", id);
+            
+            window.showConfirm(
+                "Are you sure you want to permanently DELETE this alert?",
+                async function() {
+                    const formData = new FormData();
+                    formData.append('action', 'delete');
+                    formData.append('id', id);
+                    
+                    try {
+                        const res = await fetch('manage_alerts.php', { method: 'POST', body: formData });
+                        const json = await res.json();
+                        if(json.status === 'success') {
+                            if(typeof window.showNotification === 'function') {
+                                window.showNotification("Alert deleted successfully", 'success');
+                            } else {
+                                alert("Alert deleted successfully");
+                            }
+                            fetchSystemAlerts(); // Refresh list
+                        } else {
+                            if(typeof window.showNotification === 'function') {
+                                window.showNotification(json.message, 'error');
+                            } else {
+                                alert(json.message);
+                            }
+                        }
+                    } catch(e) { 
+                        console.error("Delete failed:", e);
+                        if(typeof window.showNotification === 'function') {
+                            window.showNotification("Delete Failed: " + e.message, 'error'); 
+                        } else {
+                            alert("Delete Failed: " + e.message);
+                        }
+                    }
+                }
+            );
+        };
+
         window.fetchSystemAlerts = async function() {
             const container = document.querySelector('#alerts .card > div');
             const dashboardContainer = document.getElementById('dashboardRecentAlerts');
@@ -1512,31 +1995,50 @@ if ($users_result) {
                     // Update Count on Dashboard
                     if(countEl) countEl.innerText = alerts.length + " New";
 
-                    // Update Sidebar Badge (only if NOT currently on alerts tab)
+                    // Update Sidebar Badge (Smart Logic)
                     if(badgeEl) {
                         const isAlertsActive = document.getElementById('alerts').classList.contains('active');
-                        if(alerts.length > 0 && !isAlertsActive) {
-                            badgeEl.innerText = alerts.length;
-                            badgeEl.style.display = 'block';
-                        } else if (isAlertsActive) {
+                        const lastSeenCount = parseInt(localStorage.getItem('seenAlertCount') || '0');
+                        
+                        if (isAlertsActive) {
+                            // If user is currently viewing alerts, mark all as seen
+                            localStorage.setItem('seenAlertCount', alerts.length);
                             badgeEl.style.display = 'none';
+                        } else {
+                            // Calculate new alerts since last visit
+                            const newAlerts = alerts.length - lastSeenCount;
+                            
+                            if (newAlerts > 0) {
+                                badgeEl.innerText = newAlerts; // Show only the NEW count
+                                badgeEl.style.display = 'block';
+                            } else {
+                                badgeEl.style.display = 'none';
+                            }
                         }
                     }
                     
-                    // Update Main Alerts Tab
+                    // Update Main Alert List (Full View)
                     if(container) {
                         if(alerts.length > 0) {
                             let html = '';
                             alerts.forEach(alert => {
-                                const borderCol = alert.severity === 'Critical' ? '#e74c3c' : (alert.severity === 'Warning' ? '#f1c40f' : '#2ecc71');
-                                const bgCol = alert.severity === 'Critical' ? 'rgba(231, 76, 60, 0.1)' : (alert.severity === 'Warning' ? 'rgba(241, 196, 15, 0.1)' : 'rgba(46, 204, 113, 0.1)');
-                                const textCol = alert.severity === 'Critical' ? '#e74c3c' : (alert.severity === 'Warning' ? '#f1c40f' : '#2ecc71');
+                                const bgCol = alert.severity === 'Critical' ? 'rgba(231, 76, 60, 0.1)' : (alert.severity === 'Warning' ? 'rgba(241, 196, 15, 0.1)' : 'rgba(74, 181, 196, 0.1)');
+                                const borderCol = alert.severity === 'Critical' ? '#e74c3c' : (alert.severity === 'Warning' ? '#f1c40f' : '#4ab5c4');
+                                const textCol = borderCol;
                                 
                                 html += `
-                                    <div style="background: ${bgCol}; border-left: 4px solid ${borderCol}; padding: 15px; margin-bottom: 15px; border-radius: 0 8px 8px 0;">
-                                        <strong style="color: ${textCol};">${alert.severity} Alert</strong>
-                                        <p style="font-size: 14px; margin-top: 5px; opacity: 0.8;">${alert.message}</p>
-                                        <div style="font-size: 12px; opacity: 0.5; margin-top: 5px;">${new Date(alert.timestamp).toLocaleTimeString()}</div>
+                                    <div style="background: ${bgCol}; border-left: 4px solid ${borderCol}; padding: 15px; margin-bottom: 15px; border-radius: 0 8px 8px 0; display: flex; justify-content: space-between; align-items: start;">
+                                        <div>
+                                            <strong style="color: ${textCol};">${alert.severity} Alert</strong>
+                                            <p style="font-size: 14px; margin-top: 5px; opacity: 0.8;">${alert.message}</p>
+                                            <div style="font-size: 12px; opacity: 0.5; margin-top: 5px;">
+                                                <i data-lucide="map-pin" style="width: 10px; height: 10px;"></i> ${alert.location || 'System Wide'} • 
+                                                ${new Date(alert.timestamp).toLocaleTimeString()}
+                                            </div>
+                                        </div>
+                                        <button onclick="deleteAlert(${alert.id})" style="background: none; border: none; cursor: pointer; color: rgba(255,255,255,0.4); transition: color 0.2s;" title="Delete Alert">
+                                            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"></path><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"></path><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"></path></svg>
+                                        </button>
                                     </div>
                                 `;
                             });
@@ -1773,49 +2275,94 @@ if ($users_result) {
             if(!map) return;
             
             try {
-                // Add cache-buster to avoid stale browser data
-                const response = await fetch(`manage_evacuation.php?action=fetch_all&t=${Date.now()}`);
-                const res = await response.json();
-                    if(res.data) {
-                        // Clear existing
-                        for(let id in markersObj) {
-                            map.removeLayer(markersObj[id]);
-                        }
-                        markersObj = {};
+                // 1. Fetch Evacuation Points
+                const evacPromise = fetch(`manage_evacuation.php?action=fetch_all&t=${Date.now()}`);
+                // 2. Fetch Sensor Statuses (to overlay critical zone info)
+                const sensorPromise = fetch(`manage_alerts.php?action=fetch_sensors&t=${Date.now()}`);
 
-                        const markerGroup = [];
+                const [evacRes, sensorRes] = await Promise.all([evacPromise, sensorPromise]);
+                const evacJson = await evacRes.json();
+                const sensorJson = await sensorRes.json();
 
-                        res.data.forEach(p => {
-                            let lat = parseFloat(p.latitude);
-                            let lng = parseFloat(p.longitude);
-
-                            // Fallback for legacy points or points without coords
-                            if(isNaN(lat) || isNaN(lng) || (lat === 0 && lng === 0)) {
-                                log("Legacy point detected:", p.name, "Placing at default center.");
-                                lat = 10.8505 + (Math.random() - 0.5) * 0.1; // Slight random offset around center
-                                lng = 76.2711 + (Math.random() - 0.5) * 0.1;
-                            }
-
-                            const color = p.status === 'Available' ? '#2ecc71' : (p.status === 'Full' ? '#e74c3c' : '#f1c40f');
-                            const marker = L.circleMarker([lat, lng], {
-                                color: color,
-                                fillColor: color,
-                                fillOpacity: 0.8,
-                                radius: 10
-                            }).addTo(map).bindPopup(`<b>${p.name}</b><br>Status: ${p.status}<br>Cap: ${p.capacity}`);
-                            
-                            markersObj[p.id] = marker;
-                            markerGroup.push([lat, lng]);
-                        });
-
-                        // Auto-fit bounds if we have markers
-                        if (markerGroup.length > 0) {
-                            map.fitBounds(L.latLngBounds(markerGroup), { padding: [50, 50] });
-                        }
-                    }
-                } catch (e) {
-                    log("Map Marker Refresh Error:", e);
+                // Create Sensor Lookup Map
+                const sensorMap = {};
+                if(sensorJson.status === 'success' && sensorJson.data) {
+                    sensorJson.data.forEach(s => {
+                        sensorMap[s.sensor_id] = s.status; // e.g. "Active", "Offline", "Maintenance"
+                    });
                 }
+
+                if(evacJson.data) {
+                    // Clear existing markers
+                    for(let id in markersObj) {
+                        map.removeLayer(markersObj[id]);
+                    }
+                    markersObj = {};
+
+                    const markerGroup = [];
+
+                    evacJson.data.forEach(p => {
+                        let lat = parseFloat(p.latitude);
+                        let lng = parseFloat(p.longitude);
+
+                        // Fallback & Randomization for overlapping points
+                        if(isNaN(lat) || isNaN(lng) || (lat === 0 && lng === 0)) {
+                            lat = 10.8505 + (Math.random() - 0.5) * 0.1; 
+                            lng = 76.2711 + (Math.random() - 0.5) * 0.1;
+                        }
+
+                        // Determine Status & Color
+                        const assignedSensor = p.assigned_sensor;
+                        const sensorStatus = assignedSensor ? (sensorMap[assignedSensor] || 'Unknown') : 'N/A';
+                        
+                        // Priority: Critical Sensor > Evacuation Status
+                        let color = '#2ecc71'; // Default Safe (Green)
+                        let statusText = `Evac Status: ${p.status}`;
+                        let isCritical = false;
+
+                        // Check Sensor Health (Critical Zone Logic)
+                        // If sensor is Offline or Maintenance -> It's a Critical Zone
+                        const isSensorCritical = (sensorStatus === 'Offline' || sensorStatus === 'Maintenance');
+                        
+                        if (isSensorCritical) {
+                            color = '#e74c3c'; // Red for Critical
+                            statusText += `<br><strong style="color:#e74c3c">⚠️ Critical Zone: Sensor ${sensorStatus}</strong>`;
+                            isCritical = true;
+                        } else {
+                            // Normal Evacuation Status Logic
+                            if (p.status === 'Full') color = '#f1c40f'; // Yellow
+                            else if (p.status === 'Closed') color = '#95a5a6'; // Grey
+                            
+                            statusText += `<br>Sensor: ${sensorStatus}`;
+                        }
+
+                        const marker = L.circleMarker([lat, lng], {
+                            color: color,
+                            fillColor: color,
+                            fillOpacity: 0.8,
+                            radius: isCritical ? 14 : 10 // Larger radius for critical zones
+                        }).addTo(map).bindPopup(`
+                            <div style="font-family: 'Outfit', sans-serif;">
+                                <strong style="font-size:14px; color:#4ab5c4;">${p.name}</strong><br>
+                                <div style="margin-top:5px; font-size:12px;">
+                                    ${statusText}<br>
+                                    Cap: ${p.capacity}
+                                </div>
+                            </div>
+                        `);
+                        
+                        markersObj[p.id] = marker;
+                        markerGroup.push([lat, lng]);
+                    });
+
+                    // Auto-fit bounds if we have markers
+                    if (markerGroup.length > 0) {
+                        map.fitBounds(L.latLngBounds(markerGroup), { padding: [50, 50] });
+                    }
+                }
+            } catch (e) {
+                console.log("Map Marker Refresh Error:", e);
+            }
         };
 
         window.mapSetView = function(lat, lng, zoom = 7) {
@@ -1840,14 +2387,77 @@ if ($users_result) {
                 labels = ['00:00', '04:00', '08:00', '12:00', '16:00', '20:00', '23:59'];
                 dataPoints = [35, 38, 45, 50, 48, 42, 40];
                 alertData = [2, 1, 4, 3, 2, 1, 1];
+                // Update stats
+                if(document.getElementById('statTotalAlerts')) {
+                    document.getElementById('statTotalAlerts').innerText = "14";
+                    document.getElementById('statFloodEvents').innerText = "3";
+                    document.getElementById('statSafeRecoveries').innerText = "98%";
+                }
             } else if (range === '7d') {
                 labels = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
                 dataPoints = [40, 55, 45, 60, 65, 50, 55];
                 alertData = [12, 18, 15, 22, 25, 14, 16];
+                if(document.getElementById('statTotalAlerts')) {
+                    document.getElementById('statTotalAlerts').innerText = "122";
+                    document.getElementById('statFloodEvents').innerText = "15";
+                    document.getElementById('statSafeRecoveries').innerText = "96%";
+                }
             } else { // 30d
                 labels = ['Week 1', 'Week 2', 'Week 3', 'Week 4'];
                 dataPoints = [45, 62, 58, 52];
                 alertData = [85, 120, 95, 110];
+                if(document.getElementById('statTotalAlerts')) {
+                    document.getElementById('statTotalAlerts').innerText = "410";
+                    document.getElementById('statFloodEvents').innerText = "42";
+                    document.getElementById('statSafeRecoveries').innerText = "94%";
+                }
+            }
+
+            // Update Event Log Table
+            const eventBody = document.getElementById('eventLogBody');
+            if (eventBody) {
+                eventBody.innerHTML = ''; // Clear previous
+                let events = [];
+                
+                if (range === '24h') {
+                    events = [
+                        { time: '20:15', event: 'Water Level Critical', location: 'South Reservoir', severity: 'Critical', status: 'Active' },
+                        { time: '18:30', event: 'Sensor Malfunction', location: 'River A-2', severity: 'Warning', status: 'Resolved' },
+                        { time: '14:45', event: 'Water Level High', location: 'North Dam', severity: 'Warning', status: 'Monitoring' },
+                        { time: '09:20', event: 'Flow Rate Spike', location: 'Canal Zone', severity: 'Warning', status: 'Resolved' },
+                        { time: '04:10', event: 'Water Level Critical', location: 'South Reservoir', severity: 'Critical', status: 'Resolved' }
+                    ];
+                } else if (range === '7d') {
+                    events = [
+                        { time: 'Mon 14:20', event: 'Flash Flood Warning', location: 'East Valley', severity: 'Critical', status: 'Resolved' },
+                        { time: 'Sun 09:15', event: 'Water Level Critical', location: 'South Reservoir', severity: 'Critical', status: 'Active' },
+                        { time: 'Sat 22:10', event: 'Dam Gate #3 Error', location: 'Main Dam', severity: 'Warning', status: 'In Progress' },
+                        { time: 'Fri 18:45', event: 'High Rainfall Alert', location: 'All Zones', severity: 'Warning', status: 'Resolved' },
+                        { time: 'Thu 11:30', event: 'Communication Loss', location: 'Sensor Node 4', severity: 'Critical', status: 'Fixed' }
+                    ];
+                } else {
+                    events = [
+                        { time: 'Dec 28', event: 'System Wide Test', location: 'All Sites', severity: 'Info', status: 'Completed' },
+                        { time: 'Dec 25', event: 'Rapid Water Rise', location: 'West Bank', severity: 'Critical', status: 'Evacuated' },
+                        { time: 'Dec 20', event: 'Sensor Battery Low', location: 'Node 12', severity: 'Warning', status: 'Replaced' },
+                        { time: 'Dec 15', event: 'Flood Gate Opened', location: 'North Dam', severity: 'Info', status: 'Logged' },
+                        { time: 'Dec 10', event: 'Preliminary Flood Alert', location: 'South Zone', severity: 'Warning', status: 'Dismissed' }
+                    ];
+                }
+
+                events.forEach(ev => {
+                    const sevColor = ev.severity === 'Critical' ? '#e74c3c' : (ev.severity === 'Warning' ? '#f1c40f' : '#3498db');
+                    const row = `
+                        <tr style="border-bottom: 1px solid rgba(255,255,255,0.05);">
+                            <td style="padding: 15px;">${ev.time}</td>
+                            <td style="padding: 15px;">${ev.event}</td>
+                            <td style="padding: 15px;">${ev.location}</td>
+                            <td style="padding: 15px;"><span style="color: ${sevColor}; font-weight: 600;">${ev.severity}</span></td>
+                            <td style="padding: 15px;">${ev.status}</td>
+                        </tr>
+                    `;
+                    eventBody.innerHTML += row;
+                });
             }
 
             floodChart = new Chart(ctx1, {
@@ -1898,35 +2508,7 @@ if ($users_result) {
             });
         };
 
-        // Simulated Export Functions
-        window.exportReportCSV = function() {
-            log("Generating CSV Export...");
-            const csvContent = "Date,Report Type,Status\nDec 19 2025,Daily Operations Summary,Completed\nDec 18 2025,Critical Incident Log,Review Needed";
-            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-            const link = document.createElement("a");
-            const url = URL.createObjectURL(blob);
-            link.setAttribute("href", url);
-            link.setAttribute("download", "AquaSafe_Reports_All_" + new Date().toISOString().split('T')[0] + ".csv");
-            link.style.visibility = 'hidden';
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
-            log("CSV Export Downloaded.");
-        };
-
-        window.downloadReportPDF = function(type) {
-            log("Simulating PDF Generation for:", type);
-            const btn = event.currentTarget;
-            const originalText = btn.innerText;
-            btn.innerText = "⏳ Generating...";
-            btn.style.opacity = "0.7";
-            
-            setTimeout(() => {
-                alert("Report Generated: " + type + " PDF is ready.\n\n(Note: In a live production environment, this would call a server-side PDF engine like TCPDF or Dompdf to generate the file based on real sensor history.)");
-                btn.innerText = originalText;
-                btn.style.opacity = "1";
-            }, 1200);
-        };
+        // REMOVED LOGIC - MOVED TO TOP OF SCRIPT (Global Definition)
 
 
         // REMOVED DUPLICATE LOGIC - NOW CONSOLIDATED ABOVE
@@ -2003,6 +2585,148 @@ if ($users_result) {
         window.addEventListener('load', handleHash);
         window.addEventListener('hashchange', handleHash);
 
+
+        // --- NOTIFICATION CONTROL LOGIC ---
+        window.fetchNotificationSettings = async function() {
+            try {
+                const res = await fetch('manage_notifications.php?action=fetch');
+                const json = await res.json();
+                
+                if (json.status === 'success') {
+                    const data = json.data;
+                    
+                    // Master Toggle
+                    const master = document.getElementById('masterToggle');
+                    if(master) master.checked = data.master_enabled;
+                    
+                    // Thresholds
+                    const warmSlider = document.getElementById('warningSlider');
+                    const critSlider = document.getElementById('criticalSlider');
+                    if(warmSlider) { warmSlider.value = data.warning_threshold; document.getElementById('warningVal').innerText = data.warning_threshold + '%'; }
+                    if(critSlider) { critSlider.value = data.critical_threshold; document.getElementById('criticalVal').innerText = data.critical_threshold + '%'; }
+                    
+                    // Channels
+                    if(document.getElementById('sms_ch')) document.getElementById('sms_ch').checked = data.sms_enabled;
+                    if(document.getElementById('email_ch')) document.getElementById('email_ch').checked = data.email_enabled;
+                    if(document.getElementById('app_ch')) document.getElementById('app_ch').checked = data.push_enabled;
+                    if(document.getElementById('public_ch')) document.getElementById('public_ch').checked = data.siren_enabled;
+                }
+            } catch (err) {
+                log("Fetch Notifications Error: " + err);
+            }
+        };
+
+        window.updateMasterToggle = async function() {
+            const enabled = document.getElementById('masterToggle').checked ? 1 : 0;
+            const formData = new FormData();
+            formData.append('action', 'update_master');
+            formData.append('enabled', enabled);
+            
+            try {
+                const res = await fetch('manage_notifications.php', { method: 'POST', body: formData });
+                const json = await res.json();
+                if(json.status === 'success') {
+                    window.showNotification(json.message, enabled ? 'success' : 'warning');
+                } else {
+                    window.showNotification(json.message, 'error');
+                }
+            } catch(e) { window.showNotification("Connection failed", 'error'); }
+        };
+
+        window.updateThresholds = async function() {
+            const warning = document.getElementById('warningSlider').value;
+            const critical = document.getElementById('criticalSlider').value;
+            
+            const formData = new FormData();
+            formData.append('action', 'update_thresholds');
+            formData.append('warning', warning);
+            formData.append('critical', critical);
+            
+            try {
+                const res = await fetch('manage_notifications.php', { method: 'POST', body: formData });
+                const json = await res.json();
+                if(json.status === 'success') {
+                    log("Thresholds saved");
+                } else {
+                    window.showNotification(json.message, 'error');
+                }
+            } catch(e) { log("Threshold Save Error: " + e); }
+        };
+
+        window.updateChannels = async function() {
+            const sms = document.getElementById('sms_ch').checked ? 1 : 0;
+            const email = document.getElementById('email_ch').checked ? 1 : 0;
+            const push = document.getElementById('app_ch').checked ? 1 : 0;
+            const siren = document.getElementById('public_ch').checked ? 1 : 0;
+            
+            const formData = new FormData();
+            formData.append('action', 'update_channels');
+            formData.append('sms', sms);
+            formData.append('email', email);
+            formData.append('push', push);
+            formData.append('siren', siren);
+            
+            try {
+                const res = await fetch('manage_notifications.php', { method: 'POST', body: formData });
+                const json = await res.json();
+                if(json.status === 'success') {
+                    log("Channels updated");
+                }
+            } catch(e) { log("Channel Update Error"); }
+        };
+
+        window.broadcastAlert = function() {
+            console.log("Broadcast button clicked");
+            const msgInput = document.getElementById('broadcastMessage');
+            const sevInput = document.getElementById('broadcastSeverity');
+            const areaInput = document.getElementById('broadcastArea');
+
+            if (!msgInput || !sevInput || !areaInput) {
+                console.error("Critical: Broadcast inputs missing");
+                return alert("Error: UI components missing. Please refresh.");
+            }
+
+            const message = msgInput.value;
+            const severity = sevInput.value;
+            const area = areaInput.value;
+            
+            if(!message.trim()) {
+                window.showNotification("Please enter a message to broadcast.", 'warning');
+                return;
+            }
+            
+            // Use custom confirm modal instead of native confirm
+            window.showConfirm(
+                `Are you sure you want to BROADCAST this alert to ${area}?`,
+                async function() {
+                    // On Confirm
+                    const formData = new FormData();
+                    formData.append('action', 'broadcast');
+                    formData.append('message', message);
+                    formData.append('severity', severity);
+                    formData.append('location', area);
+                    
+                    try {
+                        const res = await fetch('manage_alerts.php', { method: 'POST', body: formData });
+                        const json = await res.json();
+                        if(json.status === 'success') {
+                            window.showNotification("Broadcast Sent Successfully!", 'success');
+                            msgInput.value = ''; // Clear input
+                            if(typeof fetchSystemAlerts === 'function') fetchSystemAlerts(); 
+                        } else {
+                            window.showNotification(json.message, 'error');
+                        }
+                    } catch(e) { 
+                        console.error("Broadcast error:", e);
+                        window.showNotification("Broadcast Failed: " + e.message, 'error'); 
+                    }
+                }
+            );
+        };
+
+        // Initialize Notifications
+        fetchNotificationSettings();
+        
         // Initialize
         updateTime();
         setInterval(updateTime, 1000);
@@ -2024,7 +2748,58 @@ if ($users_result) {
         }, 30000);
 
         // 10. Removed problematic centralized listener - sticking to robust inline calls
+        // Global Export Diagnostic
+        console.log("[AquaSafe] Export Definitions Check:", {
+            csv: typeof window.exportReportCSV,
+            pdf: typeof window.downloadReportPDF
+        });
+        
         log("AquaSafe Admin System: LOADED SUCCESSFULLY!");
+
+        // Initial check for Help Desk notifications
+        fetchHelpdeskRequests();
+        setInterval(fetchHelpdeskRequests, 60000); // Check every minute
     </script>
+    <!-- Admin Reply Modal -->
+    <div id="adminReplyModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.7); z-index:9999; justify-content:center; align-items:center; backdrop-filter:blur(5px);">
+        <div style="background:#0f2027; border:1px solid #4ab5c4; padding:25px; border-radius:15px; width:90%; max-width:500px; box-shadow:0 0 30px rgba(74,181,196,0.3); animation:fadeInUp 0.3s ease;">
+            <h3 style="color:#4ab5c4; margin-top:0; display:flex; align-items:center; gap:10px; font-size:18px;"><i data-lucide="reply"></i> Send Reply to User</h3>
+            <p style="color:rgba(255,255,255,0.7); font-size:13px; margin:10px 0 15px;">Your reply will be visible to the user immediately on their dashboard.</p>
+            
+            <input type="hidden" id="currentReplyId">
+            <textarea id="adminReplyText" rows="5" style="width:100%; background:rgba(255,255,255,0.05); border:1px solid rgba(255,255,255,0.1); color:#fff; padding:15px; border-radius:8px; resize:vertical; font-family:inherit; font-size:14px;" placeholder="Type your response here..."></textarea>
+            
+            <div style="display:flex; justify-content:flex-end; gap:10px; margin-top:20px;">
+                <button onclick="window.closeReplyModal()" style="padding:10px 20px; background:transparent; border:1px solid rgba(255,255,255,0.2); color:#fff; border-radius:8px; cursor:pointer; font-weight:600;">Cancel</button>
+                <button onclick="window.submitAdminReply()" id="submitReplyBtn" style="padding:10px 25px; background:#4ab5c4; border:none; color:#032023; font-weight:700; border-radius:8px; cursor:pointer;">Send Reply</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Custom Notification Modal -->
+    <div id="customNotificationModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.7); z-index:10000; justify-content:center; align-items:center; backdrop-filter:blur(5px);">
+        <div style="background:#0f2027; border:2px solid #4ab5c4; padding:30px; border-radius:15px; width:90%; max-width:450px; box-shadow:0 0 40px rgba(74,181,196,0.4); animation:fadeInUp 0.3s ease; position:relative;">
+            <div id="notificationIcon" style="font-size:48px; text-align:center; margin-bottom:15px;">✅</div>
+            <h3 id="notificationTitle" style="color:#4ab5c4; margin:0 0 15px 0; text-align:center; font-size:20px;">Success</h3>
+            <p id="notificationMessage" style="color:rgba(255,255,255,0.9); text-align:center; font-size:15px; line-height:1.6; margin-bottom:25px;">Operation completed successfully!</p>
+            <div style="display:flex; justify-content:center; gap:10px;">
+                <button id="notificationOkBtn" onclick="window.closeNotification()" style="padding:12px 30px; background:#4ab5c4; border:none; color:#032023; font-weight:700; border-radius:8px; cursor:pointer; font-size:14px;">OK</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Custom Confirmation Modal -->
+    <div id="customConfirmModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.7); z-index:10000; justify-content:center; align-items:center; backdrop-filter:blur(5px);">
+        <div style="background:#0f2027; border:2px solid #f1c40f; padding:30px; border-radius:15px; width:90%; max-width:450px; box-shadow:0 0 40px rgba(241,196,15,0.4); animation:fadeInUp 0.3s ease;">
+            <div style="font-size:48px; text-align:center; margin-bottom:15px;">⚠️</div>
+            <h3 style="color:#f1c40f; margin:0 0 15px 0; text-align:center; font-size:20px;">Confirm Action</h3>
+            <p id="confirmMessage" style="color:rgba(255,255,255,0.9); text-align:center; font-size:15px; line-height:1.6; margin-bottom:25px;">Are you sure?</p>
+            <div style="display:flex; justify-content:center; gap:10px;">
+                <button id="confirmCancelBtn" style="padding:12px 24px; background:transparent; border:1px solid rgba(255,255,255,0.3); color:#fff; font-weight:600; border-radius:8px; cursor:pointer; font-size:14px;">Cancel</button>
+                <button id="confirmOkBtn" style="padding:12px 24px; background:#f1c40f; border:none; color:#032023; font-weight:700; border-radius:8px; cursor:pointer; font-size:14px;">Confirm</button>
+            </div>
+        </div>
+    </div>
+
 </body>
 </html>```

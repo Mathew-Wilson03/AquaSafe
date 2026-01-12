@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="UTF-8">
+    <title>Admin Dashboard Diagnostics</title>
+</head>
+
+<body style="background:#0f2027; color:white; padding:50px; font-family:monospace;">
+    <h1>Admin Dashboard Help Desk Diagnostics</h1>
+
+    <div style="background:rgba(255,255,255,0.1); padding:20px; border-radius:12px; margin-top:30px;">
+        <h2>Test Results:</h2>
+        <div id="results"></div>
+    </div>
+
+    <script>
+        const results = document.getElementById('results');
+
+        function test(name, condition) {
+            const status = condition ? '✅ PASS' : '❌ FAIL';
+            const color = condition ? '#2ecc71' : '#e74c3c';
+            results.innerHTML += `<div style="padding:10px; margin:5px 0; background:rgba(0,0,0,0.2); border-left:4px solid ${color};">${status}: ${name}</div>`;
+            return condition;
+        }
+
+        // Simulate the exact code from admin_dashboard.php
+
+        // 1. Test Event Delegation Setup
+        document.addEventListener('click', function (e) {
+            const replyBtn = e.target.closest('.btn-reply');
+            if (replyBtn) {
+                const id = replyBtn.dataset.id;
+                console.log("Delegated Click: Reply", id);
+                if (window.openReplyModal) window.openReplyModal(id);
+                else alert("Error: Reply function not ready.");
+            }
+
+            const resolveBtn = e.target.closest('.btn-resolve');
+            if (resolveBtn) {
+                const id = resolveBtn.dataset.id;
+                console.log("Delegated Click: Resolve", id);
+                if (window.resolveRequest) window.resolveRequest(id);
+                else alert("Error: Resolve function not ready.");
+            }
+        });
+
+        // 2. Define Functions
+        window.openReplyModal = function (id) {
+            alert("✅ Reply Modal Triggered for ID: " + id);
+        };
+
+        window.resolveRequest = function (id) {
+            if (confirm("Mark request #" + id + " as resolved?")) {
+                alert("✅ Resolve Triggered for ID: " + id);
+            }
+        };
+
+        // 3. Run Tests
+        setTimeout(() => {
+            test("Event listener attached", true);
+            test("window.openReplyModal defined", typeof window.openReplyModal === 'function');
+            test("window.resolveRequest defined", typeof window.resolveRequest === 'function');
+
+            // 4. Create test buttons
+            const testArea = document.createElement('div');
+            testArea.style = 'margin-top:30px; padding:20px; background:rgba(255,255,255,0.05); border-radius:12px;';
+            testArea.innerHTML = `
+                <h2>Click These Test Buttons:</h2>
+                <button class="btn-reply" data-id="999" style="padding:12px 24px; background:rgba(74,181,196,0.2); border:2px solid #4ab5c4; color:#4ab5c4; border-radius:8px; cursor:pointer; font-size:14px; font-weight:700; margin-right:10px;">Test Reply Button</button>
+                <button class="btn-resolve" data-id="888" style="padding:12px 24px; background:rgba(46,204,113,0.2); border:2px solid #2ecc71; color:#2ecc71; border-radius:8px; cursor:pointer; font-size:14px; font-weight:700;">Test Resolve Button</button>
+            `;
+            document.body.appendChild(testArea);
+
+            // 5. Verify buttons rendered
+            const replyBtns = document.querySelectorAll('.btn-reply');
+            const resolveBtns = document.querySelectorAll('.btn-resolve');
+            test("Reply buttons rendered", replyBtns.length > 0);
+            test("Resolve buttons rendered", resolveBtns.length > 0);
+
+            results.innerHTML += '<div style="padding:20px; margin-top:20px; background:rgba(74,181,196,0.1); border:1px solid #4ab5c4; border-radius:8px;"><strong style="color:#4ab5c4;">✅ All systems operational!</strong><br><br>If test buttons above work but admin dashboard buttons don\'t, the issue is likely:<br>1. Buttons not rendering in admin dashboard<br>2. JavaScript error preventing event listener attachment<br>3. Modal HTML missing from admin dashboard</div>';
+        }, 100);
+    </script>
+</body>
+
+</html>

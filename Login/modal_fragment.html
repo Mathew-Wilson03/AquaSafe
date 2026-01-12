@@ -1,0 +1,15 @@
+<!-- Admin Reply Modal -->
+<div id="adminReplyModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.7); z-index:9999; justify-content:center; align-items:center;">
+    <div style="background:#0f2027; border:1px solid #4ab5c4; padding:25px; border-radius:15px; width:90%; max-width:500px; box-shadow:0 0 30px rgba(74,181,196,0.3);">
+        <h3 style="color:#4ab5c4; margin-top:0; display:flex; align-items:center; gap:10px;"><i data-lucide="reply"></i> Send Reply</h3>
+        <p style="color:rgba(255,255,255,0.7); font-size:13px; margin-bottom:15px;">Your reply will be visible to the user immediately.</p>
+        
+        <input type="hidden" id="currentReplyId">
+        <textarea id="adminReplyText" rows="5" style="width:100%; background:rgba(255,255,255,0.05); border:1px solid rgba(255,255,255,0.1); color:#fff; padding:15px; border-radius:8px; resize:vertical; font-family:inherit;" placeholder="Type your response here..."></textarea>
+        
+        <div style="display:flex; justify-content:flex-end; gap:10px; margin-top:20px;">
+            <button onclick="window.closeReplyModal()" style="padding:10px 20px; background:transparent; border:1px solid rgba(255,255,255,0.2); color:#fff; border-radius:8px; cursor:pointer;">Cancel</button>
+            <button onclick="window.submitAdminReply()" style="padding:10px 25px; background:#4ab5c4; border:none; color:#032023; font-weight:700; border-radius:8px; cursor:pointer;">Send Reply</button>
+        </div>
+    </div>
+</div>

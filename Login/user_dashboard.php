@@ -10,6 +10,26 @@ if(!isset($_SESSION["loggedin"]) || $_SESSION["loggedin"] !== true){
 $name = htmlspecialchars($_SESSION["name"] ?? "User");
 $email = htmlspecialchars($_SESSION["email"] ?? "");
 
+require_once 'config.php';
+$user_id = $_SESSION["id"] ?? 0;
+// Default location if not set
+$db_location = 'System Wide'; 
+
+if($user_id){
+    $stmt = mysqli_prepare($link, "SELECT location FROM users WHERE id = ?");
+    if($stmt){
+        mysqli_stmt_bind_param($stmt, "i", $user_id);
+        mysqli_stmt_execute($stmt);
+        mysqli_stmt_bind_result($stmt, $loc);
+        if(mysqli_stmt_fetch($stmt)){
+             if(!empty($loc)) $db_location = $loc;
+        }
+        mysqli_stmt_close($stmt);
+    }
+}
+// Expose to JS
+echo "<script>window.userLocation = '" . htmlspecialchars($db_location) . "';</script>";
+
 // Mock data (replace with real DB/API integration later)
 $flood_status = 'Warning'; // Safe | Warning | Danger
 $flood_explanation = (
@@ -24,10 +44,8 @@ $evac_points = [
     ['name'=>'Town School, Central','distance'=>'2.8 km','query'=>'Town+School+Central']
 ];
 
-$alerts = [
-    ['severity'=>'Warning','text'=>'River level rising near checkpoint A','time'=>date('Y-m-d H:i')],
-    ['severity'=>'Info','text'=>'Routine sensor calibration scheduled','time'=>date('Y-m-d H:i', strtotime('-2 hours'))]
-];
+// Alerts will be fetched via AJAX
+$alerts = [];
 
 // Load recent help requests (if file exists)
 $help_file = __DIR__ . '/help_requests.json';
@@ -50,6 +68,7 @@ if (file_exists($help_file)) {
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <script src="https://unpkg.com/lucide@latest"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 
     <style>
@@ -138,6 +157,7 @@ if (file_exists($help_file)) {
             border-radius: 14px; 
             transition: all 0.25s ease;
             font-weight: 500;
+            position: relative;
         }
 
         .sidebar-menu a:hover, .sidebar-menu a.active, .sidebar-footer a:hover { 
@@ -418,7 +438,10 @@ if (file_exists($help_file)) {
                 <a href="#section-evac" data-target="section-evac"><i data-lucide="map-pin"></i> Evacuation</a>
                 <a href="#section-contacts" data-target="section-contacts"><i data-lucide="phone"></i> Contacts</a>
                 <a href="#section-alerts" data-target="section-alerts"><i data-lucide="bell"></i> Alerts</a>
-                <a href="#section-help" data-target="section-help"><i data-lucide="help-circle"></i> Help Desk</a>
+                <a href="#section-help" data-target="section-help" id="helpDeskLink">
+                    <i data-lucide="help-circle"></i> Help Desk
+                    <span id="helpdeskNotificationBadge" style="display:none; position:absolute; top:8px; right:8px; background:#e74c3c; color:#fff; border-radius:50%; width:20px; height:20px; font-size:11px; font-weight:700; display:flex; align-items:center; justify-content:center; box-shadow:0 2px 8px rgba(231,76,60,0.5);">0</span>
+                </a>
                 <a href="#section-safety" data-target="section-safety"><i data-lucide="shield-check"></i> Safety Tips</a>
                 <a href="#section-water" data-target="section-water"><i data-lucide="droplets"></i> Water Levels</a>
                 <a href="#section-map" data-target="section-map"><i data-lucide="map"></i> Map View</a>
@@ -492,6 +515,15 @@ if (file_exists($help_file)) {
                         </div>
                     </div>
 
+                    <div id="section-alerts" class="content-section">
+                        <div class="card glass">
+                            <h3><i data-lucide="bell"></i> System Alerts</h3>
+                            <div id="userAlertsList" class="list-container">
+                                <div style="text-align:center; padding: 20px; opacity: 0.6;">Loading latest alerts...</div>
+                            </div>
+                        </div>
+                    </div>
+
                     <div id="section-contacts" class="content-section">
                         <div class="card glass">
                             <h3><i data-lucide="phone"></i> Emergency Contacts</h3>
@@ -521,51 +553,25 @@ if (file_exists($help_file)) {
                         </div>
                     </div>
 
-                    <div id="section-alerts" class="content-section">
-                        <div class="card glass">
-                            <h3><i data-lucide="bell"></i> Recent Alerts</h3>
-                            <div class="list-container">
-                                <?php foreach($alerts as $a): ?>
-                                <div class="list-item" style="border-left: 4px solid <?php echo $a['severity'] === 'Warning' ? 'var(--warning)' : 'var(--primary)'; ?>">
-                                    <div>
-                                        <strong>[<?php echo $a['severity']; ?>]</strong> <?php echo htmlspecialchars($a['text']); ?>
-                                        <div style="font-size: 12px; color: rgba(255,255,255,0.5); margin-top: 4px;"><?php echo $a['time']; ?></div>
-                                    </div>
-                                </div>
-                                <?php endforeach; ?>
-                            </div>
-                        </div>
-                    </div>
+
 
                     <div id="section-help" class="content-section">
                         <div class="card glass">
                             <h3><i data-lucide="help-circle"></i> Help Desk</h3>
-                            <?php if(isset($_GET['help_sent'])): ?>
-                                <div class="animate__animated animate__headShake" style="padding:12px; border-radius:10px; background:<?php echo $_GET['help_sent'] == '1' ? 'rgba(46,204,113,0.1)' : 'rgba(231,76,60,0.1)'; ?>; color:<?php echo $_GET['help_sent'] == '1' ? 'var(--safe)' : 'var(--danger)'; ?>; margin-bottom:15px; border:1px solid currentColor;">
-                                    <?php echo $_GET['help_sent'] == '1' ? 'Request sent successfully. responders notified.' : 'Failed to send request. Please try again.'; ?>
-                                </div>
-                            <?php endif; ?>
+                            <div id="helpdesk-status-msg"></div>
                             
-                            <form class="help-form" method="post" action="send_help.php">
-                                <input type="text" name="title" placeholder="Short title (e.g. Rising water level)" required>
-                                <textarea name="details" rows="3" placeholder="Describe your request or situation..." required></textarea>
-                                <button type="submit"><i data-lucide="send" style="width:16px; display:inline-block; vertical-align:middle; margin-right:6px;"></i> Send Request</button>
+                            <form class="help-form" id="helpRequestForm" method="POST" onsubmit="window.submitHelpRequest(event)">
+                                <input type="text" name="title" id="helpTitle" placeholder="Short title (e.g. Rising water level)" required>
+                                <textarea name="details" id="helpDetails" rows="3" placeholder="Describe your request or situation..." required></textarea>
+                                <button type="submit" id="helpSubmitBtn"><i data-lucide="send" style="width:16px; display:inline-block; vertical-align:middle; margin-right:6px;"></i> Send Request</button>
                             </form>
 
-                            <?php if(!empty($help_requests)): ?>
-                                <h4 style="margin: 20px 0 10px; font-size: 14px; color: rgba(255,255,255,0.6);">Your Recent Requests</h4>
-                                <div class="list-container">
-                                    <?php foreach(array_slice($help_requests,0,3) as $hr): ?>
-                                        <div class="list-item" style="flex-direction:column; align-items:flex-start; gap:8px;">
-                                            <div style="width:100%; display:flex; justify-content:space-between;">
-                                                <strong><?php echo htmlspecialchars($hr['title'] ?? ''); ?></strong>
-                                                <span class="small-pill" style="font-size:10px; padding:2px 8px; border-radius:20px; background:var(--primary); color:#032023;"><?php echo htmlspecialchars($hr['status'] ?? 'Pending'); ?></span>
-                                            </div>
-                                            <p style="font-size:12px; color:rgba(255,255,255,0.7);"><?php echo nl2br(htmlspecialchars($hr['details'] ?? '')); ?></p>
-                                        </div>
-                                    <?php endforeach; ?>
-                                </div>
-                            <?php endif; ?>
+                            <h4 style="margin: 25px 0 10px; font-size: 14px; color: var(--primary); display: flex; align-items: center; gap: 8px;">
+                                <i data-lucide="history" style="width:16px;"></i> My Recent Requests
+                            </h4>
+                            <div class="list-container" id="my-requests-list">
+                                <div style="text-align:center; padding:20px; color:rgba(255,255,255,0.4); font-size:13px;">Fetching your requests...</div>
+                            </div>
                         </div>
                     </div>
 
@@ -623,15 +629,15 @@ if (file_exists($help_file)) {
                             <div class="list-container">
                                 <div class="list-item">
                                     <span>Profile Information</span>
-                                    <button class="small-btn">Edit</button>
+                                    <button class="small-btn" id="editProfileBtn" style="position:relative; z-index:10;">Edit</button>
                                 </div>
                                 <div class="list-item">
                                     <span>Notification Preferences</span>
-                                    <button class="small-btn">Manage</button>
+                                    <button class="small-btn" id="manageNotificationsBtn" style="position:relative; z-index:10;">Manage</button>
                                 </div>
                                 <div class="list-item">
                                     <span>Security & Password</span>
-                                    <button class="small-btn">Update</button>
+                                    <button class="small-btn" id="updatePasswordBtn" style="position:relative; z-index:10;">Update</button>
                                 </div>
                             </div>
                         </div>
@@ -641,6 +647,241 @@ if (file_exists($help_file)) {
         </div>
     </div>
     <script>
+        // --- ULTIMATE DIAGNOSTICS ---
+        window.onerror = function(msg, url, lineNo, columnNo, error) {
+            console.error("Global Error:", msg, "at", url, ":", lineNo);
+            // alert("❌ SYSTEM ERROR: " + msg + "\nLine: " + lineNo);
+            return false;
+        };
+
+        // --- GLOBAL HELP DESK LOGIC (READY IMMEDIATELY) ---
+        window.fetchWithTimeout = async function(resource, options = {}) {
+            const { timeout = 15000 } = options;
+            const controller = new AbortController();
+            const id = setTimeout(() => controller.abort(), timeout);
+            const response = await fetch(resource, { ...options, signal: controller.signal });
+            clearTimeout(id);
+            return response;
+        };
+
+        window.showStatusMsg = function(msg, color) {
+            try {
+                const el = document.getElementById('helpdesk-status-msg');
+                if(!el) return;
+                el.style.cssText = `padding:12px; border-radius:10px; background:rgba(255,255,255,0.05); color:${color}; margin-bottom:15px; border:1px solid ${color}; font-size:13px; font-weight:600;`;
+                el.innerText = msg;
+                el.style.display = 'block';
+                setTimeout(() => { if(el) el.style.display = 'none'; }, 5000);
+            } catch(e) { console.error("StatusMsg Error", e); }
+        };
+
+        // --- SWEETALERT CONFIRM WRAPPER ---
+        window.showConfirm = function(message, onConfirm) {
+            if(typeof Swal === 'undefined') {
+                // Fallback if generic alert
+                if(confirm(message)) onConfirm();
+                return;
+            }
+
+            Swal.fire({
+                title: 'Confirm Action',
+                text: message,
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#f1c40f',
+                cancelButtonColor: '#d33',
+                confirmButtonText: 'Yes, proceed',
+                background: '#0f2027',
+                color: '#fff'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    onConfirm();
+                }
+            });
+        };
+
+        window.submitHelpRequest = function(e) {
+            if(e) e.preventDefault();
+            const btn = document.getElementById('helpSubmitBtn');
+            const title = document.getElementById('helpTitle').value;
+            const details = document.getElementById('helpDetails').value;
+
+            if(!title || !details) return alert("Please fill in both the title and details.");
+
+            window.showConfirm("Are you sure you want to SUBMIT this help request?", async function() {
+                const originalText = btn.innerHTML;
+                btn.innerText = "⏳ Sending...";
+                btn.disabled = true;
+
+                const formData = new FormData();
+                formData.append('action', 'submit');
+                formData.append('title', title);
+                formData.append('details', details);
+
+                try {
+                    const res = await fetchWithTimeout('manage_helpdesk.php', { method: 'POST', body: formData });
+                    const data = await res.json();
+                    
+                    if (data.status === 'success') {
+                        document.getElementById('helpRequestForm').reset();
+                        window.showStatusMsg("Request sent successfully!", "var(--safe)");
+                        window.loadMyRequests();
+                        // SweetAlert Success Fallback
+                        if(typeof Swal !== 'undefined') Swal.fire('Sent!', 'Your request has been submitted.', 'success');
+                    } else {
+                        alert("❌ ERROR: " + data.message);
+                    }
+                } catch (err) {
+                    alert("📡 NETWORK ERROR: " + err.message);
+                } finally {
+                    btn.innerHTML = originalText;
+                    btn.disabled = false;
+                }
+            });
+        };
+
+        window.deleteHelpRequest = function(id) {
+            window.showConfirm("Are you sure you want to CANCEL/DELETE this request?", async function() {
+                const formData = new FormData();
+                formData.append('action', 'delete'); // Correct action 'delete'
+                formData.append('id', id);
+
+                try {
+                    const res = await fetch('manage_helpdesk.php', { method: 'POST', body: formData });
+                    const json = await res.json();
+                    if(json.status === 'success') {
+                        window.showStatusMsg("Request cancelled.", "var(--safe)");
+                        window.loadMyRequests();
+                    } else {
+                        alert("Failed: " + (json.message || "Action not supported"));
+                    }
+                } catch(e) {
+                    alert("Network Error");
+                }
+            });
+        };
+
+        // --- LOAD REQUESTS (UPDATED WITH BETTER UI) ---
+        window.loadMyRequests = async function() {
+            const container = document.getElementById('my-requests-list');
+            if(!container) return;
+
+            // Visual feedback
+            if(container.innerText.includes('Fetching') || container.innerHTML === '') {
+                container.innerHTML = '<div style="text-align:center; padding:15px; opacity:0.6; color:var(--primary); font-size:13px;">📡 Updating your request list...</div>';
+            }
+
+            try {
+                const res = await fetchWithTimeout('manage_helpdesk.php?action=fetch_user', { timeout: 10000 });
+                const json = await res.json();
+                
+                if(json.status === 'success') {
+                    if(json.data.length > 0) {
+                        let html = '';
+                        json.data.forEach(req => {
+                            const statusColor = req.status === 'Resolved' ? 'var(--safe)' : (req.status === 'Pending' ? 'var(--warning)' : 'var(--primary)');
+                            const replyHtml = req.admin_reply ? `
+                                <div style="margin-top:10px; padding:10px; background:rgba(74,181,196,0.1); border-radius:8px; border-left:3px solid var(--primary);">
+                                    <div style="font-size:11px; font-weight:700; color:var(--primary); margin-bottom:4px;">ADMIN REPLY:</div>
+                                    <div style="font-size:12px; color:#fff;">${req.admin_reply}</div>
+                                </div>` : '';
+
+                            const isPending = req.status === 'Pending';
+                            const deleteBtn = isPending ? `
+                                <button onclick="window.deleteHelpRequest(${req.id})" 
+                                    style="margin-top:5px; padding:6px 12px; background:rgba(231,76,60,0.15); border:1px solid #e74c3c; color:#e74c3c; border-radius:8px; font-size:11px; font-weight:600; cursor:pointer; display:flex; align-items:center; gap:5px; transition:all 0.2s;" 
+                                    onmouseover="this.style.background='rgba(231,76,60,0.3)'" 
+                                    onmouseout="this.style.background='rgba(231,76,60,0.15)'"
+                                    title="Cancel this request">
+                                    <i data-lucide="trash-2" style="width:12px;"></i> Cancel
+                                </button>` : '';
+
+                            html += `
+                                <div class="list-item" style="flex-direction:column; align-items:flex-start; gap:8px;">
+                                    <div style="width:100%; display:flex; justify-content:space-between;">
+                                        <strong style="color:var(--primary);">${req.title}</strong>
+                                        <span style="font-size:10px; padding:2px 8px; border-radius:20px; border:1px solid ${statusColor}; color:${statusColor};">${req.status}</span>
+                                    </div>
+                                    <p style="font-size:12px; color:rgba(255,255,255,0.7);">${req.details}</p>
+                                    ${replyHtml}
+                                    <div style="display:flex; justify-content:space-between; width:100%; align-items:flex-end;">
+                                        <div style="font-size:10px; opacity:0.4; margin-top:5px;">Req #${req.id} • ${req.created_at}</div>
+                                        ${deleteBtn}
+                                    </div>
+                                </div>
+                            `;
+                        });
+                        container.innerHTML = html;
+                        if(window.lucide) lucide.createIcons();
+                    } else {
+                        container.innerHTML = '<div style="text-align:center; padding:20px; color:rgba(255,255,255,0.4); font-size:13px;">No requests found. Start a new one above!</div>';
+                    }
+                } else {
+                    container.innerHTML = '<div style="text-align:center; padding:15px; color:var(--danger); font-size:13px;">Server Error: ' + json.message + '</div>';
+                }
+            } catch (err) {
+                console.error("Fetch Error:", err);
+                container.innerHTML = '<div style="text-align:center; padding:15px; color:rgba(255,255,255,0.4); font-size:12px;">Connection lost.</div>';
+            }
+        };
+
+        // Note: deleteHelpRequest is already defined above with window.showConfirm support.
+        // We do NOT need to redefine it here. Redefining it would overwrite the good version with potential bad logic.
+        // So this block ends here.
+
+        // --- NOTIFICATION BADGE SYSTEM ---
+        window.checkForNewReplies = async function() {
+            try {
+                const res = await fetchWithTimeout('manage_helpdesk.php?action=fetch_user', { timeout: 10000 });
+                const json = await res.json();
+                
+                if(json.status === 'success' && json.data) {
+                    // Get previously seen reply IDs from localStorage
+                    const seenReplies = JSON.parse(localStorage.getItem('seenHelpdeskReplies') || '[]');
+                    
+                    // Count new replies (requests with admin_reply that haven't been seen)
+                    let newReplyCount = 0;
+                    json.data.forEach(req => {
+                        if(req.admin_reply && !seenReplies.includes(req.id)) {
+                            newReplyCount++;
+                        }
+                    });
+                    
+                    // Update badge
+                    const badge = document.getElementById('helpdeskNotificationBadge');
+                    if(badge) {
+                        if(newReplyCount > 0) {
+                            badge.textContent = newReplyCount;
+                            badge.style.display = 'flex';
+                        } else {
+                            badge.style.display = 'none';
+                        }
+                    }
+                }
+            } catch(err) {
+                console.log('Notification check failed:', err);
+            }
+        };
+
+        window.markHelpdeskAsRead = function() {
+            // Mark all current requests with replies as "seen"
+            fetchWithTimeout('manage_helpdesk.php?action=fetch_user', { timeout: 10000 })
+                .then(res => res.json())
+                .then(json => {
+                    if(json.status === 'success' && json.data) {
+                        const repliedIds = json.data
+                            .filter(req => req.admin_reply)
+                            .map(req => req.id);
+                        localStorage.setItem('seenHelpdeskReplies', JSON.stringify(repliedIds));
+                        
+                        // Hide badge
+                        const badge = document.getElementById('helpdeskNotificationBadge');
+                        if(badge) badge.style.display = 'none';
+                    }
+                })
+                .catch(err => console.log('Mark as read failed:', err));
+        };
+
         document.addEventListener('DOMContentLoaded', function(){
             // Initialize Lucide Icons
             lucide.createIcons();
@@ -656,6 +897,10 @@ if (file_exists($help_file)) {
                         // Trigger specific initializations
                         if(id === 'section-water') initChart();
                         if(id === 'section-map') initMap();
+                        if(id === 'section-help') {
+                            loadMyRequests();
+                            markHelpdeskAsRead(); // Clear notification badge
+                        }
                     }
                 });
                 links.forEach(l => l.classList.toggle('active', l.getAttribute('href') === '#' + id));
@@ -672,6 +917,15 @@ if (file_exists($help_file)) {
                     }
                 });
             });
+
+            // Initialize first section
+            showSection('section-flood');
+
+            // Check for new Help Desk replies on page load
+            checkForNewReplies();
+            
+            // Auto-refresh notification badge every 60 seconds
+            setInterval(checkForNewReplies, 60000);
 
             // Sidebar Toggle Logic
             window.toggleSidebar = function() {
@@ -693,6 +947,29 @@ if (file_exists($help_file)) {
             }
             setInterval(updateClock, 1000);
             updateClock();
+
+            // Settings Button Handlers
+            const editProfileBtn = document.getElementById('editProfileBtn');
+            const manageNotificationsBtn = document.getElementById('manageNotificationsBtn');
+            const updatePasswordBtn = document.getElementById('updatePasswordBtn');
+
+            if(editProfileBtn) {
+                editProfileBtn.addEventListener('click', function() {
+                    alert('📝 Profile Editor\n\nThis feature allows you to update your name, email, and other profile information.\n\n(Feature coming soon!)');
+                });
+            }
+
+            if(manageNotificationsBtn) {
+                manageNotificationsBtn.addEventListener('click', function() {
+                    alert('🔔 Notification Preferences\n\nConfigure how and when you receive flood alerts and system notifications.\n\n(Feature coming soon!)');
+                });
+            }
+
+            if(updatePasswordBtn) {
+                updatePasswordBtn.addEventListener('click', function() {
+                    alert('🔒 Security Settings\n\nUpdate your password and manage security preferences.\n\n(Feature coming soon!)');
+                });
+            }
 
             // Chart Initialization
             let chartInstance = null;
@@ -803,8 +1080,83 @@ if (file_exists($help_file)) {
                     });
             }
             loadEvacuationPoints();
+
+            // Initial load if starting on help section
+            if(window.location.hash === '#section-help') window.loadMyRequests();
+
+            // Real-time updates: Check for admin replies every 60s
+            setInterval(() => {
+                const hSection = document.getElementById('section-help');
+                if (hSection && hSection.classList.contains('active')) {
+                    window.loadMyRequests();
+                }
+            }, 60000);
         });
     </script>
     
-    </body>
+        <script>
+        // Existing script logic...
+
+        // Fetch Alerts for User
+        async function fetchUserAlerts() {
+            const container = document.getElementById('userAlertsList');
+            if(!container) return;
+            
+            try {
+                // Targeted Broadcast Logic
+                const userLocParam = window.userLocation ? `&user_location=${encodeURIComponent(window.userLocation)}` : '';
+                const res = await fetch(`manage_alerts.php?action=fetch_all${userLocParam}`);
+                const json = await res.json();
+                
+                if(json.status === 'success') {
+                    const alerts = json.data || [];
+                    if(alerts.length > 0) {
+                        let html = '';
+                        alerts.forEach(alert => {
+                            const isCrit = alert.severity === 'Critical';
+                            const borderColor = isCrit ? '#e74c3c' : (alert.severity === 'Warning' ? '#f1c40f' : '#4ab5c4');
+                            const bgColor = isCrit ? 'rgba(231, 76, 60, 0.1)' : 'rgba(255,255,255,0.05)';
+                            
+                            html += `
+                                <div class="list-item" style="border-left: 4px solid ${borderColor}; background: ${bgColor}; align-items: flex-start; flex-direction: column; gap: 8px;">
+                                    <div style="display: flex; justify-content: space-between; width: 100%;">
+                                        <strong style="color: ${borderColor};">${alert.severity}</strong>
+                                        <span style="font-size: 11px; opacity: 0.6;">${new Date(alert.timestamp).toLocaleTimeString()}</span>
+                                    </div>
+                                    <div style="font-size: 14px; line-height: 1.4;">${alert.message}</div>
+                                    <div style="font-size: 11px; opacity: 0.5; display: flex; gap: 5px; align-items: center;">
+                                        <i data-lucide="map-pin" style="width: 12px;"></i> ${alert.location || 'System Wide'}
+                                    </div>
+                                </div>
+                            `;
+                        });
+                        container.innerHTML = html;
+                        lucide.createIcons(); // Refresh icons
+                    } else {
+                        container.innerHTML = '<div style="text-align:center; padding:30px; opacity:0.5;">No active alerts at the moment. Stay safe! 🛡️</div>';
+                    }
+                }
+            } catch(e) {
+                console.error("Alert Fetch Error:", e);
+                container.innerHTML = '<div style="text-align:center; color:#e74c3c;">Failed to load alerts.</div>';
+            }
+        }
+        
+        // Initial Fetch
+        fetchUserAlerts();
+        setInterval(fetchUserAlerts, 30000); // Poll every 30s
+    </script>
+    <!-- Custom Confirmation Modal -->
+    <div id="customConfirmModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.7); z-index:10000; justify-content:center; align-items:center; backdrop-filter:blur(5px);">
+        <div style="background:#0f2027; border:2px solid #f1c40f; padding:30px; border-radius:15px; width:90%; max-width:450px; box-shadow:0 0 40px rgba(241,196,15,0.4); animation:fadeInUp 0.3s ease;">
+            <div style="font-size:48px; text-align:center; margin-bottom:15px;">⚠️</div>
+            <h3 style="color:#f1c40f; margin:0 0 15px 0; text-align:center; font-size:20px;">Confirm Action</h3>
+            <p id="confirmMessage" style="color:rgba(255,255,255,0.9); text-align:center; font-size:15px; line-height:1.6; margin-bottom:25px;">Are you sure?</p>
+            <div style="display:flex; justify-content:center; gap:10px;">
+                <button type="button" id="confirmCancelBtn" style="padding:12px 24px; background:transparent; border:1px solid rgba(255,255,255,0.3); color:#fff; font-weight:600; border-radius:8px; cursor:pointer; font-size:14px;">Cancel</button>
+                <button type="button" id="confirmOkBtn" style="padding:12px 24px; background:#f1c40f; border:none; color:#032023; font-weight:700; border-radius:8px; cursor:pointer; font-size:14px;">Confirm</button>
+            </div>
+        </div>
+    </div>
+</body>
 </html>

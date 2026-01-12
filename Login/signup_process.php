@@ -79,11 +79,12 @@ if($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['signup_btn'])){
     $hashed_password = password_hash($password, PASSWORD_DEFAULT);
     // Normalize role to match DB ENUM
     $clean_role = (strtolower($role) === 'admin' || strtolower($role) === 'administrator') ? 'administrator' : 'user';
+    $location = isset($_POST['location']) ? trim($_POST['location']) : 'Central City';
 
-    $sql = "INSERT INTO `$table` (name, email, password, `$role_col`) VALUES (?, ?, ?, ?)";
+    $sql = "INSERT INTO `$table` (name, email, password, `$role_col`, location) VALUES (?, ?, ?, ?, ?)";
     
     if($stmt = mysqli_prepare($link, $sql)){
-        mysqli_stmt_bind_param($stmt, "ssss", $name, $email, $hashed_password, $clean_role);
+        mysqli_stmt_bind_param($stmt, "sssss", $name, $email, $hashed_password, $clean_role, $location);
         
         if(mysqli_stmt_execute($stmt)){
             // Success! Redirect to login

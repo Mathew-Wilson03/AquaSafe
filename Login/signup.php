@@ -395,6 +395,16 @@
                     <label class="form-label">Confirm Password</label>
                     <input type="password" name="confirm_password" placeholder="••••••••" required>
                 </div>
+                <div class="form-group">
+                    <label class="form-label">Residential Area</label>
+                    <select name="location" style="width: 100%; padding: 12px 14px; background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 10px; font-size: 14px; color: white; height: 46px; outline: none;">
+                        <option value="Central City" style="color:black;">Central City</option>
+                        <option value="North District" style="color:black;">North District</option>
+                        <option value="South Reservoir" style="color:black;">South Reservoir</option>
+                        <option value="West Bank" style="color:black;">West Bank</option>
+                        <option value="East Valley" style="color:black;">East Valley</option>
+                    </select>
+                </div>
                 <button class="submit-btn" type="submit" name="signup_btn">Sign Up</button>
             </form>
 

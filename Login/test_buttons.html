@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>Help Desk Button Test</title>
+</head>
+
+<body style="background:#0f2027; color:white; padding:50px;">
+    <h1>Help Desk Button Test</h1>
+
+    <!-- Modal -->
+    <div id="adminReplyModal"
+        style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.7); z-index:9999; justify-content:center; align-items:center;">
+        <div
+            style="background:#1a1a2e; border:1px solid #4ab5c4; padding:25px; border-radius:15px; width:90%; max-width:500px;">
+            <h3 style="color:#4ab5c4;">Test Reply Modal</h3>
+            <input type="hidden" id="currentReplyId">
+            <textarea id="adminReplyText" rows="5" style="width:100%; padding:15px; border-radius:8px;"></textarea>
+            <div style="margin-top:20px;">
+                <button onclick="window.closeReplyModal()" style="padding:10px 20px; margin-right:10px;">Cancel</button>
+                <button onclick="alert('Submit clicked!')" id="submitReplyBtn"
+                    style="padding:10px 25px; background:#4ab5c4; color:black; font-weight:700;">Send Reply</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Test Buttons -->
+    <div id="testArea" style="margin-top:30px;">
+        <button class="btn-reply" data-id="123"
+            style="padding:10px 20px; background:#4ab5c4; color:white; border:none; border-radius:8px; cursor:pointer; margin-right:10px;">Test
+            Reply Button</button>
+        <button class="btn-resolve" data-id="456"
+            style="padding:10px 20px; background:#2ecc71; color:white; border:none; border-radius:8px; cursor:pointer;">Test
+            Resolve Button</button>
+    </div>
+
+    <div id="log" style="margin-top:30px; padding:20px; background:rgba(255,255,255,0.1); border-radius:8px;">
+        <h3>Click Log:</h3>
+        <div id="logContent">Waiting for clicks...</div>
+    </div>
+
+    <script>
+        function log(msg) {
+            document.getElementById('logContent').innerHTML += '<div>' + new Date().toLocaleTimeString() + ': ' + msg + '</div>';
+        }
+
+        // Event Delegation
+        document.addEventListener('click', function (e) {
+            const replyBtn = e.target.closest('.btn-reply');
+            if (replyBtn) {
+                const id = replyBtn.dataset.id;
+                log('Reply button clicked! ID: ' + id);
+                if (window.openReplyModal) window.openReplyModal(id);
+                else log('ERROR: window.openReplyModal not defined');
+            }
+
+            const resolveBtn = e.target.closest('.btn-resolve');
+            if (resolveBtn) {
+                const id = resolveBtn.dataset.id;
+                log('Resolve button clicked! ID: ' + id);
+                if (window.resolveRequest) window.resolveRequest(id);
+                else log('ERROR: window.resolveRequest not defined');
+            }
+        });
+
+        // Modal functions
+        window.openReplyModal = function (id) {
+            log('openReplyModal called with ID: ' + id);
+            const modal = document.getElementById('adminReplyModal');
+            if (!modal) {
+                log('ERROR: Modal not found!');
+                return;
+            }
+            document.getElementById('currentReplyId').value = id;
+            document.getElementById('adminReplyText').value = '';
+            modal.style.display = 'flex';
+            log('Modal opened successfully');
+        };
+
+        window.closeReplyModal = function () {
+            const modal = document.getElementById('adminReplyModal');
+            if (modal) modal.style.display = 'none';
+            log('Modal closed');
+        };
+
+        window.resolveRequest = function (id) {
+            log('resolveRequest called with ID: ' + id);
+            if (confirm('Mark request #' + id + ' as resolved?')) {
+                log('User confirmed resolution for ID: ' + id);
+                alert('✅ In the real dashboard, this would call the API');
+            } else {
+                log('User cancelled resolution');
+            }
+        };
+
+        log('Test page loaded - all functions defined');
+    </script>
+</body>
+
+</html>
