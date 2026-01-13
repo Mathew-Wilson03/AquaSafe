@@ -53,6 +53,22 @@ if ($users_result) {
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700&display=swap');
 
+        :root {
+            --bg-body: #13141b;
+            --bg-surface: #1e2029;
+            --bg-hover: #252836;
+            --primary-grad: linear-gradient(135deg, #c054ff 0%, #6d28d9 100%);
+            --secondary-grad: linear-gradient(135deg, #00e5ff 0%, #2979ff 100%);
+            --text-main: #ffffff;
+            --text-muted: #94a3b8;
+        }
+
+        /* Fix for Dropdown visibility */
+        select option {
+            background: #1e2029;
+            color: #fff;
+        }
+
         * {
             margin: 0;
             padding: 0;
@@ -61,8 +77,8 @@ if ($users_result) {
         
         body {
             font-family: 'Outfit', sans-serif;
-            background: linear-gradient(135deg, #0f2027 0%, #203a43 50%, #2c5364 100%);
-            color: #ffffff;
+            background: var(--bg-body);
+            color: var(--text-main);
             min-height: 100vh;
             overflow-x: hidden;
         }
@@ -77,9 +93,8 @@ if ($users_result) {
         /* Glassmorphism Sidebar */
         .sidebar {
             width: 280px;
-            background: rgba(255, 255, 255, 0.05);
-            backdrop-filter: blur(20px);
-            border: 1px solid rgba(255, 255, 255, 0.1);
+            background: var(--bg-surface);
+            border: 1px solid #2d2f39; /* Subtle borders */
             border-radius: 24px;
             padding: 30px 20px;
             display: flex;
@@ -93,8 +108,8 @@ if ($users_result) {
             gap: 12px;
             margin-bottom: 50px;
             font-size: 24px;
-            font-weight: 700;
-            color: #4ab5c4;
+            font-weight: 800; /* Matched User Dashboard */
+            color: #c054ff; /* Matched Theme */
             padding-left: 10px;
         }
 
@@ -127,16 +142,46 @@ if ($users_result) {
         }
 
         .sidebar-nav a:hover, .sidebar-nav a.active {
-            background: rgba(74, 181, 196, 0.1);
-            color: #4ab5c4;
-            border-color: rgba(74, 181, 196, 0.2);
-            box-shadow: 0 0 20px rgba(74, 181, 196, 0.1);
+            background: var(--primary-grad);
+            color: #fff;
+            border-color: transparent;
+            box-shadow: 0 4px 15px rgba(192, 84, 255, 0.4);
             transform: translateX(5px);
         }
 
         .sidebar-logout {
             padding-top: 20px;
             border-top: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        /* --- Icon Interactive Animations --- */
+        @keyframes spin-slow { 100% { transform: rotate(360deg); } }
+        @keyframes bounce-gentle { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-3px); } }
+        
+        /* Apply to Emoji/Icon in Sidebar */
+        .sidebar-nav a:hover {
+            /* Existing hover styles... */
+        }
+        
+        .sidebar-nav a:hover svg, .sidebar-nav a:hover i { 
+            animation: bounce-gentle 1s infinite ease-in-out;
+            color: #4ab5c4;
+        }
+
+        .interactive-logo {
+            transition: transform 1s ease-in-out;
+        }
+        .interactive-logo:hover {
+            transform: rotate(360deg) scale(1.1);
+        }
+
+        /* Card Icons */
+        .card h3 i, .card h3 svg {
+            transition: transform 0.3s ease;
+        }
+        .card:hover h3 i, .card:hover h3 svg {
+            transform: scale(1.2) rotate(10deg);
+            color: #4ab5c4;
         }
 
         .sidebar-logout a {
@@ -168,9 +213,8 @@ if ($users_result) {
 
         /* Header */
         .header {
-            background: rgba(255, 255, 255, 0.05);
-            backdrop-filter: blur(20px);
-            border: 1px solid rgba(255, 255, 255, 0.1);
+            background: #1e293b;
+            border: 1px solid #334155;
             border-radius: 24px;
             padding: 20px 30px;
             display: flex;
@@ -288,9 +332,8 @@ if ($users_result) {
         }
 
         .card {
-            background: rgba(255, 255, 255, 0.05);
-            backdrop-filter: blur(20px);
-            border: 1px solid rgba(255, 255, 255, 0.1);
+            background: var(--bg-surface);
+            border: 1px solid #2d2f39;
             border-radius: 24px;
             padding: 25px;
             box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.2);
@@ -1279,7 +1322,7 @@ if ($users_result) {
                             <textarea id="broadcastMessage" placeholder="Type emergency message here (e.g., 'Flash Flood Warning for Downtown Area')" style="width: 100%; padding: 12px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.1); background: rgba(0,0,0,0.2); color: white; resize: vertical; min-height: 80px;"></textarea>
                         </div>
                         <div style="display: flex; gap: 10px; align-items: center;">
-                             <select id="broadcastArea" style="padding: 10px; border-radius: 8px; background: rgba(0,0,0,0.2); color: white; border: 1px solid rgba(255,255,255,0.1); flex: 1;">
+                             <select id="broadcastArea" style="padding: 10px; border-radius: 8px; background: #1e2029; color: white; border: 1px solid rgba(255,255,255,0.1); flex: 1;">
                                 <option value="System Wide">🌍 All Areas (System Wide)</option>
                                 <option value="Central City">🏙️ Central City</option>
                                 <option value="North District">🏗️ North District</option>
@@ -1287,7 +1330,7 @@ if ($users_result) {
                                 <option value="West Bank">🏖️ West Bank</option>
                                 <option value="East Valley">🏘️ East Valley</option>
                             </select>
-                             <select id="broadcastSeverity" style="padding: 10px; border-radius: 8px; background: rgba(0,0,0,0.2); color: white; border: 1px solid rgba(255,255,255,0.1);">
+                             <select id="broadcastSeverity" style="padding: 10px; border-radius: 8px; background: #1e2029; color: white; border: 1px solid rgba(255,255,255,0.1);">
                                 <option value="Info">ℹ️ Info</option>
                                 <option value="Warning">⚠️ Warning</option>
                                 <option value="Critical">🚨 Critical</option>
@@ -2533,20 +2576,66 @@ if ($users_result) {
             const chartCanvas = document.getElementById('waterLevelChart');
             if (chartCanvas && typeof Chart !== 'undefined') {
                 const ctx = chartCanvas.getContext('2d');
+                
+                // Cyber Theme Colors
+                const colorAccent = '#00e5ff'; // Neon Cyan
+                const colorPrimary = '#c054ff'; // Neon Purple
+
                 waterChart = new Chart(ctx, {
                     type: 'line',
                     data: {
                         labels: chartDataStore[currentArea].labels,
                         datasets: [{
-                            label: 'Water Level (cm)',
+                            label: 'Water Level (ft)',
                             data: chartDataStore[currentArea].data,
-                            borderColor: '#4ab5c4',
+                            borderColor: colorAccent,
+                            backgroundColor: (context) => {
+                                const ctx = context.chart.ctx;
+                                const gradient = ctx.createLinearGradient(0, 0, 0, 300);
+                                gradient.addColorStop(0, 'rgba(0, 229, 255, 0.4)');
+                                gradient.addColorStop(1, 'rgba(0, 229, 255, 0)');
+                                return gradient;
+                            },
                             borderWidth: 3,
                             tension: 0.4,
-                            fill: false
+                            fill: true,
+                            pointBackgroundColor: '#13141b',
+                            pointBorderColor: colorAccent,
+                            pointBorderWidth: 2,
+                            pointRadius: 4,
+                            pointHoverRadius: 6
                         }]
                     },
-                    options: { responsive: true, maintainAspectRatio: false }
+                    options: { 
+                        responsive: true, 
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: { display: false },
+                            tooltip: {
+                                backgroundColor: '#1e2029',
+                                titleColor: '#fff',
+                                bodyColor: colorAccent,
+                                borderColor: '#2d2f39',
+                                borderWidth: 1,
+                                displayColors: false,
+                                padding: 10
+                            }
+                        },
+                        scales: {
+                            y: {
+                                grid: { color: 'rgba(255,255,255,0.05)' },
+                                ticks: { color: 'rgba(255,255,255,0.5)', font: { family: 'Outfit' } }
+                            },
+                            x: {
+                                grid: { display: false },
+                                ticks: { color: 'rgba(255,255,255,0.5)', font: { family: 'Outfit' } }
+                            }
+                        },
+                        interaction: {
+                            mode: 'index',
+                            intersect: false,
+                        }
+                    }
                 });
 
                 setInterval(() => {

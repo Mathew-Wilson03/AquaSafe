@@ -73,12 +73,12 @@ if (file_exists($help_file)) {
 
     <style>
         :root {
-            --primary: #4ab5c4;
-            --primary-dark: #3a9aa8;
-            --accent: #ff8d85;
-            --bg-dark: #0f2027;
-            --glass: rgba(255, 255, 255, 0.05);
-            --glass-border: rgba(255, 255, 255, 0.1);
+            --primary: #c054ff; /* Neon Purple */
+            --primary-dark: #6d28d9;
+            --accent: #00e5ff; /* Neon Cyan */
+            --bg-body: #13141b;
+            --glass: #1e2029; /* Surface */
+            --glass-border: #2d2f39;
             --safe: #2ecc71;
             --warning: #f1c40f;
             --danger: #e74c3c;
@@ -88,7 +88,7 @@ if (file_exists($help_file)) {
         
         body { 
             font-family: 'Outfit', sans-serif; 
-            background: linear-gradient(135deg, #0f2027 0%, #203a43 50%, #2c5364 100%); 
+            background: var(--bg-body); 
             color: #fff; 
             min-height: 100vh;
             overflow-x: hidden;
@@ -99,8 +99,8 @@ if (file_exists($help_file)) {
         /* Glassmorphism Utility */
         .glass {
             background: var(--glass);
-            backdrop-filter: blur(12px);
-            -webkit-backdrop-filter: blur(12px);
+            /* backdrop-filter: blur(12px); Removed for solid professional look */
+            /* -webkit-backdrop-filter: blur(12px); */
             border: 1px solid var(--glass-border);
             border-radius: 20px;
             box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
@@ -181,6 +181,38 @@ if (file_exists($help_file)) {
             border-top: 1px solid rgba(255,255,255,0.1); 
             padding-top: 20px; 
         }
+
+        /* --- Icon Animations --- */
+        @keyframes spin-slow { 100% { transform: rotate(360deg); } }
+        @keyframes bounce-gentle { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-3px); } }
+        @keyframes pulse-soft { 0% { opacity: 0.8; transform: scale(1); } 50% { opacity: 1; transform: scale(1.1); } 100% { opacity: 0.8; transform: scale(1); } }
+
+        /* Apply to Lucide Icons specifically */
+        .sidebar-menu a i, .sidebar-footer a i {
+            transition: transform 0.3s ease;
+        }
+
+        .sidebar-menu a:hover i {
+            animation: bounce-gentle 1s infinite;
+            color: var(--primary);
+        }
+
+        .sidebar-header i {
+            animation: spin-slow 10s linear infinite;
+        }
+
+        .card-icon {
+            transition: transform 0.3s ease;
+        }
+        
+        .list-item:hover .card-icon, .card:hover .card-icon {
+            transform: scale(1.2) rotate(5deg);
+        }
+        
+        /* Specific Icon Tweaks */
+        i[data-lucide="alert-triangle"] { animation: pulse-soft 2s infinite; color: var(--warning); }
+        i[data-lucide="alert-octagon"] { animation: pulse-soft 1s infinite; color: var(--danger); }
+        i[data-lucide="settings"]:hover { animation: spin-slow 4s linear infinite; }
 
         /* Main Content */
         .main { flex: 1; display: flex; flex-direction: column; gap: 24px; }
@@ -395,8 +427,20 @@ if (file_exists($help_file)) {
             .status-row { grid-template-columns: 1fr; }
             .weather-widget { flex-direction: column; text-align: center; gap: 10px; }
             .weather-widget div:last-child { margin-left: 0; text-align: center; width: 100%; display: flex; justify-content: space-around; }
-            .header-left h1 { font-size: 18px; }
-            .card { padding: 15px; }
+            .header-left h1 { 
+                font-size: 24px; 
+                font-weight: 700; 
+                background: linear-gradient(to right, #fff, var(--primary));
+                -webkit-background-clip: text;
+                -webkit-text-fill-color: transparent;
+                display: flex; align-items: center; gap: 10px;
+            }
+            .header-left h1::before {
+                content: '👤';
+                -webkit-text-fill-color: initial;
+                color: #fff;
+                font-size: 30px;
+            }
         }
 
         .mobile-toggle {
@@ -434,21 +478,21 @@ if (file_exists($help_file)) {
                 AquaSafe
             </div>
             <div class="sidebar-menu">
-                <a href="#section-flood" class="active" data-target="section-flood"><i data-lucide="activity"></i> Flood Status</a>
-                <a href="#section-evac" data-target="section-evac"><i data-lucide="map-pin"></i> Evacuation</a>
-                <a href="#section-contacts" data-target="section-contacts"><i data-lucide="phone"></i> Contacts</a>
-                <a href="#section-alerts" data-target="section-alerts"><i data-lucide="bell"></i> Alerts</a>
+                <a href="#section-flood" class="active" data-target="section-flood">📊 Flood Status</a>
+                <a href="#section-evac" data-target="section-evac">📍 Evacuation</a>
+                <a href="#section-contacts" data-target="section-contacts">📞 Contacts</a>
+                <a href="#section-alerts" data-target="section-alerts">🚨 Alerts</a>
                 <a href="#section-help" data-target="section-help" id="helpDeskLink">
-                    <i data-lucide="help-circle"></i> Help Desk
-                    <span id="helpdeskNotificationBadge" style="display:none; position:absolute; top:8px; right:8px; background:#e74c3c; color:#fff; border-radius:50%; width:20px; height:20px; font-size:11px; font-weight:700; display:flex; align-items:center; justify-content:center; box-shadow:0 2px 8px rgba(231,76,60,0.5);">0</span>
+                    🆘 Help Desk
+                    <span id="helpdeskNotificationBadge" style="display:none; position:absolute; top:8px; right:8px; background:#e74c3c; color:#fff; border-radius:50%; width:20px; height:20px; font-size:11px; font-weight:700; align-items:center; justify-content:center; box-shadow:0 2px 8px rgba(231,76,60,0.5);"></span>
                 </a>
-                <a href="#section-safety" data-target="section-safety"><i data-lucide="shield-check"></i> Safety Tips</a>
-                <a href="#section-water" data-target="section-water"><i data-lucide="droplets"></i> Water Levels</a>
-                <a href="#section-map" data-target="section-map"><i data-lucide="map"></i> Map View</a>
-                <a href="#section-settings" data-target="section-settings"><i data-lucide="settings"></i> Settings</a>
+                <a href="#section-safety" data-target="section-safety">🛡️ Safety Tips</a>
+                <a href="#section-water" data-target="section-water">📡 Water Levels</a>
+                <a href="#section-map" data-target="section-map">🗺️ Map View</a>
+                <a href="#section-settings" data-target="section-settings">⚙️ Settings</a>
             </div>
             <div class="sidebar-footer">
-                <a href="logout.php"><i data-lucide="log-out"></i> Sign Out</a>
+                <a href="logout.php">🚪 Sign Out</a>
             </div>
         </div>
 
@@ -456,13 +500,13 @@ if (file_exists($help_file)) {
             <div class="header glass animate__animated animate__fadeInDown">
                 <div class="header-left" style="display: flex; align-items: center;">
                     <button class="mobile-toggle" onclick="toggleSidebar()">
-                        <i data-lucide="menu"></i>
+                        ☰
                     </button>
                     <h1>User Dashboard</h1>
                 </div>
                 <div class="header-right">
                     <div id="live-clock" class="last-updated">
-                        <i data-lucide="clock"></i> <span>00:00:00</span>
+                        🕒 <span>00:00:00</span>
                     </div>
                     <div class="user-profile">
                         <div class="user-avatar"><?php echo strtoupper(substr($name, 0, 1)); ?></div>
@@ -477,7 +521,7 @@ if (file_exists($help_file)) {
             <div class="content">
                 <!-- Weather Widget -->
                 <div class="weather-widget glass animate__animated animate__fadeIn">
-                    <i data-lucide="cloud-sun" style="color: var(--primary); width: 32px; height: 32px;"></i>
+                    <span style="font-size: 32px;">🌤️</span>
                     <div>
                         <div style="font-size: 18px; font-weight: 700;">28°C</div>
                         <div style="font-size: 12px; color: rgba(255,255,255,0.6);">Partly Cloudy — Riverbend Area</div>
@@ -490,25 +534,63 @@ if (file_exists($help_file)) {
 
                 <div class="grid">
                     <div id="section-flood" class="content-section">
-                        <div class="card glass">
-                            <h3><i data-lucide="activity"></i> Flood Status</h3>
-                            <div class="status-row">
-                                <div class="status-pill safe <?php echo $flood_status==='Safe' ? 'active' : ''; ?>">Safe</div>
-                                <div class="status-pill warning <?php echo $flood_status==='Warning' ? 'active' : ''; ?>">Warning</div>
-                                <div class="status-pill danger <?php echo $flood_status==='Danger' ? 'active' : ''; ?>">Danger</div>
+                        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px;">
+                            <!-- Status Card -->
+                            <div class="card glass" style="padding: 25px; display:flex; flex-direction:column; justify-content:center;">
+                                <script>
+                                    (function() {
+                                        const loc = window.userLocation || 'Central City';
+                                        const statusMap = {
+                                            'Central City': { color: 'var(--safe)', text: 'Normal', icon: '🛡️', msg: 'Levels safe.' },
+                                            'North District': { color: '#f1c40f', text: 'Moderate', icon: '⚠️', msg: 'Levels elevated.' },
+                                            'South Reservoir': { color: 'var(--danger)', text: 'CRITICAL', icon: '🚨', msg: 'IMMEDIATE ACTION.' },
+                                            'West Bank': { color: 'var(--safe)', text: 'Normal', icon: '✅', msg: 'No risk.' },
+                                            'East Valley': { color: '#e67e22', text: 'Warning', icon: '🌧️', msg: 'Heavy rain.' }
+                                        };
+                                        const s = statusMap[loc] || statusMap['Central City'];
+                                        
+                                        document.write(`
+                                            <div style="display:flex; align-items:center; gap:20px; margin-bottom:20px;">
+                                                <div style="font-size: 48px; animation: pulse 2s infinite;">${s.icon}</div>
+                                                <div>
+                                                    <h2 style="color:${s.color}; font-size: 28px; margin:0;">${s.text}</h2>
+                                                    <div style="font-size:14px; opacity:0.7;">Zone: ${loc}</div>
+                                                </div>
+                                            </div>
+                                            <div style="background:rgba(255,255,255,0.05); border-radius:10px; padding:15px; margin-bottom:15px;">
+                                                <div style="font-size:12px; opacity:0.6; margin-bottom:5px;">Current Water Level</div>
+                                                <div style="display:flex; justify-content:space-between; align-items:end;">
+                                                    <div style="font-size:32px; font-weight:bold; color:#fff;">${loc === 'South Reservoir' ? '18.2 ft' : (loc === 'East Valley' ? '10.8 ft' : '3.2 ft')}</div>
+                                                    <div style="font-size:14px; color:${s.color}; padding-bottom:5px;">${loc === 'South Reservoir' ? '▲ Rising' : '● Stable'}</div>
+                                                </div>
+                                            </div>
+                                            <p style="font-size:13px; color:rgba(255,255,255,0.7); line-height:1.4; margin:0;">${s.msg}</p>
+                                        `);
+                                    })();
+                                </script>
                             </div>
-                            <div style="padding: 20px; background: rgba(0,0,0,0.2); border-radius: 14px; margin-bottom: 20px;">
-                                <p style="color:#dfeff0; line-height: 1.6;"><?php echo $flood_explanation; ?></p>
-                            </div>
-                            <div style="font-size:13px; color:rgba(255,255,255,0.5); display: flex; align-items: center; gap: 6px;">
-                                <i data-lucide="calendar" style="width: 14px;"></i> Last checked: <?php echo $last_checked; ?>
+
+                            <!-- Mini Chart & Updates -->
+                            <div style="display:flex; flex-direction:column; gap:20px;">
+                                <div class="card glass" style="padding: 20px; flex:1;">
+                                    <h4 style="margin-bottom:15px; font-size:16px; color:var(--accent);">🌊 24h Trend</h4>
+                                    <div style="height:120px; width:100%;">
+                                        <canvas id="miniFloodChart"></canvas>
+                                    </div>
+                                </div>
+                                <div class="card glass" style="padding: 20px; flex:1;">
+                                    <h4 style="margin-bottom:10px; font-size:16px; color:#fff;">📅 Updates</h4>
+                                    <div style="font-size:13px; color:rgba(255,255,255,0.6); display:flex; align-items:center; gap:10px;">
+                                        <span>📢</span> System monitoring active.
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     </div>
 
                     <div id="section-evac" class="content-section">
                         <div class="card glass">
-                                <h3><i data-lucide="map-pin"></i> Evacuation Points</h3>
+                                <h3>📍 Evacuation Points</h3>
                                 <div class="list-container" id="evacuation-list-container">
                                     <div style="text-align:center; padding:20px; color:rgba(255,255,255,0.5);">Loading points...</div>
                                 </div>
@@ -517,7 +599,7 @@ if (file_exists($help_file)) {
 
                     <div id="section-alerts" class="content-section">
                         <div class="card glass">
-                            <h3><i data-lucide="bell"></i> System Alerts</h3>
+                            <h3>🚨 System Alerts</h3>
                             <div id="userAlertsList" class="list-container">
                                 <div style="text-align:center; padding: 20px; opacity: 0.6;">Loading latest alerts...</div>
                             </div>
@@ -526,7 +608,7 @@ if (file_exists($help_file)) {
 
                     <div id="section-contacts" class="content-section">
                         <div class="card glass">
-                            <h3><i data-lucide="phone"></i> Emergency Contacts</h3>
+                            <h3>📞 Emergency Contacts</h3>
                             <div class="list-container">
                                 <div class="list-item">
                                     <div>
@@ -557,7 +639,7 @@ if (file_exists($help_file)) {
 
                     <div id="section-help" class="content-section">
                         <div class="card glass">
-                            <h3><i data-lucide="help-circle"></i> Help Desk</h3>
+                            <h3>🆘 Help Desk</h3>
                             <div id="helpdesk-status-msg"></div>
                             
                             <form class="help-form" id="helpRequestForm" method="POST" onsubmit="window.submitHelpRequest(event)">
@@ -577,24 +659,42 @@ if (file_exists($help_file)) {
 
                     <div id="section-safety" class="content-section">
                         <div class="card glass">
-                            <h3><i data-lucide="shield-check"></i> Safety Guidelines</h3>
+                            <h3>🛡️ Safety Guidelines</h3>
                             <div class="list-container">
                                 <div class="list-item">
-                                    <div style="display:flex; gap:12px;">
-                                        <i data-lucide="arrow-up-circle" style="color:var(--primary);"></i>
-                                        <span>Move to higher ground immediately if water rises.</span>
+                                    <div style="display:flex; gap:12px; align-items: flex-start;">
+                                        <div style="min-width: 30px; height: 30px; background: rgba(192, 84, 255, 0.2); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: #c054ff; font-weight: bold;">1</div>
+                                        <div>
+                                            <strong style="color: #fff; display: block; margin-bottom: 4px;">Move to Higher Ground</strong>
+                                            <span style="font-size: 13px; color: rgba(255,255,255,0.6);">If water levels rise rapidly, do not wait for official instructions. Move to the nearest high ground or designated evacuation point immediately.</span>
+                                        </div>
                                     </div>
                                 </div>
                                 <div class="list-item">
-                                    <div style="display:flex; gap:12px;">
-                                        <i data-lucide="users" style="color:var(--primary);"></i>
-                                        <span>Follow instructions from local authorities.</span>
+                                    <div style="display:flex; gap:12px; align-items: flex-start;">
+                                        <div style="min-width: 30px; height: 30px; background: rgba(0, 229, 255, 0.2); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: #00e5ff; font-weight: bold;">2</div>
+                                        <div>
+                                            <strong style="color: #fff; display: block; margin-bottom: 4px;">Turn Off Utilities</strong>
+                                            <span style="font-size: 13px; color: rgba(255,255,255,0.6);">Switch off main power switches and gas valves. Do not touch electrical equipment if you are wet or standing in water.</span>
+                                        </div>
                                     </div>
                                 </div>
                                 <div class="list-item">
-                                    <div style="display:flex; gap:12px;">
-                                        <i data-lucide="alert-triangle" style="color:var(--accent);"></i>
-                                        <span>Avoid walking or driving through floodwater.</span>
+                                    <div style="display:flex; gap:12px; align-items: flex-start;">
+                                        <div style="min-width: 30px; height: 30px; background: rgba(231, 76, 60, 0.2); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: #e74c3c; font-weight: bold;">3</div>
+                                        <div>
+                                            <strong style="color: #fff; display: block; margin-bottom: 4px;">Avoid Flood Waters</strong>
+                                            <span style="font-size: 13px; color: rgba(255,255,255,0.6);">6 inches of moving water can make you fall. Do not walk, swim, or drive through flood waters. Turn Around, Don't Drown!</span>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="list-item">
+                                    <div style="display:flex; gap:12px; align-items: flex-start;">
+                                        <div style="min-width: 30px; height: 30px; background: rgba(241, 196, 15, 0.2); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: #f1c40f; font-weight: bold;">4</div>
+                                        <div>
+                                            <strong style="color: #fff; display: block; margin-bottom: 4px;">Emergency Kit</strong>
+                                            <span style="font-size: 13px; color: rgba(255,255,255,0.6);">Keep a kit ready with medicines, documents, torch, battery radio, and non-perishable food for at least 3 days.</span>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
@@ -894,13 +994,18 @@ if (file_exists($help_file)) {
                 sections.forEach(s => {
                     s.classList.toggle('active', s.id === id);
                     if(s.id === id) {
-                        // Trigger specific initializations
-                        if(id === 'section-water') initChart();
-                        if(id === 'section-map') initMap();
-                        if(id === 'section-help') {
-                            loadMyRequests();
-                            markHelpdeskAsRead(); // Clear notification badge
-                        }
+                    if(s.id === id) {
+                        // Trigger specific initializations logic with tiny delay to allow CSS transitions
+                        setTimeout(() => {
+                            if(id === 'section-water') initChart();
+                            if(id === 'section-flood') initMiniChart();
+                            if(id === 'section-map') initMap();
+                            if(id === 'section-help') {
+                                loadMyRequests();
+                                markHelpdeskAsRead(); 
+                            }
+                        }, 50);
+                    }
                     }
                 });
                 links.forEach(l => l.classList.toggle('active', l.getAttribute('href') === '#' + id));
@@ -955,9 +1060,54 @@ if (file_exists($help_file)) {
 
             if(editProfileBtn) {
                 editProfileBtn.addEventListener('click', function() {
-                    alert('📝 Profile Editor\n\nThis feature allows you to update your name, email, and other profile information.\n\n(Feature coming soon!)');
+                    // Pre-fill location
+                    const locSelect = document.getElementById('editLocation');
+                    if(window.userLocation && locSelect) {
+                        locSelect.value = window.userLocation;
+                    }
+                    document.getElementById('editProfileModal').style.display = 'flex';
                 });
             }
+
+            window.submitProfileUpdate = async function(e) {
+                e.preventDefault();
+                const form = document.getElementById('profileUpdateForm');
+                const formData = new FormData(form);
+                const btn = document.getElementById('saveProfileBtn');
+                const originalText = btn.innerText;
+
+                btn.innerText = "Saving...";
+                btn.disabled = true;
+
+                try {
+                    const res = await fetch('update_profile.php', { method: 'POST', body: formData });
+                    const json = await res.json();
+
+                    if(json.status === 'success') {
+                        // Update UI
+                        window.showStatusMsg("✅ Profile Updated!", "var(--safe)");
+                        document.getElementById('editProfileModal').style.display = 'none';
+                        
+                        // Update Global Location Variable
+                        const newLoc = formData.get('location');
+                        window.userLocation = newLoc;
+                        
+                        // Refresh Alerts immediately
+                        fetchUserAlerts();
+                        
+                        // Update Profile Name in UI if possible
+                        // (Would need to reload page or target specific elements, reloading is safer for name)
+                        setTimeout(() => location.reload(), 1000); 
+                    } else {
+                        alert("❌ Error: " + json.message);
+                    }
+                } catch(err) {
+                    alert("Network Error: " + err.message);
+                } finally {
+                    btn.innerText = originalText;
+                    btn.disabled = false;
+                }
+            };
 
             if(manageNotificationsBtn) {
                 manageNotificationsBtn.addEventListener('click', function() {
@@ -973,42 +1123,148 @@ if (file_exists($help_file)) {
 
             // Chart Initialization
             let chartInstance = null;
-            function initChart() {
-                const ctx = document.getElementById('waterLevelChart');
-                if(!ctx || chartInstance) return;
+            let miniChartInstance = null;
 
-                chartInstance = new Chart(ctx, {
+            function initMiniChart() {
+                const ctxCanvas = document.getElementById('miniFloodChart');
+                if(!ctxCanvas) return;
+                
+                if(miniChartInstance) {
+                    miniChartInstance.destroy();
+                    miniChartInstance = null;
+                }
+
+                const location = window.userLocation || 'Central City';
+                // Simplified trends
+                const trends = {
+                    'Central City': [3.1, 3.2, 3.2, 3.3, 3.2, 3.1],
+                    'South Reservoir': [17.5, 17.8, 18.0, 18.1, 18.2, 18.3], 
+                    'East Valley': [9.0, 9.5, 9.8, 10.2, 10.5, 10.8],
+                    'West Bank': [2.8, 2.9, 3.0, 3.1, 3.1, 3.2],
+                    'North District': [5.0, 5.2, 5.4, 5.5, 5.8, 6.0]
+                };
+                const data = trends[location] || trends['Central City'];
+                const color = location === 'South Reservoir' ? '#e74c3c' : (location === 'East Valley' ? '#e67e22' : '#00e5ff');
+
+                // Ensure parent dimensions are set
+                ctxCanvas.style.width = '100%';
+                ctxCanvas.style.height = '100%';
+
+                miniChartInstance = new Chart(ctxCanvas, {
                     type: 'line',
                     data: {
-                        labels: ['12 AM', '2 AM', '4 AM', '6 AM', '8 AM', '10 AM', 'Current'],
+                        labels: ['1', '2', '3', '4', '5', '6'],
                         datasets: [{
-                            label: 'Water Level (m)',
-                            data: [1.2, 1.3, 1.5, 2.1, 2.8, 3.2, 3.5],
-                            borderColor: '#4ab5c4',
-                            backgroundColor: 'rgba(74, 181, 196, 0.1)',
-                            fill: true,
+                            data: data,
+                            borderColor: color,
+                            borderWidth: 2,
                             tension: 0.4,
-                            borderWidth: 3,
-                            pointBackgroundColor: '#4ab5c4',
-                            pointRadius: 5
+                            pointRadius: 0,
+                            fill: false
                         }]
                     },
                     options: {
                         responsive: true,
                         maintainAspectRatio: false,
+                        animation: { duration: 0 }, // Instant render for reliability
+                        plugins: { legend: { display: false }, tooltip: { enabled: false } },
+                        scales: { x: { display: false }, y: { display: false } }
+                    }
+                });
+            }
+
+            function initChart() {
+                const ctxCanvas = document.getElementById('waterLevelChart');
+                if(!ctxCanvas) return;
+                
+                // Ensure visibility
+                if(chartInstance) {
+                    chartInstance.destroy();
+                    chartInstance = null;
+                }
+
+                // Cyber Theme Colors
+                const colorPrimary = '#c054ff'; 
+                const colorAccent = '#00e5ff'; 
+
+                // Dynamic Data based on Location
+                const location = window.userLocation || 'Central City';
+
+                // Define data profiles
+                const dataProfiles = {
+                    'Central City': { data: [3.2, 3.4, 3.1, 3.5, 3.3, 3.4, 3.2], label: 'Safe' },
+                    'North District': { data: [4.5, 4.8, 5.2, 5.0, 5.5, 5.8, 6.0], label: 'Moderate' },
+                    'South Reservoir': { data: [12.5, 13.0, 14.2, 13.8, 15.5, 17.0, 18.2], label: 'Critical' }, // High water
+                    'West Bank': { data: [2.1, 2.3, 2.2, 2.4, 2.8, 3.0, 3.1], label: 'Safe' },
+                    'East Valley': { data: [8.5, 8.8, 9.2, 9.5, 10.1, 10.5, 10.8], label: 'Warning' }
+                };
+
+                const profile = dataProfiles[location] || dataProfiles['Central City'];
+                
+                // Update Card Title if possible
+                const chartTitle = document.querySelector('#section-water h3');
+                if(chartTitle) chartTitle.innerHTML = `🌊 Water Levels - ${location} <span style="font-size:12px; opacity:0.7; margin-left:10px; color:#fff;">(${profile.label})</span>`;
+
+                // Force layout
+                ctxCanvas.style.width = '100%';
+                ctxCanvas.style.height = '100%';
+
+                chartInstance = new Chart(ctxCanvas, {
+                    type: 'line',
+                    data: {
+                        labels: ['12 AM', '4 AM', '8 AM', '12 PM', '4 PM', '8 PM', 'Now'],
+                        datasets: [{
+                            label: `Water Level (${location})`,
+                            data: profile.data,
+                            borderColor: colorAccent,
+                            backgroundColor: (context) => {
+                                const ctx = context.chart.ctx;
+                                const gradient = ctx.createLinearGradient(0, 0, 0, 400);
+                                gradient.addColorStop(0, 'rgba(0, 229, 255, 0.4)');
+                                gradient.addColorStop(1, 'rgba(0, 229, 255, 0)');
+                                return gradient;
+                            },
+                            fill: true,
+                            tension: 0.4,
+                            borderWidth: 3,
+                            pointBackgroundColor: '#13141b',
+                            pointBorderColor: colorAccent,
+                            pointBorderWidth: 2,
+                            pointRadius: 6,
+                            pointHoverRadius: 8
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        animation: { duration: 0 }, // Instant render to avoid invisible charts
                         plugins: {
-                            legend: { display: false }
+                            legend: { display: false },
+                            tooltip: {
+                                backgroundColor: '#1e2029',
+                                titleColor: '#fff',
+                                bodyColor: colorAccent,
+                                borderColor: '#2d2f39',
+                                borderWidth: 1,
+                                displayColors: false,
+                                padding: 10
+                            }
                         },
                         scales: {
                             y: {
                                 grid: { color: 'rgba(255,255,255,0.05)' },
-                                ticks: { color: 'rgba(255,255,255,0.5)' }
+                                ticks: { color: 'rgba(255,255,255,0.5)', font: { family: 'Outfit' } },
+                                beginAtZero: false
                             },
                             x: {
                                 grid: { display: false },
-                                ticks: { color: 'rgba(255,255,255,0.5)' }
+                                ticks: { color: 'rgba(255,255,255,0.5)', font: { family: 'Outfit' } }
                             }
-                        }
+                        },
+                        interaction: {
+                            mode: 'index',
+                            intersect: false,
+                        },
                     }
                 });
             }
@@ -1016,9 +1272,17 @@ if (file_exists($help_file)) {
             // Map Initialization
             let mapInstance = null;
             function initMap() {
-                if (mapInstance) return;
+                if (mapInstance) {
+                    // Just refresh size if already exists
+                    setTimeout(() => mapInstance.invalidateSize(), 100);
+                    return;
+                }
                 
-                // Set default view (centered around a generic location for now)
+                // Initialize Map
+                const mapEl = document.getElementById('map');
+                if(!mapEl) return;
+                
+                // Generic center to start
                 mapInstance = L.map('map').setView([10.8505, 76.2711], 13);
                 
                 L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
@@ -1028,7 +1292,7 @@ if (file_exists($help_file)) {
                 // Add sample markers for evacuation points
                 const markerIcon = L.divIcon({
                     className: 'custom-div-icon',
-                    html: "<div style='background-color:#4ab5c4; width:12px; height:12px; border:2px solid #fff; border-radius:50%;'></div>",
+                    html: "<div style='background-color:#4ab5c4; width:12px; height:12px; border:2px solid #fff; border-radius:50%; box-shadow:0 0 10px rgba(74,181,196,0.5);'></div>",
                     iconSize: [12, 12],
                     iconAnchor: [6, 6]
                 });
@@ -1036,8 +1300,10 @@ if (file_exists($help_file)) {
                 L.marker([10.8550, 76.2750], {icon: markerIcon}).addTo(mapInstance).bindPopup("<b>Community Hall</b><br>Safe Zone");
                 L.marker([10.8450, 76.2650], {icon: markerIcon}).addTo(mapInstance).bindPopup("<b>Town School</b><br>Warning Zone");
                 
-                // Force map to recalculate size after being shown
-                setTimeout(() => mapInstance.invalidateSize(), 100);
+                // Force map to recalculate size after being shown - crucial for tabs!
+                setTimeout(() => {
+                    mapInstance.invalidateSize();
+                }, 200);
             }
 
             // Initial Section
@@ -1147,15 +1413,49 @@ if (file_exists($help_file)) {
         setInterval(fetchUserAlerts, 30000); // Poll every 30s
     </script>
     <!-- Custom Confirmation Modal -->
+    <!-- Custom Confirmation Modal -->
     <div id="customConfirmModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.7); z-index:10000; justify-content:center; align-items:center; backdrop-filter:blur(5px);">
-        <div style="background:#0f2027; border:2px solid #f1c40f; padding:30px; border-radius:15px; width:90%; max-width:450px; box-shadow:0 0 40px rgba(241,196,15,0.4); animation:fadeInUp 0.3s ease;">
+        <div style="background:#1e2029; border:2px solid #f1c40f; padding:30px; border-radius:15px; width:90%; max-width:450px; box-shadow:0 0 40px rgba(241,196,15,0.4); animation:fadeInUp 0.3s ease;">
             <div style="font-size:48px; text-align:center; margin-bottom:15px;">⚠️</div>
             <h3 style="color:#f1c40f; margin:0 0 15px 0; text-align:center; font-size:20px;">Confirm Action</h3>
             <p id="confirmMessage" style="color:rgba(255,255,255,0.9); text-align:center; font-size:15px; line-height:1.6; margin-bottom:25px;">Are you sure?</p>
             <div style="display:flex; justify-content:center; gap:10px;">
                 <button type="button" id="confirmCancelBtn" style="padding:12px 24px; background:transparent; border:1px solid rgba(255,255,255,0.3); color:#fff; font-weight:600; border-radius:8px; cursor:pointer; font-size:14px;">Cancel</button>
-                <button type="button" id="confirmOkBtn" style="padding:12px 24px; background:#f1c40f; border:none; color:#032023; font-weight:700; border-radius:8px; cursor:pointer; font-size:14px;">Confirm</button>
+                <button type="button" id="confirmOkBtn" style="padding:12px 24px; background:#f1c40f; border:none; color:#13141b; font-weight:700; border-radius:8px; cursor:pointer; font-size:14px;">Confirm</button>
             </div>
+        </div>
+    </div>
+
+    <!-- Edit Profile Modal -->
+    <div id="editProfileModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.8); z-index:10000; justify-content:center; align-items:center; backdrop-filter:blur(5px);">
+        <div class="glass" style="background:#1e2029; padding:30px; border-radius:20px; width:90%; max-width:500px; border:1px solid #c054ff; box-shadow:0 0 50px rgba(192, 84, 255, 0.2);">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
+                <h3 style="color:#c054ff; font-size:22px;">👤 Edit Profile</h3>
+                <button onclick="document.getElementById('editProfileModal').style.display='none'" style="background:none; border:none; color:#fff; font-size:24px; cursor:pointer;">&times;</button>
+            </div>
+            
+            <form id="profileUpdateForm" onsubmit="window.submitProfileUpdate(event)">
+                <div style="margin-bottom:15px;">
+                    <label style="display:block; margin-bottom:8px; color:#94a3b8; font-size:14px;">Full Name</label>
+                    <input type="text" name="name" id="editName" value="<?php echo $name; ?>" required style="width:100%; padding:12px; border-radius:10px; border:1px solid #2d2f39; background:#13141b; color:#fff;">
+                </div>
+                
+                <div style="margin-bottom:25px;">
+                    <label style="display:block; margin-bottom:8px; color:#94a3b8; font-size:14px;">Residential Area (Affects Alerts)</label>
+                    <select name="location" id="editLocation" required style="width:100%; padding:12px; border-radius:10px; border:1px solid #2d2f39; background:#13141b; color:#fff;">
+                        <option value="Central City">Central City</option>
+                        <option value="North District">North District</option>
+                        <option value="South Reservoir">South Reservoir</option>
+                        <option value="West Bank">West Bank</option>
+                        <option value="East Valley">East Valley</option>
+                    </select>
+                </div>
+                
+                <div style="display:flex; justify-content:flex-end; gap:10px;">
+                    <button type="button" onclick="document.getElementById('editProfileModal').style.display='none'" style="padding:10px 20px; background:transparent; border:1px solid #2d2f39; color:#fff; border-radius:8px; cursor:pointer;">Cancel</button>
+                    <button type="submit" id="saveProfileBtn" style="padding:10px 25px; background:linear-gradient(135deg, #c054ff 0%, #6d28d9 100%); border:none; color:#fff; border-radius:8px; font-weight:600; cursor:pointer;">Save Changes</button>
+                </div>
+            </form>
         </div>
     </div>
 </body>
