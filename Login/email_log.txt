@@ -88,3 +88,10 @@ SMTP Status: Sent Successfully
 
 [2026-01-05 11:14:01] To: mathew.akashwillson@gmail.com | OTP: 572265 | MailSent: Yes
 [2026-01-05 11:17:05] To: mathew.akashwillson@gmail.com | OTP: 909789 | MailSent: Yes
+[2026-01-15 14:22:03] To: mathew.akashwillson@gmail.com | OTP: 557239 | MailSent: No | Error: Mailer Error: SMTP Error: Could not authenticate.
+[2026-01-15 14:22:48] To: mathew.akashwillson@gmail.com | OTP: 889770 | MailSent: No | Error: Mailer Error: SMTP Error: Could not authenticate.
+[2026-01-15 14:23:08] To: mathewwilson2028@mca.ajce.in | OTP: 359706 | MailSent: No | Error: Mailer Error: SMTP Error: Could not authenticate.
+[2026-01-15 14:24:00] To: mathewwilson2028@mca.ajce.in | OTP: 939383 | MailSent: No | Error: Mailer Error: SMTP Error: Could not authenticate.
+[2026-01-15 14:24:12] To: mathewwilson2028@mca.ajce.in | OTP: 453374 | MailSent: No | Error: Mailer Error: SMTP Error: Could not authenticate.
+[2026-01-15 14:38:17] To: mathewwilson2028@mca.ajce.in | OTP: 351449 | MailSent: Yes
+[2026-01-15 14:38:33] To: mathew.akashwillson@gmail.com | OTP: 241514 | MailSent: Yes

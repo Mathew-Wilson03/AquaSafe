@@ -59,7 +59,7 @@ if($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['send_link_btn'])){
                         $mail->Host       = 'smtp.gmail.com';
                         $mail->SMTPAuth   = true;
                         $mail->Username   = 'mathewwilson2028@mca.ajce.in'; 
-                        $mail->Password   = 'xocstgimffcjbvva';
+                        $mail->Password   = 'pemz qqqx aotl ntfu';
                         $mail->SMTPSecure = PHPMailer\PHPMailer\PHPMailer::ENCRYPTION_STARTTLS;
                         $mail->Port       = 587;
 

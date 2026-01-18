@@ -513,22 +513,24 @@ if ($users_result) {
             position: absolute;
             bottom: 25px;
             left: 50%;
-            transform: translateX(-50%) translateY(10px);
-            background: rgba(0,0,0,0.9);
+            transform: translateX(-50%); /* Removed translateY(10px) to keep it in final position */
+            background: rgba(19, 20, 27, 0.95); /* Slightly darker/solid background */
             color: white;
             padding: 6px 12px;
             border-radius: 8px;
-            font-size: 12px;
+            font-size: 11px; /* Slightly smaller to fit better */
             white-space: nowrap;
-            opacity: 0;
+            opacity: 1; /* Always visible */
             pointer-events: none;
             transition: all 0.3s;
-            border: 1px solid rgba(255,255,255,0.2);
+            border: 1px solid rgba(255,255,255,0.15);
+            box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+            z-index: 10; font-weight: 600;
         }
 
         .map-pin:hover .pin-tooltip {
-            opacity: 1;
-            transform: translateX(-50%) translateY(0);
+            transform: translateX(-50%) scale(1.05); /* Just a subtle scale on hover */
+            border-color: rgba(74, 181, 196, 0.8);
         }
 
         /* Toggle Switch */
@@ -790,7 +792,7 @@ if ($users_result) {
                 <li><a href="#" id="nav-helpdesk" class="nav-link" onclick="switchTab('helpdesk', this)">🆘 Help Desk <span id="helpdeskBadge"></span></a></li>
                 <li><a href="#" id="nav-notifications" class="nav-link" onclick="switchTab('notifications', this)">🔔 Notifications</a></li>
                 <li><a href="#" id="nav-users" class="nav-link" onclick="switchTab('users', this)">👥 Manage Users</a></li>
-                <li><a href="#" id="nav-settings" class="nav-link" onclick="switchTab('settings', this)">⚙️ Settings</a></li>
+                <li><a href="#" id="nav-system_settings" class="nav-link" onclick="switchTab('system_settings', this)">⚙️ Settings</a></li>
             </ul>
             <div class="sidebar-logout">
                 <a href="logout.php">
@@ -903,8 +905,53 @@ if ($users_result) {
             <!-- Sensors Section -->
             <div id="sensors" class="content-section">
                 <div class="card">
-                    <h3>📡 Sensor Status</h3>
-                    <table style="width: 100%; border-collapse: collapse; margin-top: 20px; color: rgba(255,255,255,0.8);">
+                    <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:15px; margin-bottom:20px;">
+                        <h3>📡 Sensor Status</h3>
+                        <div style="display:flex; gap:10px;">
+                            <input type="text" id="sensorSearch" onkeyup="filterSensors()" placeholder="Search ID or Location..." 
+                                style="padding:10px 15px; border-radius:8px; border:1px solid rgba(255,255,255,0.1); background:rgba(0,0,0,0.2); color:white; outline:none; font-family:inherit;">
+                            
+                            <select id="sensorFilter" onchange="filterSensors()" 
+                                style="padding:10px 15px; border-radius:8px; border:1px solid rgba(255,255,255,0.1); background:rgba(0,0,0,0.2); color:white; outline:none; font-family:inherit; cursor:pointer;">
+                                <option value="All">All Status</option>
+                                <option value="Active">Active</option>
+                                <option value="Offline">Offline</option>
+                                <option value="Maintenance">Maintenance</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <script>
+                        function filterSensors() {
+                            const input = document.getElementById("sensorSearch");
+                            const filter = input.value.toUpperCase();
+                            const statusFilter = document.getElementById("sensorFilter").value;
+                            const table = document.getElementById("sensorTable");
+                            const tr = table.getElementsByTagName("tr");
+
+                            for (let i = 1; i < tr.length; i++) {
+                                let tdID = tr[i].getElementsByTagName("td")[0];
+                                let tdLoc = tr[i].getElementsByTagName("td")[1];
+                                let tdStatus = tr[i].getElementsByTagName("td")[2];
+                                
+                                if (tdID && tdLoc && tdStatus) {
+                                    const txtID = tdID.textContent || tdID.innerText;
+                                    const txtLoc = tdLoc.textContent || tdLoc.innerText;
+                                    const txtStatus = tdStatus.textContent || tdStatus.innerText;
+                                    
+                                    const matchesSearch = txtID.toUpperCase().indexOf(filter) > -1 || txtLoc.toUpperCase().indexOf(filter) > -1;
+                                    const matchesStatus = statusFilter === 'All' || txtStatus.trim() === statusFilter;
+
+                                    if (matchesSearch && matchesStatus) {
+                                        tr[i].style.display = "";
+                                    } else {
+                                        tr[i].style.display = "none";
+                                    }
+                                }       
+                            }
+                        }
+                    </script>
+                    <table id="sensorTable" style="width: 100%; border-collapse: collapse; margin-top: 20px; color: rgba(255,255,255,0.8);">
                         <thead>
                             <tr style="border-bottom: 1px solid rgba(255,255,255,0.1); text-align: left;">
                                 <th style="padding: 15px;">ID</th>
@@ -982,6 +1029,43 @@ if ($users_result) {
                         <button style="padding: 10px 20px; background: #4ab5c4; border: none; border-radius: 8px; color: white; font-weight: 600; cursor: pointer; transition: background 0.3s; position: relative; z-index: 10;" onclick="window.openAddModal()">+ Add Point</button>
                     </div>
                     <p style="opacity: 0.7; margin-bottom: 20px;">Admins can manage and update evacuation points dynamically based on flood severity.</p>
+
+                    <div style="display:flex; gap:10px; margin-bottom:20px; flex-wrap:wrap;">
+                        <input type="text" id="evacSearch" onkeyup="filterEvacuation()" placeholder="Search Name or Area..." 
+                            style="padding:10px 15px; border-radius:8px; border:1px solid rgba(255,255,255,0.1); background:rgba(0,0,0,0.2); color:white; outline:none; font-family:inherit; flex:1;">
+                        
+                        <select id="evacFilter" onchange="filterEvacuation()" 
+                            style="padding:10px 15px; border-radius:8px; border:1px solid rgba(255,255,255,0.1); background:rgba(0,0,0,0.2); color:white; outline:none; font-family:inherit; cursor:pointer;">
+                            <option value="All">All Status</option>
+                            <option value="Available">Available</option>
+                            <option value="Full">Full</option>
+                            <option value="Closed">Closed</option>
+                        </select>
+                    </div>
+
+                    <script>
+                        function filterEvacuation() {
+                            const input = document.getElementById("evacSearch");
+                            const filter = input.value.toUpperCase();
+                            const statusFilter = document.getElementById("evacFilter").value;
+                            const container = document.getElementById("evacuationList");
+                            const cards = container.getElementsByClassName("evac-card"); // Need to ensure cards have this class
+
+                            for (let i = 0; i < cards.length; i++) {
+                                const title = cards[i].getAttribute('data-name');
+                                const status = cards[i].getAttribute('data-status');
+                                
+                                const matchesSearch = title.toUpperCase().indexOf(filter) > -1;
+                                const matchesStatus = statusFilter === 'All' || status === statusFilter;
+
+                                if (matchesSearch && matchesStatus) {
+                                    cards[i].style.display = "";
+                                } else {
+                                    cards[i].style.display = "none";
+                                }
+                            }
+                        }
+                    </script>
                     
                     <div id="evacuationList" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px;">
                         <!-- Dynamic Content Loaded via JS -->
@@ -1040,39 +1124,67 @@ if ($users_result) {
                 </div>
             </div>
 
+
+
+
             <!-- Reports Section -->
             <div id="reports" class="content-section">
                 <!-- Filter Bar -->
+                <!-- Filter Bar -->
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px; padding: 15px 25px; background: rgba(255,255,255,0.05); border-radius: 16px; border: 1px solid rgba(255,255,255,0.1);">
                     <h2 style="font-size: 20px; font-weight: 600; color: #fff;">Analytics Overview</h2>
-                    <div style="display: flex; gap: 10px; align-items: center;">
-                        <span style="font-size: 14px; opacity: 0.7;">Time Range:</span>
-                        <select id="reportTimeRange" onchange="renderReportCharts()" style="padding: 8px 12px; border-radius: 8px; background: rgba(0,0,0,0.3); color: white; border: 1px solid rgba(255,255,255,0.2); outline: none;">
-                            <option value="24h">Last 24 Hours</option>
-                            <option value="7d">Last 7 Days</option>
-                            <option value="30d">Last 30 Days</option>
-                        </select>
+                    <div style="display: flex; gap: 15px; align-items: center;">
+                        
+                        <!-- View Toggle -->
+                        <div style="background: rgba(0,0,0,0.3); border-radius: 8px; padding: 3px; display: flex; border: 1px solid rgba(255,255,255,0.1);">
+                            <button onclick="toggleReportView('charts')" id="btnViewCharts" style="padding: 6px 12px; border: none; background: #4ab5c4; color: white; border-radius: 6px; font-size: 13px; font-weight: 600; cursor: pointer; transition: all 0.2s;">📊 Visuals</button>
+                            <button onclick="toggleReportView('list')" id="btnViewList" style="padding: 6px 12px; border: none; background: transparent; color: rgba(255,255,255,0.6); border-radius: 6px; font-size: 13px; font-weight: 600; cursor: pointer; transition: all 0.2s;">📋 Data Log</button>
+                        </div>
+                        
+                        <div style="width: 1px; height: 25px; background: rgba(255,255,255,0.1);"></div>
+
+                        <div style="display: flex; align-items: center; gap: 8px;">
+                            <span style="font-size: 14px; opacity: 0.7;">Area:</span>
+                            <select id="reportAreaSelector" onchange="renderReportCharts()" style="padding: 8px 12px; border-radius: 8px; background: rgba(0,0,0,0.3); color: white; border: 1px solid rgba(255,255,255,0.2); outline: none;">
+                                <option value="All">🌍 System Wide</option>
+                                <option value="South Reservoir">🌊 South Reservoir</option>
+                                <option value="East Valley">🏘️ East Valley</option>
+                                <option value="Central City">🏙️ Central City</option>
+                                <option value="North District">🏗️ North District</option>
+                            </select>
+                        </div>
+                        
+                        <div style="width: 1px; height: 25px; background: rgba(255,255,255,0.1);"></div>
+
+                        <div style="display: flex; align-items: center; gap: 8px;">
+                            <span style="font-size: 14px; opacity: 0.7;">Range:</span>
+                            <select id="reportTimeRange" onchange="renderReportCharts()" style="padding: 8px 12px; border-radius: 8px; background: rgba(0,0,0,0.3); color: white; border: 1px solid rgba(255,255,255,0.2); outline: none;">
+                                <option value="24h">Last 24 Hours</option>
+                                <option value="7d">Last 7 Days</option>
+                                <option value="30d">Last 30 Days</option>
+                            </select>
+                        </div>
                     </div>
                 </div>
 
                 <!-- Stats Summary -->
                 <div class="dashboard-grid" style="grid-template-columns: repeat(3, 1fr); gap: 20px; margin-bottom: 25px;">
-                     <div class="status-card">
+                     <div class="status-card" onclick="viewMetricDetails('alerts')" style="cursor: pointer; transition: transform 0.2s;" onmouseover="this.style.transform='translateY(-5px)'" onmouseout="this.style.transform='translateY(0)'">
                          <div class="status-label">Total Alerts</div>
                          <div id="statTotalAlerts" class="status-value warning-text">14</div>
                      </div>
-                     <div class="status-card">
+                     <div class="status-card" onclick="viewMetricDetails('floods')" style="cursor: pointer; transition: transform 0.2s;" onmouseover="this.style.transform='translateY(-5px)'" onmouseout="this.style.transform='translateY(0)'">
                          <div class="status-label">Flood Events</div>
                          <div id="statFloodEvents" class="status-value danger-text">3</div>
                      </div>
-                     <div class="status-card">
+                     <div class="status-card" onclick="viewMetricDetails('recovery')" style="cursor: pointer; transition: transform 0.2s;" onmouseover="this.style.transform='translateY(-5px)'" onmouseout="this.style.transform='translateY(0)'">
                          <div class="status-label">Safe Recoveries</div>
                          <div id="statSafeRecoveries" class="status-value safe-text">98%</div>
                      </div>
                 </div>
 
-                <!-- Charts Area -->
-                <div class="dashboard-grid">
+                <!-- View: Charts -->
+                <div id="reportChartsView" class="dashboard-grid">
                      <div class="card">
                         <h3>📊 Water Level Trends (System Average)</h3>
                         <div class="chart-container">
@@ -1087,10 +1199,25 @@ if ($users_result) {
                      </div>
                 </div>
 
-                <!-- Event History Log -->
-                <div class="card" style="margin-bottom: 25px;">
+                <!-- View: List (Initially Hidden) -->
+                <div id="reportListView" class="card" style="margin-bottom: 25px; display: none;">
                     <h3>📋 Detailed Event History</h3>
-                    <div style="overflow-x: auto; max-height: 300px; overflow-y: auto;">
+                    
+                    <!-- Search & Filter Controls -->
+                    <div style="display: flex; gap: 15px; margin-bottom: 15px;">
+                        <input type="text" id="reportSearch" onkeyup="filterEventHistory()" placeholder="🔍 Search events..." 
+                               style="flex: 1; padding: 10px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); border-radius: 8px; color: white;">
+                        
+                        <select id="reportFilter" onchange="filterEventHistory()" 
+                                style="padding: 10px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); border-radius: 8px; color: white; cursor: pointer;">
+                            <option value="All" style="background: #1e2029; color: white;">All Severities</option>
+                            <option value="Critical" style="background: #1e2029; color: white;">🚨 Critical</option>
+                            <option value="Warning" style="background: #1e2029; color: white;">⚠️ Warning</option>
+                            <option value="Info" style="background: #1e2029; color: white;">ℹ️ Info</option>
+                        </select>
+                    </div>
+
+                    <div style="overflow-x: auto; max-height: 400px; overflow-y: auto;">
                         <table style="width: 100%; border-collapse: collapse; color: rgba(255,255,255,0.9);">
                             <thead>
                                 <tr style="border-bottom: 1px solid rgba(255,255,255,0.1); text-align: left;">
@@ -1107,6 +1234,56 @@ if ($users_result) {
                         </table>
                     </div>
                 </div>
+
+                <!-- Script for Toggle -->
+                <script>
+                    function toggleReportView(view) {
+                        const charts = document.getElementById('reportChartsView');
+                        const list = document.getElementById('reportListView');
+                        const btnC = document.getElementById('btnViewCharts');
+                        const btnL = document.getElementById('btnViewList');
+                        
+                        if(view === 'charts') {
+                            charts.style.display = 'grid';
+                            list.style.display = 'none';
+                            btnC.style.background = '#4ab5c4'; btnC.style.color = 'white';
+                            btnL.style.background = 'transparent'; btnL.style.color = 'rgba(255,255,255,0.6)';
+                        } else {
+                            charts.style.display = 'none';
+                            list.style.display = 'block';
+                            btnL.style.background = '#4ab5c4'; btnL.style.color = 'white';
+                            btnC.style.background = 'transparent'; btnC.style.color = 'rgba(255,255,255,0.6)';
+                        }
+                    }
+
+                    function filterEventHistory() {
+                        const input = document.getElementById('reportSearch');
+                        const filter = input.value.toUpperCase();
+                        const severityFilter = document.getElementById('reportFilter').value;
+                        const table = document.getElementById('eventLogBody');
+                        const tr = table.getElementsByTagName('tr');
+
+                        for (let i = 0; i < tr.length; i++) {
+                            const tdEvents = tr[i].getElementsByTagName("td")[1]; // Event Column
+                            const tdLocation = tr[i].getElementsByTagName("td")[2]; // Location Column
+                            const tdSeverity = tr[i].getElementsByTagName("td")[3]; // Severity Column
+                            
+                            if (tdEvents && tdLocation) {
+                                const txtValue = (tdEvents.textContent || tdEvents.innerText) + " " + (tdLocation.textContent || tdLocation.innerText);
+                                const severityValue = tdSeverity.textContent || tdSeverity.innerText;
+                                
+                                const matchesSearch = txtValue.toUpperCase().indexOf(filter) > -1;
+                                const matchesFilter = severityFilter === 'All' || severityValue.includes(severityFilter);
+                                
+                                if (matchesSearch && matchesFilter) {
+                                    tr[i].style.display = "";
+                                } else {
+                                    tr[i].style.display = "none";
+                                }
+                            }       
+                        }
+                    }
+                </script>
 
                 <!-- Generated Reports Table -->
                 <div class="card">
@@ -1186,7 +1363,13 @@ if ($users_result) {
                 <div class="card">
                     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
                         <h3>👥 User Management</h3>
-                        <div style="font-size: 14px; opacity: 0.7;">Total Users: <?php echo count($all_users); ?></div>
+                        <div style="display: flex; align-items: center; gap: 15px;">
+                            <button onclick="window.openCensusModal()" style="padding: 8px 15px; background: rgba(74, 181, 196, 0.15); border: 1px solid #4ab5c4; color: #4ab5c4; border-radius: 8px; font-size: 13px; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 6px;">
+                                📂 Upload Census Data
+                            </button>
+
+                            <div style="font-size: 14px; opacity: 0.7;">Total Users: <?php echo count($all_users); ?></div>
+                        </div>
                     </div>
                     
                     <div style="overflow-x: auto;">
@@ -1242,19 +1425,80 @@ if ($users_result) {
                     <h3>🔔 Notification Control</h3>
                     <p style="opacity: 0.7; margin-bottom: 30px;">Admins can control how and when alerts are triggered.</p>
 
-                    <!-- Master Switch -->
-                    <div style="display: flex; justify-content: space-between; align-items: center; padding: 20px; background: rgba(255,255,255,0.05); border-radius: 12px; margin-bottom: 20px;">
-                        <div>
-                            <strong style="display: block; font-size: 16px;">Master Alert System</strong>
-                            <span style="font-size: 13px; opacity: 0.6;">Toggle all outgoing notifications</span>
+                    <!-- Broadcast Alert System -->
+                    <div style="padding: 25px; background: rgba(231, 76, 60, 0.1); border: 1px solid rgba(231, 76, 60, 0.3); border-radius: 16px; margin-bottom: 25px;">
+                        <h4 style="color: #e74c3c; margin-bottom: 15px; display: flex; align-items: center; gap: 10px;">
+                            <span>📢</span> Emergency Broadcast System
+                        </h4>
+                        <p style="font-size: 14px; opacity: 0.8; margin-bottom: 20px;">
+                            Send an immediate alert to all residents (App Users + Offline Contacts) in a specific area. 
+                            <br><span style="font-size: 12px; opacity: 0.6;">(Emails will be sent via PHPMailer)</span>
+                        </p>
+                        
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 15px;">
+                            <div>
+                                <label style="display: block; font-size: 13px; margin-bottom: 5px;">Target Area</label>
+                                <select id="alertArea" style="width: 100%; padding: 10px; background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.1); color: white; border-radius: 8px;">
+                                    <option value="All" style="background: #1e2029; color: white;">🌍 Entire System</option>
+                                    <option value="South Reservoir" style="background: #1e2029; color: white;">🌊 South Reservoir</option>
+                                    <option value="North District" style="background: #1e2029; color: white;">🏗️ North District</option>
+                                    <option value="Central City" style="background: #1e2029; color: white;">🏙️ Central City</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label style="display: block; font-size: 13px; margin-bottom: 5px;">Severity Level</label>
+                                <select id="alertSeverity" style="width: 100%; padding: 10px; background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.1); color: white; border-radius: 8px;">
+                                    <option value="Warning" style="background: #1e2029; color: white;">⚠️ Warning</option>
+                                    <option value="Critical" style="background: #1e2029; color: white;">🚨 Critical</option>
+                                    <option value="Evacuation" style="background: #1e2029; color: white;">🏃 Evacuation</option>
+                                </select>
+                            </div>
                         </div>
-                        <label class="switch">
-                            <input type="checkbox" id="masterToggle" onchange="updateMasterToggle()">
-                            <span class="slider"></span>
-                        </label>
+                        
+                        <div style="margin-bottom: 15px;">
+                            <label style="display: block; font-size: 13px; margin-bottom: 5px;">Alert Message</label>
+                            <textarea id="alertMessage" placeholder="Enter emergency instructions..." style="width: 100%; padding: 10px; background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.1); color: white; border-radius: 8px; min-height: 80px; font-family: inherit;"></textarea>
+                        </div>
+
+                        <button onclick="sendBroadcast()" id="btnBroadcast" style="width: 100%; padding: 12px; background: #e74c3c; border: none; border-radius: 8px; color: white; font-weight: 700; cursor: pointer; transition: background 0.3s;">
+                            🚀 Send Broadcast Alert
+                        </button>
                     </div>
 
-                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px;">
+                    <script>
+                        async function sendBroadcast() {
+                            const area = document.getElementById('alertArea').value;
+                            const severity = document.getElementById('alertSeverity').value;
+                            const message = document.getElementById('alertMessage').value;
+                            
+                            if(!message) { alert("Please enter a message!"); return; }
+                            
+                            if(!confirm(`⚠️ CONFIRM BROADCAST\nAre you sure you want to send a ${severity} alert to ${area}? This will email all registered users AND offline community contacts.`)) return;
+
+                            const btn = document.getElementById('btnBroadcast');
+                            const originalText = btn.innerText;
+                            btn.innerText = "Sending Emails...";
+                            btn.disabled = true;
+
+                            const formData = new FormData();
+                            formData.append('action', 'broadcast_alert');
+                            formData.append('area', area);
+                            formData.append('severity', severity);
+                            formData.append('message', message);
+
+                            try {
+                                const res = await fetch('manage_community.php', { method: 'POST', body: formData });
+                                const json = await res.json();
+                                alert(json.message);
+                            } catch(e) {
+                                alert("Failed to send broadcast.");
+                                console.error(e);
+                            }
+                            
+                            btn.innerText = originalText;
+                            btn.disabled = false;
+                        }
+                    </script>
                         <!-- Thresholds -->
                         <div style="padding: 20px; background: rgba(255,255,255,0.05); border-radius: 12px;">
                             <h4 style="margin-bottom: 15px; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 10px;">Severity Thresholds</h4>
@@ -1315,60 +1559,87 @@ if ($users_result) {
                         </div>
                     </div>
 
-                    <!-- Manual Broadcast Section (NEW) -->
-                    <div style="margin-top: 20px; padding: 20px; background: rgba(231, 76, 60, 0.1); border: 1px solid rgba(231, 76, 60, 0.3); border-radius: 12px;">
-                        <h4 style="color: #e74c3c; margin-bottom: 15px;">📢 Manual Emergency Broadcast</h4>
-                        <div style="margin-bottom: 15px;">
-                            <textarea id="broadcastMessage" placeholder="Type emergency message here (e.g., 'Flash Flood Warning for Downtown Area')" style="width: 100%; padding: 12px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.1); background: rgba(0,0,0,0.2); color: white; resize: vertical; min-height: 80px;"></textarea>
+
+                </div>
+
+
+                <!-- Standardized Settings Section -->
+                <div id="system_settings" class="content-section">
+                    
+
+
+                    <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 20px;">
+                        
+                        <!-- Main Settings Card -->
+                        <div class="card">
+                            <h3>⚙️ General Configuration</h3>
+                            
+                            <div style="margin-top: 20px; display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+                                <div>
+                                    <label style="display: block; margin-bottom: 8px; font-size: 14px; opacity: 0.8;">Notification Email</label>
+                                    <input type="email" id="adminEmail" value="admin@aquasafe.com" style="width: 100%; padding: 12px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); border-radius: 8px; color: white;">
+                                </div>
+                                <div>
+                                    <label style="display: block; margin-bottom: 8px; font-size: 14px; opacity: 0.8;">Dashboard Refresh Rate</label>
+                                    <input type="number" id="refreshRate" value="30" style="width: 100%; padding: 12px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); border-radius: 8px; color: white;">
+                                </div>
+                            </div>
+
+                            <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid rgba(255,255,255,0.05);">
+                                <h3 style="font-size: 16px; margin-bottom: 15px;">System Preferences</h3>
+                                
+                                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; background: rgba(255,255,255,0.02); padding: 15px; border-radius: 8px;">
+                                    <div>
+                                        <div style="font-weight: 500;">Maintenance Mode</div>
+                                        <div style="font-size: 12px; opacity: 0.5;">Suspend user access for updates</div>
+                                    </div>
+                                    <label class="switch small">
+                                        <input type="checkbox" id="maintMode">
+                                        <span class="slider"></span>
+                                    </label>
+                                </div>
+
+                                <button onclick="saveSettings()" id="btnSaveSettings" style="padding: 12px 25px; background: #4ab5c4; border: none; border-radius: 8px; color: #fff; font-weight: 600; cursor: pointer; float: right;">
+                                    Save Changes
+                                </button>
+                                <div style="clear: both;"></div>
+                            </div>
                         </div>
-                        <div style="display: flex; gap: 10px; align-items: center;">
-                             <select id="broadcastArea" style="padding: 10px; border-radius: 8px; background: #1e2029; color: white; border: 1px solid rgba(255,255,255,0.1); flex: 1;">
-                                <option value="System Wide">🌍 All Areas (System Wide)</option>
-                                <option value="Central City">🏙️ Central City</option>
-                                <option value="North District">🏗️ North District</option>
-                                <option value="South Reservoir">🌊 South Reservoir</option>
-                                <option value="West Bank">🏖️ West Bank</option>
-                                <option value="East Valley">🏘️ East Valley</option>
-                            </select>
-                             <select id="broadcastSeverity" style="padding: 10px; border-radius: 8px; background: #1e2029; color: white; border: 1px solid rgba(255,255,255,0.1);">
-                                <option value="Info">ℹ️ Info</option>
-                                <option value="Warning">⚠️ Warning</option>
-                                <option value="Critical">🚨 Critical</option>
-                            </select>
-                            <button onclick="broadcastAlert()" style="padding: 10px 20px; background: #e74c3c; border: none; color: white; border-radius: 8px; font-weight: 700; cursor: pointer; transition: all 0.3s; white-space: nowrap;">Send Broadcast</button>
+
+                        <!-- Sidebar Cards -->
+                        <div style="display: flex; flex-direction: column; gap: 20px;">
+                            
+                            <!-- Profile -->
+                            <div class="card" style="text-align: center;">
+                                <div style="width: 60px; height: 60px; background: #4ab5c4; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 24px; font-weight: bold; margin: 0 auto 15px; color: #0f2027;">
+                                    <?php echo strtoupper(substr($user_name, 0, 1)); ?>
+                                </div>
+                                <h3 style="margin-bottom: 5px; font-size: 18px;"><?php echo htmlspecialchars($user_name); ?></h3>
+                                <div style="font-size: 13px; opacity: 0.7;">Super Administrator</div>
+                            </div>
+
+                            <!-- System Health -->
+                            <div class="card">
+                                <h3>🖥️ System Health</h3>
+                                <div style="margin-top: 15px; display: grid; gap: 10px;">
+                                    <div style="display: flex; justify-content: space-between; font-size: 13px; padding-bottom: 8px; border-bottom: 1px solid rgba(255,255,255,0.05);">
+                                        <span style="opacity: 0.7;">Status</span>
+                                        <span style="color: #2ecc71;">● Online</span>
+                                    </div>
+                                    <div style="display: flex; justify-content: space-between; font-size: 13px; padding-bottom: 8px; border-bottom: 1px solid rgba(255,255,255,0.05);">
+                                        <span style="opacity: 0.7;">Database</span>
+                                        <span>Connected</span>
+                                    </div>
+                                    <div style="display: flex; justify-content: space-between; font-size: 13px;">
+                                        <span style="opacity: 0.7;">Last Backup</span>
+                                        <span>Today, 04:00 AM</span>
+                                    </div>
+                                </div>
+                            </div>
+
                         </div>
                     </div>
                 </div>
-            </div>
-
-            <div id="settings" class="content-section">
-                 <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px;">
-                    <div class="card">
-                        <h3>⚙️ System Settings</h3>
-                        <div style="margin-top: 20px;">
-                            <div style="margin-bottom: 20px;">
-                                <label style="display: block; margin-bottom: 8px; font-size: 14px;">Notification Email</label>
-                                <input type="email" value="admin@aquasafe.com" style="width: 100%; padding: 10px; background: rgba(0,0,0,0.2); border: 1px solid rgba(255,255,255,0.1); border-radius: 8px; color: white;">
-                            </div>
-                            <div style="margin-bottom: 20px;">
-                                <label style="display: block; margin-bottom: 8px; font-size: 14px;">Refresh Rate (seconds)</label>
-                                <input type="number" value="2" style="width: 100%; padding: 10px; background: rgba(0,0,0,0.2); border: 1px solid rgba(255,255,255,0.1); border-radius: 8px; color: white;">
-                            </div>
-                             <button style="padding: 10px 20px; background: #4ab5c4; border: none; border-radius: 8px; color: white; font-weight: 600; cursor: pointer;">Save Changes</button>
-                        </div>
-                    </div>
-                    <div class="card">
-                         <h3>👤 Admin Profile</h3>
-                          <div style="display: flex; align-items: center; gap: 15px; margin-top: 20px;">
-                            <div style="width: 60px; height: 60px; background: #4ab5c4; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 24px;">A</div>
-                            <div>
-                                <div style="font-weight: 600;">Super Administrator</div>
-                                <div style="font-size: 13px; opacity: 0.6;">Access Level: Root</div>
-                            </div>
-                          </div>
-                    </div>
-                 </div>
-            </div>
 
         </div>
     </div>
@@ -1700,7 +1971,7 @@ if ($users_result) {
                 const titles = {
                     'dashboard': 'Admin Dashboard', 'sensors': 'Sensor Management', 'alerts': 'System Alerts',
                     'map': 'Live Map', 'evacuation': 'Evacuation Management', 'reports': 'Reports & Analytics',
-                    'helpdesk': 'Help Desk', 'notifications': 'Notification Control', 'users': 'User Management', 'settings': 'System Settings'
+                    'helpdesk': 'Help Desk', 'notifications': 'Notification Control', 'users': 'User Management', 'system_settings': 'System Settings'
                 };
                 const titleEl = document.getElementById('pageTitle');
                 if (titleEl) titleEl.innerText = titles[tabId] || 'Admin Dashboard';
@@ -1864,6 +2135,9 @@ if ($users_result) {
                         const statusColor = pt.status === 'Available' ? 'safe-text' : (pt.status === 'Full' ? 'danger-text' : 'warning-text');
                         
                         const card = document.createElement('div');
+                        card.className = "evac-card"; // Hook for Search
+                        card.setAttribute('data-name', (pt.name + " " + pt.location).toLowerCase()); // Search Index
+                        card.setAttribute('data-status', pt.status); // Hook for Filter
                         card.style.cssText = "background: rgba(255,255,255,0.05); padding: 20px; border-radius: 16px; border: 1px solid rgba(255,255,255,0.1); position: relative; z-index: 10;";
                         card.innerHTML = `
                             <div style="display: flex; justify-content: space-between; margin-bottom: 15px;">
@@ -2414,6 +2688,94 @@ if ($users_result) {
 
         // 5. Reports Logic (Chart.js)
         let floodChart, alertChart;
+
+        window.renderReportCharts = function() {
+            const timeRange = document.getElementById('reportTimeRange').value;
+            const ctx1 = document.getElementById('floodTrendChart');
+            const ctx2 = document.getElementById('alertFreqChart');
+            
+            // --- 1. Dynamic Stats Simulation ---
+            const stats = {
+                '24h': { alerts: 14, floods: 3, recovery: '98%' },
+                '7d': { alerts: 45, floods: 8, recovery: '95%' },
+                '30d': { alerts: 128, floods: 21, recovery: '92%' }
+            };
+            
+            const currentStats = stats[timeRange] || stats['24h']; // Safety fallback
+            
+            const elAlerts = document.getElementById('statTotalAlerts');
+            const elFloods = document.getElementById('statFloodEvents');
+            const elRecovery = document.getElementById('statSafeRecoveries');
+            
+            if(elAlerts) elAlerts.innerHTML = currentStats.alerts;
+            if(elFloods) elFloods.innerHTML = currentStats.floods;
+            if(elRecovery) elRecovery.innerHTML = currentStats.recovery;
+
+            // --- 2. Chart Re-rendering (Existing Logic) ---
+            if(!ctx1 || !ctx2) return;
+
+            if(floodChart) floodChart.destroy();
+            if(alertChart) alertChart.destroy();
+
+            // Simulate Data based on Time Range
+            let labels, dataPoints;
+            if(timeRange === '24h') {
+                labels = ['00:00', '04:00', '08:00', '12:00', '16:00', '20:00', '23:59'];
+                dataPoints = [35, 38, 45, 50, 48, 42, 40];
+            } else if(timeRange === '7d') {
+                labels = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+                dataPoints = [40, 42, 55, 60, 58, 50, 45];
+            } else {
+                labels = ['Week 1', 'Week 2', 'Week 3', 'Week 4'];
+                dataPoints = [30, 45, 65, 40];
+            }
+
+            floodChart = new Chart(ctx1, {
+                type: 'line',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: 'Avg Water Level (ft)',
+                        data: dataPoints,
+                        borderColor: '#4ab5c4',
+                        backgroundColor: 'rgba(74, 181, 196, 0.1)',
+                        fill: true,
+                        tension: 0.4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { display: false } },
+                    scales: {
+                        y: { grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: '#aaa' } },
+                        x: { grid: { display: false }, ticks: { color: '#aaa' } }
+                    }
+                }
+            });
+
+            alertChart = new Chart(ctx2, {
+                type: 'bar',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: 'Alert Frequency',
+                        data: dataPoints.map(d => Math.floor(d / 10)), // Mock data derivation
+                        backgroundColor: '#e74c3c',
+                        borderRadius: 4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { display: false } },
+                    scales: {
+                        y: { grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: '#aaa' } },
+                        x: { grid: { display: false }, ticks: { color: '#aaa' } }
+                    }
+                }
+            });
+        };
         window.renderReportCharts = function() {
             const ctx1 = document.getElementById('floodTrendChart');
             const ctx2 = document.getElementById('alertFreqChart');
@@ -2423,37 +2785,54 @@ if ($users_result) {
             if (alertChart) alertChart.destroy();
 
             const range = document.getElementById('reportTimeRange') ? document.getElementById('reportTimeRange').value : '24h';
+            const area = document.getElementById('reportAreaSelector') ? document.getElementById('reportAreaSelector').value : 'All';
             
             let labels, dataPoints, alertData;
+            
+            // --- UPDATED STATS LOGIC ---
+            // Base values
+            let baseAlerts = 14, baseFloods = 3, baseRec = 98;
+            
+            // Time Multipliers
+            if(range === '7d') { baseAlerts = 45; baseFloods = 8; baseRec = 95; }
+            if(range === '30d') { baseAlerts = 128; baseFloods = 21; baseRec = 92; }
+
+            // Area Multipliers (Simulation)
+            if(area === 'South Reservoir') { baseAlerts = Math.round(baseAlerts * 0.6); baseFloods = Math.max(1, Math.round(baseFloods * 0.8)); baseRec -= 5; } // Critical area
+            else if(area === 'Central City') { baseAlerts = Math.round(baseAlerts * 0.2); baseFloods = 0; baseRec = 100; } // Safe area
+            else if(area !== 'All') { baseAlerts = Math.round(baseAlerts * 0.3); baseFloods = Math.round(baseFloods * 0.3); baseRec -= 2; } // Other areas
+
+            if(document.getElementById('statTotalAlerts')) {
+                document.getElementById('statTotalAlerts').innerText = baseAlerts;
+                document.getElementById('statFloodEvents').innerText = baseFloods;
+                document.getElementById('statSafeRecoveries').innerText = baseRec + "%";
+            }
+            // ---------------------------
+            
+            // Chart Title Update
+            const chartTitle = document.querySelector('#reports h3');
+            if(chartTitle) chartTitle.innerText = `📊 Water Level Trends (${area === 'All' ? 'System Average' : area})`;
             
             if (range === '24h') {
                 labels = ['00:00', '04:00', '08:00', '12:00', '16:00', '20:00', '23:59'];
                 dataPoints = [35, 38, 45, 50, 48, 42, 40];
                 alertData = [2, 1, 4, 3, 2, 1, 1];
-                // Update stats
-                if(document.getElementById('statTotalAlerts')) {
-                    document.getElementById('statTotalAlerts').innerText = "14";
-                    document.getElementById('statFloodEvents').innerText = "3";
-                    document.getElementById('statSafeRecoveries').innerText = "98%";
-                }
             } else if (range === '7d') {
                 labels = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
                 dataPoints = [40, 55, 45, 60, 65, 50, 55];
                 alertData = [12, 18, 15, 22, 25, 14, 16];
-                if(document.getElementById('statTotalAlerts')) {
-                    document.getElementById('statTotalAlerts').innerText = "122";
-                    document.getElementById('statFloodEvents').innerText = "15";
-                    document.getElementById('statSafeRecoveries').innerText = "96%";
-                }
             } else { // 30d
                 labels = ['Week 1', 'Week 2', 'Week 3', 'Week 4'];
                 dataPoints = [45, 62, 58, 52];
                 alertData = [85, 120, 95, 110];
-                if(document.getElementById('statTotalAlerts')) {
-                    document.getElementById('statTotalAlerts').innerText = "410";
-                    document.getElementById('statFloodEvents').innerText = "42";
-                    document.getElementById('statSafeRecoveries').innerText = "94%";
-                }
+            }
+
+            // --- AREA SCALING LOGIC FOR CHARTS ---
+            if(area !== 'All') {
+                const multiplier = (area === 'South Reservoir' || area === 'North District') ? 1.5 : 0.3; // Critical vs Safe
+                
+                dataPoints = dataPoints.map(v => Math.min(100, Math.round(v * multiplier)));
+                alertData = alertData.map(v => Math.round(v * multiplier));
             }
 
             // Update Event Log Table
@@ -2557,13 +2936,105 @@ if ($users_result) {
         // REMOVED DUPLICATE LOGIC - NOW CONSOLIDATED ABOVE
 
 
+        window.viewMetricDetails = function(metric) {
+            const area = document.getElementById('reportAreaSelector') ? document.getElementById('reportAreaSelector').value : 'All';
+            const range = document.getElementById('reportTimeRange') ? document.getElementById('reportTimeRange').value : '24h';
+
+            if(metric === 'alerts') {
+                switchTab('alerts');
+                // Simulate "Drill Down" by injecting historical data
+                const container = document.querySelector('#alerts .card > div');
+                if(container) {
+                    const isSpecificArea = area !== 'All';
+                    const areaTitle = isSpecificArea ? area : 'System Wide';
+                    
+                    // Filter counts based on area
+                    let count = 14;
+                    if(area === 'South Reservoir') count = 9;
+                    if(area === 'Central City') count = 2;
+                    if(range === '7d') count = Math.round(count * 3.5);
+
+                    container.innerHTML = `
+                        <div style="background:rgba(74,181,196,0.1); border:1px solid #4ab5c4; color:#4ab5c4; padding:10px; border-radius:8px; margin-bottom:15px; font-size:13px; display:flex; align-items:center; justify-content:space-between;">
+                            <span>📊 Viewing <strong>${areaTitle} Log (${range})</strong> (${count} Events)</span>
+                            <button onclick="fetchSystemAlerts()" style="background:none; border:none; color:white; opacity:0.7; cursor:pointer; text-decoration:underline;">Switch to Live View</button>
+                        </div>
+                    `;
+                    // Generate mock alerts
+                    let html = '';
+                    const types = ['Sensor Disconnect', 'Water Level Warning', 'Pump Failure', 'Network Latency'];
+                    let locs = ['South Reservoir', 'North Dam', 'River A-2', 'Canal Zone'];
+                    
+                    // If specific area, force all locs to match
+                    if(isSpecificArea) locs = [area, area, area, area];
+                    
+                    for(let i=0; i<count; i++) {
+                        const isCrit = i < (isSpecificArea && area==='South Reservoir' ? 5 : 2); 
+                        const severity = isCrit ? 'Critical' : 'Warning';
+                        const color = isCrit ? '#e74c3c' : '#f1c40f';
+                        const time = new Date(Date.now() - i * 3600000).toLocaleTimeString();
+                        
+                        html += `
+                             <div style="background: ${color}15; border-left: 4px solid ${color}; padding: 15px; margin-bottom: 10px; border-radius: 0 8px 8px 0; display: flex; justify-content: space-between; align-items: start;">
+                                <div>
+                                    <strong style="color: ${color};">${severity} Alert</strong>
+                                    <p style="font-size: 14px; margin-top: 5px; opacity: 0.8;">${types[i%4]} detected at ${locs[i%4]}</p>
+                                    <div style="font-size: 12px; opacity: 0.5; margin-top: 5px;">${time} • Historical Record</div>
+                                </div>
+                            </div>
+                        `;
+                    }
+                    container.innerHTML += html;
+                }
+            } 
+            else if(metric === 'floods') {
+                switchTab('map');
+                setTimeout(() => {
+                    const msg = area !== 'All' ? `🚨 ${area}: Active Flood Event` : "🚨 Displaying 3 Active Flood Events";
+                    // Zoom logic...
+                    if(map) map.setView([10.8505, 76.2711], 10);
+                    // Show Overlay
+                    const overlay = document.createElement('div');
+                    overlay.style.cssText = "position:absolute; top:80px; left:50%; transform:translateX(-50%); background:rgba(231,76,60,0.9); color:white; padding:10px 20px; border-radius:30px; z-index:1000; font-weight:600; box-shadow:0 5px 20px rgba(0,0,0,0.3); pointer-events:none; animation: fadeInDown 0.5s;";
+                    overlay.innerHTML = msg;
+                    document.getElementById('leaflet-map').appendChild(overlay);
+                    setTimeout(() => overlay.remove(), 4000);
+                }, 500);
+            }
+            else if(metric === 'recovery') {
+                switchTab('evacuation');
+                setTimeout(() => {
+                    // Filter for Available
+                    const select = document.getElementById('evacFilter');
+                    const search = document.getElementById('evacSearch');
+                    
+                    if(select) { select.value = 'Available'; }
+                    if(search && area !== 'All') { search.value = area; } // Pre-fill search with area
+                    
+                    if(typeof filterEvacuation === 'function') filterEvacuation();
+                    
+                    // Show Stats Banner
+                    const list = document.getElementById('evacuationList');
+                    if(list) {
+                        const banner = document.createElement('div');
+                        banner.style.cssText = "grid-column: 1 / -1; background:rgba(46, 204, 113, 0.15); border:1px solid #2ecc71; color:#2ecc71; padding:15px; border-radius:12px; margin-bottom:10px; text-align:center; font-weight:600;";
+                        banner.innerHTML = "✅ Safety Status: 98% of Evacuation Capacity is Open & Available";
+                        list.prepend(banner);
+                    }
+                }, 300);
+            }
+        };
+
          // 7. Clock & Utilities
         function updateTime() {
+            const now = new Date();
+            const timeString = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+            
             const clockEl = document.getElementById('clock');
-            if(clockEl) {
-                const now = new Date();
-                clockEl.innerText = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
-            }
+            if(clockEl) clockEl.innerText = timeString;
+
+            const sClock = document.getElementById('settingsClock');
+            if(sClock) sClock.innerText = timeString;
         }
         setInterval(updateTime, 1000);
         updateTime();
@@ -2877,6 +3348,113 @@ if ($users_result) {
         </div>
     </div>
 
+    <script>
+        // --- SETTINGS LOGIC ---
+        window.saveSettings = async function() {
+            const email = document.getElementById('adminEmail').value;
+            const refresh = document.getElementById('refreshRate').value;
+            const btn = document.getElementById('btnSaveSettings');
+            
+            if(!email || !refresh) {
+                window.showNotification("Please fill all fields.", 'warning');
+                return;
+            }
+
+            const originalText = btn.innerText;
+            btn.innerText = "Saving...";
+            btn.disabled = true;
+
+            const formData = new FormData();
+            formData.append('email', email);
+            formData.append('refresh', refresh);
+
+            try {
+                const res = await fetch('manage_settings.php', { method: 'POST', body: formData });
+                const json = await res.json();
+                
+                if(json.success) {
+                    window.showNotification(json.message, 'success');
+                } else {
+                    window.showNotification("Error: " + json.message, 'error');
+                }
+            } catch(e) {
+                console.error(e);
+                window.showNotification("Failed to save settings.", 'error');
+            }
+            btn.innerText = originalText;
+            btn.disabled = false;
+        };
+
+        window.fetchSettings = async function() {
+            try {
+                const res = await fetch('manage_settings.php');
+                const json = await res.json();
+                if(json.success) {
+                    const s = json.data;
+                    if(document.getElementById('adminEmail')) document.getElementById('adminEmail').value = s.admin_email || '';
+                    if(document.getElementById('refreshRate')) document.getElementById('refreshRate').value = s.refresh_rate || '30';
+                }
+            } catch(e) { console.error("Fetch Settings Error", e); }
+        };
+        
+        // Initialize
+        fetchSettings();
+
+        // --- CENSUS UPLOAD LOGIC ---
+        window.openCensusModal = function() {
+            const modal = document.getElementById('censusModal');
+            if(modal) {
+                modal.style.display = 'flex';
+                document.getElementById('censusFile').value = ''; // Reset
+            } else {
+                alert("Error: Modal not found");
+            }
+        };
+
+        window.uploadCensusData = async function() {
+            const fileInput = document.getElementById('censusFile');
+            const file = fileInput.files[0];
+            const btn = document.getElementById('btnUploadCensus');
+
+            if(!file) {
+                window.showNotification("Please select a CSV file first.", 'warning');
+                return;
+            }
+
+            const originalText = btn.innerText;
+            btn.innerText = "⏳ Processing...";
+            btn.disabled = true;
+
+            const formData = new FormData();
+            formData.append('action', 'upload_csv');
+            formData.append('censusFile', file);
+
+            try {
+                const res = await fetch('manage_community.php', { method: 'POST', body: formData });
+                const json = await res.json();
+                
+                if(json.success) {
+                    let msg = `Processed: ${json.data.processed}\nNew: ${json.data.new_contacts}\nExisting: ${json.data.existing_users}\nErrors: ${json.data.errors}`;
+                    window.showNotification("Upload Successful!", 'success');
+                    alert(msg); // Detailed stats
+                    document.getElementById('censusModal').style.display = 'none';
+                    // Optional: Refresh user stats
+                    if(document.getElementById('users').classList.contains('active')) location.reload(); 
+                } else {
+                    window.showNotification("Upload Failed: " + json.message, 'error');
+                }
+            } catch(e) {
+                console.error("Upload Error:", e);
+                window.showNotification("Network Error during upload.", 'error');
+            } finally {
+                btn.innerText = originalText;
+                btn.disabled = false;
+            }
+        };
+
+    </script>
+
+
     <!-- Custom Confirmation Modal -->
     <div id="customConfirmModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.7); z-index:10000; justify-content:center; align-items:center; backdrop-filter:blur(5px);">
         <div style="background:#0f2027; border:2px solid #f1c40f; padding:30px; border-radius:15px; width:90%; max-width:450px; box-shadow:0 0 40px rgba(241,196,15,0.4); animation:fadeInUp 0.3s ease;">
@@ -2887,6 +3465,33 @@ if ($users_result) {
                 <button id="confirmCancelBtn" style="padding:12px 24px; background:transparent; border:1px solid rgba(255,255,255,0.3); color:#fff; font-weight:600; border-radius:8px; cursor:pointer; font-size:14px;">Cancel</button>
                 <button id="confirmOkBtn" style="padding:12px 24px; background:#f1c40f; border:none; color:#032023; font-weight:700; border-radius:8px; cursor:pointer; font-size:14px;">Confirm</button>
             </div>
+        </div>
+    </div>
+
+    <!-- Upload Census Modal -->
+    <div id="censusModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.7); z-index:9999; justify-content:center; align-items:center; backdrop-filter:blur(5px);">
+        <div style="background:#0f2027; border:1px solid #4ab5c4; padding:30px; border-radius:16px; width:90%; max-width:500px; box-shadow:0 0 30px rgba(74,181,196,0.3); animation:fadeInUp 0.3s ease;">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
+                <h3 style="color:#4ab5c4; margin:0; display:flex; align-items:center; gap:10px;"><i data-lucide="upload-cloud"></i> Upload Census Data</h3>
+                <button onclick="document.getElementById('censusModal').style.display='none'" style="background:none; border:none; color:white; font-size:20px; cursor:pointer;">&times;</button>
+            </div>
+            
+            <p style="color:rgba(255,255,255,0.7); font-size:14px; margin-bottom:20px; line-height:1.5;">
+                Upload a CSV file containing resident details (Address, Lat/Lon, Demographics). The system will automatically migrate the database and update records.
+            </p>
+
+            <a href="manage_community.php?action=export_csv" style="display:block; margin-bottom:25px; padding:15px; background:rgba(74, 181, 196, 0.1); border:1px dashed #4ab5c4; border-radius:8px; text-decoration:none; color:#4ab5c4; font-size:13px; text-align:center; transition:all 0.3s;">
+                <i data-lucide="download" style="vertical-align:middle; margin-right:5px;"></i> Download Extended CSV Template
+            </a>
+
+            <div style="margin-bottom:25px;">
+                <label for="censusFile" style="display:block; margin-bottom:10px; font-size:14px;">Select CSV File</label>
+                <input type="file" id="censusFile" accept=".csv" style="width:100%; padding:10px; background:rgba(255,255,255,0.05); border:1px solid rgba(255,255,255,0.1); border-radius:8px; color:white;">
+            </div>
+
+            <button onclick="uploadCensusData()" id="btnUploadCensus" style="width:100%; padding:12px; background:linear-gradient(135deg, #4ab5c4 0%, #2980b9 100%); border:none; border-radius:8px; color:white; font-weight:700; cursor:pointer; font-size:15px; box-shadow:0 4px 15px rgba(74, 181, 196, 0.4);">
+                Start Upload
+            </button>
         </div>
     </div>
 

@@ -591,6 +591,21 @@ if (file_exists($help_file)) {
                     <div id="section-evac" class="content-section">
                         <div class="card glass">
                                 <h3>📍 Evacuation Points</h3>
+                                
+                                <!-- Search & Filter -->
+                                <div style="display:flex; gap:10px; margin-bottom:15px; flex-wrap:wrap;">
+                                    <input type="text" id="evacSearch" onkeyup="filterEvacuationPoints()" placeholder="🔍 Search location..." 
+                                           style="flex:1; padding:10px; background:rgba(255,255,255,0.05); border:1px solid rgba(255,255,255,0.1); border-radius:8px; color:white;">
+                                    
+                                    <select id="evacFilter" onchange="filterEvacuationPoints()" 
+                                            style="padding:10px; background:rgba(255,255,255,0.05); border:1px solid rgba(255,255,255,0.1); border-radius:8px; color:white; cursor:pointer;">
+                                        <option value="All" style="background: #1e2029; color: white;">All Status</option>
+                                        <option value="Open" style="background: #1e2029; color: white;">Available</option>
+                                        <option value="Full" style="background: #1e2029; color: white;">Full</option>
+                                        <option value="Closed" style="background: #1e2029; color: white;">Closed</option>
+                                    </select>
+                                </div>
+
                                 <div class="list-container" id="evacuation-list-container">
                                     <div style="text-align:center; padding:20px; color:rgba(255,255,255,0.5);">Loading points...</div>
                                 </div>
@@ -609,7 +624,14 @@ if (file_exists($help_file)) {
                     <div id="section-contacts" class="content-section">
                         <div class="card glass">
                             <h3>📞 Emergency Contacts</h3>
-                            <div class="list-container">
+                            
+                            <!-- Search Bar -->
+                            <div style="margin-bottom:15px;">
+                                <input type="text" id="contactSearch" onkeyup="filterContacts()" placeholder="🔍 Search contacts..." 
+                                       style="width:100%; padding:10px; background:rgba(255,255,255,0.05); border:1px solid rgba(255,255,255,0.1); border-radius:8px; color:white;">
+                            </div>
+
+                            <div class="list-container" id="contacts-list-container">
                                 <div class="list-item">
                                     <div>
                                         <strong>Panchayat Office</strong>
@@ -1411,6 +1433,46 @@ if (file_exists($help_file)) {
         // Initial Fetch
         fetchUserAlerts();
         setInterval(fetchUserAlerts, 30000); // Poll every 30s
+
+        // --- NEW FILTERING LOGIC ---
+        function filterEvacuationPoints() {
+            const input = document.getElementById('evacSearch');
+            const filter = input.value.toUpperCase();
+            const statusFilter = document.getElementById('evacFilter').value;
+            const container = document.getElementById('evacuation-list-container');
+            const items = container.getElementsByClassName('list-item');
+
+            for (let i = 0; i < items.length; i++) {
+                const text = items[i].innerText || items[i].textContent;
+                const statusSpan = items[i].querySelector('span[style*="border-radius"]');
+                const statusText = statusSpan ? statusSpan.innerText : '';
+
+                const matchesSearch = text.toUpperCase().indexOf(filter) > -1;
+                const matchesStatus = statusFilter === 'All' || statusText.includes(statusFilter);
+
+                if (matchesSearch && matchesStatus) {
+                    items[i].style.display = "";
+                } else {
+                    items[i].style.display = "none";
+                }
+            }
+        }
+
+        function filterContacts() {
+            const input = document.getElementById('contactSearch');
+            const filter = input.value.toUpperCase();
+            const container = document.getElementById('contacts-list-container');
+            const items = container.getElementsByClassName('list-item');
+
+            for (let i = 0; i < items.length; i++) {
+                const text = items[i].innerText || items[i].textContent;
+                if (text.toUpperCase().indexOf(filter) > -1) {
+                    items[i].style.display = "";
+                } else {
+                    items[i].style.display = "none";
+                }
+            }
+        }
     </script>
     <!-- Custom Confirmation Modal -->
     <!-- Custom Confirmation Modal -->
