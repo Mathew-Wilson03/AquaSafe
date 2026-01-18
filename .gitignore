@@ -1,4 +1,5 @@
 Login/firebase_credentials.json
 Login/firebase_init.php
 Login/.env
+Login/config_secrets.php
 .env

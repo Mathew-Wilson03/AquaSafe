@@ -46,17 +46,20 @@ if($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['send_otp_btn'])){
                     try {
                         $mail = new PHPMailer\PHPMailer\PHPMailer(true);
 
+                        // Load Secrets
+                        if(!defined('SMTP_HOST')) require_once 'config_secrets.php';
+
                         // Server settings
                         $mail->isSMTP();
-                        $mail->Host       = 'smtp.gmail.com';
+                        $mail->Host       = SMTP_HOST;
                         $mail->SMTPAuth   = true;
-                        $mail->Username   = 'mathewwilson2028@mca.ajce.in'; 
-                        $mail->Password   = 'pemz qqqx aotl ntfu';
+                        $mail->Username   = SMTP_USER;
+                        $mail->Password   = SMTP_PASS;
                         $mail->SMTPSecure = PHPMailer\PHPMailer\PHPMailer::ENCRYPTION_STARTTLS;
-                        $mail->Port       = 587;
+                        $mail->Port       = SMTP_PORT;
 
                         // Recipients
-                        $mail->setFrom('mathewwilson2028@mca.ajce.in', 'AquaSafe Support');
+                        $mail->setFrom(SMTP_FROM_EMAIL, 'AquaSafe Support');
                         $mail->addAddress($email);
 
                         // Content

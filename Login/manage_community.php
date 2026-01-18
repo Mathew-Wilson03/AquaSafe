@@ -130,14 +130,20 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $sentCount = 0;
 
         try {
+            // Load Secrets
+            if(!defined('SMTP_HOST')) require_once 'config_secrets.php';
+
+            // Load Secrets
+            if(!defined('SMTP_HOST')) require_once 'config_secrets.php';
+
             $mail->isSMTP();
-            $mail->Host = 'smtp.gmail.com';
+            $mail->Host = SMTP_HOST;
             $mail->SMTPAuth = true;
-            $mail->Username = 'mathewwilson2028@mca.ajce.in';
-            $mail->Password = 'pemz qqqx aotl ntfu';
+            $mail->Username = SMTP_USER;
+            $mail->Password = SMTP_PASS;
             $mail->SMTPSecure = PHPMailer\PHPMailer\PHPMailer::ENCRYPTION_STARTTLS;
-            $mail->Port = 587;
-            $mail->setFrom('mathewwilson2028@mca.ajce.in', 'AquaSafe Alert System');
+            $mail->Port = SMTP_PORT;
+            $mail->setFrom(SMTP_FROM_EMAIL, SMTP_FROM_NAME);
             $mail->isHTML(true);
             $mail->Subject = "⚠️ $severity Alert: $targetArea";
 
