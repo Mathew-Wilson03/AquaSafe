@@ -23,8 +23,7 @@
 
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: #0f2027; /* Fallback */
-            background: linear-gradient(to bottom, #0f2027, #203a43, #2c5364);
+            background: #001f3f; /* Deep Navy to match Vanta */
             min-height: 100vh;
             color: var(--text-light);
             display: flex;
@@ -35,83 +34,37 @@
             padding: 20px 0;
         }
 
-        /* Animated Waves Background */
-        .waves-container {
-            position: fixed;
-            bottom: 0;
-            left: 0;
-            width: 100%;
-            height: 50vh;
-            z-index: 1;
-            pointer-events: none;
-        }
-
-        .wave {
-            position: absolute;
-            bottom: 0;
-            left: 0;
-            width: 200%;
-            height: 100%;
-            background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 800 88.7'%3E%3Cpath d='M800 56.9c-155.5 0-204.9-50-405.5-49.9-200 0-250 49.9-394.5 49.9v31.8h800v-.2-31.6z' fill='%23ffffff'/%3E%3C/svg%3E");
-            background-repeat: repeat-x;
-            background-size: 50% auto;
-            opacity: 0.1;
-            transform-origin: center bottom;
-        }
-
-        .wave:nth-child(1) {
-            bottom: -5px;
-            animation: moveWave 20s linear infinite;
-            opacity: 0.1;
-            animation-duration: 12s;
-        }
-        
-        .wave:nth-child(2) {
-            bottom: -10px;
-            animation: moveWave 15s linear infinite;
-            opacity: 0.05;
-            animation-duration: 8s;
-            background-position: 250px 0;
-        }
-
-        @keyframes moveWave {
-            0% { transform: translateX(0); }
-            50% { transform: translateX(-25%); }
-            100% { transform: translateX(-50%); }
-        }
-
-        /* Particles */
-        .particles {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            z-index: 0;
-            pointer-events: none;
-        }
-        
-        .particle {
-            position: absolute;
-            background: rgba(255, 255, 255, 0.5);
-            border-radius: 50%;
-            animation: float 15s infinite linear;
-        }
-
-        @keyframes float {
-            0% { transform: translateY(100vh) scale(0); opacity: 0; }
-            20% { opacity: 1; }
-            80% { opacity: 1; }
-            100% { transform: translateY(-20vh) scale(1); opacity: 0; }
-        }
-
         /* Signup Card */
         .signup-wrapper {
             position: relative;
             z-index: 10;
             width: 100%;
-            max-width: 400px;
+            max-width: 600px; /* Increased width */
             padding: 20px;
+        }
+
+        .back-btn {
+            position: absolute;
+            top: 30px;
+            left: 30px;
+            color: rgba(255, 255, 255, 0.6);
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            z-index: 20;
+        }
+
+        .back-btn:hover {
+            color: white;
+            transform: translateX(-5px);
+        }
+
+        @media (max-width: 600px) {
+            .signup-wrapper { max-width: 100%; padding: 15px; }
+            .back-btn { top: 20px; left: 20px; font-size: 14px; }
         }
 
         .signup-container {
@@ -320,14 +273,39 @@
     <script src="https://accounts.google.com/gsi/client" async defer onload="gsiLoaded()"></script>
 </head>
 <body>
-    <!-- Background Particles -->
-    <div class="particles" id="particles"></div>
+    <!-- VANTA 3D BACKGROUND -->
+    <div id="vanta-bg" style="position:fixed; width:100%; height:100%; top:0; left:0; z-index:-1;"></div>
 
-    <!-- Animated Waves -->
-    <div class="waves-container">
-        <div class="wave"></div>
-        <div class="wave"></div>
-    </div>
+    <!-- THREE.JS & VANTA.JS -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r134/three.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/vanta/0.5.24/vanta.waves.min.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            VANTA.WAVES({
+                el: "#vanta-bg",
+                mouseControls: true,
+                touchControls: true,
+                gyroControls: false,
+                minHeight: 200.00,
+                minWidth: 200.00,
+                scale: 1.00,
+                scaleMobile: 1.00,
+                color: 0x112240,       /* Deep Navy */
+                shininess: 35.00,      /* Glossy Water */
+                waveHeight: 20.00,     /* Visible Swell */
+                waveSpeed: 0.75,       /* Gentle Motion */
+                zoom: 0.85             /* Showing more waves */
+            })
+        });
+    </script>
+
+    <!-- Back Button -->
+    <a href="index.php" class="back-btn">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M19 12H5M12 19l-7-7 7-7"/>
+        </svg>
+        Back to Home
+    </a>
 
     <div class="signup-wrapper">
         <div class="signup-container">
@@ -415,22 +393,8 @@
     </div>
 
     <script>
-        // Particle Animation
+        // Password Validation Logic
         document.addEventListener('DOMContentLoaded', () => {
-            const container = document.getElementById('particles');
-            const particleCount = 15;
-            for (let i = 0; i < particleCount; i++) {
-                const p = document.createElement('div');
-                p.classList.add('particle');
-                const size = Math.random() * 5 + 2;
-                p.style.width = `${size}px`;
-                p.style.height = `${size}px`;
-                p.style.left = `${Math.random() * 100}%`;
-                p.style.animationDelay = `${Math.random() * 10}s`;
-                container.appendChild(p);
-            }
-
-            // Password Validation Logic
             const passwordInput = document.getElementById('password');
             const strengthBar = document.getElementById('strengthBar');
             const strengthMeter = document.querySelector('.strength-meter');
@@ -456,35 +420,37 @@
                 }
             };
 
-            passwordInput.addEventListener('focus', showRequirements);
-            passwordInput.addEventListener('blur', hideRequirements);
+            if(passwordInput) {
+                passwordInput.addEventListener('focus', showRequirements);
+                passwordInput.addEventListener('blur', hideRequirements);
 
-            passwordInput.addEventListener('input', () => {
-                const val = passwordInput.value;
-                if (val.length > 0) showRequirements();
-                
-                let metCount = 0;
+                passwordInput.addEventListener('input', () => {
+                    const val = passwordInput.value;
+                    if (val.length > 0) showRequirements();
+                    
+                    let metCount = 0;
 
-                Object.keys(requirements).forEach(key => {
-                    const req = requirements[key];
-                    if (req.regex.test(val)) {
-                        req.el.classList.add('met');
-                        req.el.querySelector('span').innerText = '●';
-                        metCount++;
-                    } else {
-                        req.el.classList.remove('met');
-                        req.el.querySelector('span').innerText = '○';
-                    }
+                    Object.keys(requirements).forEach(key => {
+                        const req = requirements[key];
+                        if (req.regex.test(val)) {
+                            req.el.classList.add('met');
+                            req.el.querySelector('span').innerText = '●';
+                            metCount++;
+                        } else {
+                            req.el.classList.remove('met');
+                            req.el.querySelector('span').innerText = '○';
+                        }
+                    });
+
+                    // Update Bar
+                    const width = (metCount / 5) * 100;
+                    strengthBar.style.width = width + '%';
+                    
+                    if (metCount <= 2) strengthBar.style.background = '#e74c3c';
+                    else if (metCount <= 4) strengthBar.style.background = '#f1c40f';
+                    else strengthBar.style.background = '#2ecc71';
                 });
-
-                // Update Bar
-                const width = (metCount / 5) * 100;
-                strengthBar.style.width = width + '%';
-                
-                if (metCount <= 2) strengthBar.style.background = '#e74c3c';
-                else if (metCount <= 4) strengthBar.style.background = '#f1c40f';
-                else strengthBar.style.background = '#2ecc71';
-            });
+            }
         });
 
         // Google Sign-In Logic (OAuth2 Popup Flow)

@@ -3400,6 +3400,35 @@ if ($users_result) {
         // Initialize
         fetchSettings();
 
+        // --- IOT FLOOD MONITOR ---
+        let lastIoTAlertId = 0;
+        function monitorFloodAlerts() {
+            fetch('receive_iot_data.php') // GET request by default
+                .then(res => res.json())
+                .then(json => {
+                    if(json.status === 'success' && json.data.length > 0) {
+                        // Get the most recent one
+                        const latest = json.data[0];
+                        const latestId = parseInt(latest.id);
+                        
+                        if(latestId > lastIoTAlertId) {
+                            // Avoid showing on first load (optional, but good UX to not spam old alerts)
+                            // But usually we want to see if we missed something.
+                            // Let's only show if it's "fresh" (handled by SQL time check), but we need to track ID.
+                            if(lastIoTAlertId !== 0) { // If it's 0, we just sync. If >0, we show notification
+                                window.showNotification("🚨 IOT ALERT: " + latest.message + " (" + latest.alert_level + ")", 'error');
+                            }
+                            lastIoTAlertId = latestId;
+                        }
+                    }
+                })
+                .catch(e => console.error("IoT Poll Error", e));
+        }
+        // Start Polling
+        monitorFloodAlerts(); // First run
+        setInterval(monitorFloodAlerts, 4000); // Repeat every 4s
+
+
         // --- CENSUS UPLOAD LOGIC ---
         window.openCensusModal = function() {
             const modal = document.getElementById('censusModal');

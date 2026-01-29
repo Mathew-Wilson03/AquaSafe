@@ -51,17 +51,10 @@
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: #0f2027; background: linear-gradient(to bottom, #0f2027, #203a43, #2c5364);
+            background: #001f3f; /* Deep Navy to match Vanta */
             height: 100vh; color: var(--text-light); display: flex; justify-content: center; align-items: center; position: relative; overflow: hidden;
         }
-        .waves-container { position: absolute; bottom: 0; left: 0; width: 100%; height: 50vh; z-index: 1; overflow: hidden; }
-        .wave { position: absolute; bottom: 0; left: 0; width: 200%; height: 100%; background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 800 88.7'%3E%3Cpath d='M800 56.9c-155.5 0-204.9-50-405.5-49.9-200 0-250 49.9-394.5 49.9v31.8h800v-.2-31.6z' fill='%23ffffff'/%3E%3C/svg%3E"); background-repeat: repeat-x; background-size: 50% auto; opacity: 0.1; transform-origin: center bottom; will-change: transform; backface-visibility: hidden; }
-        .wave:nth-child(1) { bottom: -5px; animation: moveWave 20s linear infinite; opacity: 0.1; animation-duration: 12s; }
-        .wave:nth-child(2) { bottom: -10px; animation: moveWave 15s linear infinite; opacity: 0.05; animation-duration: 8s; background-position: 250px 0; }
-        @keyframes moveWave { 0% { transform: translateX(0); } 50% { transform: translateX(-25%); } 100% { transform: translateX(-50%); } }
-        .particles { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 0; will-change: transform; }
-        .particle { position: absolute; background: rgba(255, 255, 255, 0.5); border-radius: 50%; animation: float 15s infinite linear; }
-        .wrapper { position: relative; z-index: 10; width: 100%; max-width: 400px; padding: 20px; }
+        .wrapper { position: relative; z-index: 10; width: 100%; max-width: 500px; padding: 20px; }
         .container { background: rgba(255, 255, 255, 0.05); backdrop-filter: blur(20px); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 20px; padding: 30px; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5); }
         .header { text-align: center; margin-bottom: 25px; }
         .header-logo { display: inline-flex; align-items: center; justify-content: center; gap: 10px; margin-bottom: 15px; color: var(--primary); font-size: 18px; font-weight: 700; }
@@ -129,8 +122,31 @@
     </style>
 </head>
 <body>
-    <div class="particles" id="particles"></div>
-    <div class="waves-container"><div class="wave"></div><div class="wave"></div></div>
+    <!-- VANTA 3D BACKGROUND -->
+    <div id="vanta-bg" style="position:fixed; width:100%; height:100%; top:0; left:0; z-index:-1;"></div>
+
+    <!-- THREE.JS & VANTA.JS -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r134/three.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/vanta/0.5.24/vanta.waves.min.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            VANTA.WAVES({
+                el: "#vanta-bg",
+                mouseControls: true,
+                touchControls: true,
+                gyroControls: false,
+                minHeight: 200.00,
+                minWidth: 200.00,
+                scale: 1.00,
+                scaleMobile: 1.00,
+                color: 0x112240,       /* Deep Navy */
+                shininess: 35.00,      /* Glossy Water */
+                waveHeight: 20.00,     /* Visible Swell */
+                waveSpeed: 0.75,       /* Gentle Motion */
+                zoom: 0.85             /* Showing more waves */
+            })
+        });
+    </script>
 
     <div class="wrapper">
         <div class="container">
@@ -177,9 +193,6 @@
     
      <script>
         document.addEventListener('DOMContentLoaded', () => {
-             const container = document.getElementById('particles');
-             for (let i = 0; i < 15; i++) { const p = document.createElement('div'); p.classList.add('particle'); p.style.left = `${Math.random() * 100}%`; container.appendChild(p); }
-
              // Password Validation Logic
             const passwordInput = document.getElementById('password');
             const strengthBar = document.getElementById('strengthBar');
@@ -206,35 +219,37 @@
                 }
             };
 
-            passwordInput.addEventListener('focus', showRequirements);
-            passwordInput.addEventListener('blur', hideRequirements);
+            if(passwordInput) {
+                passwordInput.addEventListener('focus', showRequirements);
+                passwordInput.addEventListener('blur', hideRequirements);
 
-            passwordInput.addEventListener('input', () => {
-                const val = passwordInput.value;
-                if (val.length > 0) showRequirements();
-                
-                let metCount = 0;
+                passwordInput.addEventListener('input', () => {
+                    const val = passwordInput.value;
+                    if (val.length > 0) showRequirements();
+                    
+                    let metCount = 0;
 
-                Object.keys(requirements).forEach(key => {
-                    const req = requirements[key];
-                    if (req.regex.test(val)) {
-                        req.el.classList.add('met');
-                        req.el.querySelector('span').innerText = '●';
-                        metCount++;
-                    } else {
-                        req.el.classList.remove('met');
-                        req.el.querySelector('span').innerText = '○';
-                    }
+                    Object.keys(requirements).forEach(key => {
+                        const req = requirements[key];
+                        if (req.regex.test(val)) {
+                            req.el.classList.add('met');
+                            req.el.querySelector('span').innerText = '●';
+                            metCount++;
+                        } else {
+                            req.el.classList.remove('met');
+                            req.el.querySelector('span').innerText = '○';
+                        }
+                    });
+
+                    // Update Bar
+                    const width = (metCount / 5) * 100;
+                    strengthBar.style.width = width + '%';
+                    
+                    if (metCount <= 2) strengthBar.style.background = '#e74c3c';
+                    else if (metCount <= 4) strengthBar.style.background = '#f1c40f';
+                    else strengthBar.style.background = '#2ecc71';
                 });
-
-                // Update Bar
-                const width = (metCount / 5) * 100;
-                strengthBar.style.width = width + '%';
-                
-                if (metCount <= 2) strengthBar.style.background = '#e74c3c';
-                else if (metCount <= 4) strengthBar.style.background = '#f1c40f';
-                else strengthBar.style.background = '#2ecc71';
-            });
+            }
         });
     </script>
 </body>
