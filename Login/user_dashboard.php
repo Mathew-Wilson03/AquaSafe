@@ -1311,20 +1311,68 @@ if (file_exists($help_file)) {
                     attribution: '© OpenStreetMap'
                 }).addTo(mapInstance);
 
-                // Add sample markers for evacuation points
-                const markerIcon = L.divIcon({
-                    className: 'custom-div-icon',
-                    html: "<div style='background-color:#4ab5c4; width:12px; height:12px; border:2px solid #fff; border-radius:50%; box-shadow:0 0 10px rgba(74,181,196,0.5);'></div>",
-                    iconSize: [12, 12],
-                    iconAnchor: [6, 6]
-                });
+                // Layer Group for easy refreshing
+                if (!window.mapMarkersLayer) {
+                    window.mapMarkersLayer = L.layerGroup().addTo(mapInstance);
+                }
+                window.mapMarkersLayer.clearLayers();
 
-                L.marker([10.8550, 76.2750], {icon: markerIcon}).addTo(mapInstance).bindPopup("<b>Community Hall</b><br>Safe Zone");
-                L.marker([10.8450, 76.2650], {icon: markerIcon}).addTo(mapInstance).bindPopup("<b>Town School</b><br>Warning Zone");
-                
+                // Fetch Live Points
+                fetch('fetch_evacuation_points.php')
+                    .then(r => r.json())
+                    .then(res => {
+                        if(res.status === 'success' && res.data.length > 0) {
+                            const bounds = [];
+                            res.data.forEach(pt => {
+                                let lat = parseFloat(pt.latitude);
+                                let lng = parseFloat(pt.longitude);
+                                
+                                // Fallback for invalid coords (same as admin)
+                                if(isNaN(lat) || isNaN(lng) || (lat === 0 && lng === 0)) {
+                                    lat = 10.8505 + (Math.random() - 0.5) * 0.1;
+                                    lng = 76.2711 + (Math.random() - 0.5) * 0.1;
+                                }
+
+                                // Status Colors
+                                let color = '#2ecc71'; // Available (Green)
+                                if (pt.status === 'Full') color = '#e74c3c'; // Red
+                                else if (pt.status === 'Closed') color = '#95a5a6'; // Grey
+                                else if (pt.status !== 'Available') color = '#f1c40f'; // Warning (Yellow) for unknown states
+
+                                const markerHtml = `<div style='background-color:${color}; width:12px; height:12px; border:2px solid #fff; border-radius:50%; box-shadow:0 0 10px ${color};'></div>`;
+                                
+                                const icon = L.divIcon({
+                                    className: 'custom-div-icon',
+                                    html: markerHtml,
+                                    iconSize: [14, 14],
+                                    iconAnchor: [7, 7]
+                                });
+
+                                const popupContent = `
+                                    <div style="font-family: 'Outfit', sans-serif; color: #032023;">
+                                        <b style="color:${color}">${pt.name}</b><br>
+                                        <span style="font-size:12px;">${pt.location}</span><br>
+                                        <span style="font-size:11px; font-weight:bold; color:${color}">${pt.status}</span>
+                                    </div>
+                                `;
+
+                                L.marker([lat, lng], {icon: icon})
+                                    .addTo(window.mapMarkersLayer)
+                                    .bindPopup(popupContent);
+                                
+                                bounds.push([lat, lng]);
+                            });
+
+                            if(bounds.length > 0) {
+                                mapInstance.fitBounds(bounds, {padding: [50, 50]});
+                            }
+                        }
+                    })
+                    .catch(e => console.error("Map Data Error:", e));
+
                 // Force map to recalculate size after being shown - crucial for tabs!
                 setTimeout(() => {
-                    mapInstance.invalidateSize();
+                    if(mapInstance) mapInstance.invalidateSize();
                 }, 200);
             }
 

@@ -13,8 +13,10 @@ if (!isset($_SESSION['email'])) {
 
 $user_role = $_SESSION['user_role'] ?? 'user';
 $role_lower = strtolower(trim((string)$user_role));
-if (!in_array($role_lower, ['administrator', 'admin', 'superadmin'], true)) {
-    echo json_encode(['success' => false, 'message' => 'Admin privileges required']);
+
+// Super Admin Check
+if (!isset($_SESSION['email']) || $_SESSION['email'] !== SUPER_ADMIN_EMAIL) {
+    echo json_encode(['success' => false, 'message' => 'Only superadmin has the permission to do this']);
     exit;
 }
 

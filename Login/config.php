@@ -19,3 +19,6 @@ if($link === false){
 define('GOOGLE_CLIENT_ID', '420461254572-1s58305detpq2n08ukpgf5sl4c44jb1f.apps.googleusercontent.com');
 // Database table name for users. Change to 'user' if your table is named that.
 define('DB_TABLE', 'user');
+
+// Super Admin Configuration
+define('SUPER_ADMIN_EMAIL', 'mathewwilson2028@mca.ajce.in');

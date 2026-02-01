@@ -3,6 +3,12 @@
 session_start();
 require_once 'config.php';
 
+// Super Admin Check
+if (!isset($_SESSION['email']) || $_SESSION['email'] !== SUPER_ADMIN_EMAIL) {
+    header('HTTP/1.1 403 Forbidden');
+    die("Only superadmin has the permission to do this");
+}
+
 // 1. Auto-Create Table & Schema Migration
 $table_sql = "CREATE TABLE IF NOT EXISTS `community_alerts` (
     `id` INT AUTO_INCREMENT PRIMARY KEY,

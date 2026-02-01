@@ -791,7 +791,9 @@ if ($users_result) {
                 <li><a href="#" id="nav-reports" class="nav-link" onclick="switchTab('reports', this)">📊 Reports</a></li>
                 <li><a href="#" id="nav-helpdesk" class="nav-link" onclick="switchTab('helpdesk', this)">🆘 Help Desk <span id="helpdeskBadge"></span></a></li>
                 <li><a href="#" id="nav-notifications" class="nav-link" onclick="switchTab('notifications', this)">🔔 Notifications</a></li>
+                <?php if($user_email === SUPER_ADMIN_EMAIL): ?>
                 <li><a href="#" id="nav-users" class="nav-link" onclick="switchTab('users', this)">👥 Manage Users</a></li>
+                <?php endif; ?>
                 <li><a href="#" id="nav-system_settings" class="nav-link" onclick="switchTab('system_settings', this)">⚙️ Settings</a></li>
             </ul>
             <div class="sidebar-logout">
@@ -1361,6 +1363,7 @@ if ($users_result) {
             <!-- User Management Section -->
             <div id="users" class="content-section">
                 <div class="card">
+                    <?php if($user_email === SUPER_ADMIN_EMAIL): ?>
                     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
                         <h3>👥 User Management</h3>
                         <div style="display: flex; align-items: center; gap: 15px;">
@@ -1388,16 +1391,22 @@ if ($users_result) {
                                     <td style="padding: 15px;" data-label="Name"><?php echo htmlspecialchars((string)$u['name']); ?></td>
                                     <td style="padding: 15px;" data-label="Email"><?php echo htmlspecialchars((string)$u['email']); ?></td>
                                     <td style="padding: 15px;" data-label="Role">
-                                        <span class="<?php echo ($u['user_role'] === 'admin' || $u['user_role'] === 'administrator') ? 'danger-text' : 'info-text'; ?>" style="font-weight: 600;">
+                                        <span class="<?php echo ($u['email'] === SUPER_ADMIN_EMAIL) ? 'safe-text' : (($u['user_role'] === 'admin' || $u['user_role'] === 'administrator') ? 'danger-text' : 'info-text'); ?>" style="font-weight: 600;">
                                             <?php 
-                                                $display_role = !empty($u['user_role']) ? ucfirst($u['user_role']) : 'Not Set';
-                                                if ($display_role === 'Administrator') echo 'Administrator';
-                                                else echo $display_role;
+                                                if ($u['email'] === SUPER_ADMIN_EMAIL) {
+                                                    echo '👑 Super Admin';
+                                                } else {
+                                                    $display_role = !empty($u['user_role']) ? ucfirst($u['user_role']) : 'Not Set';
+                                                    if ($display_role === 'Administrator') echo 'Administrator';
+                                                    else echo $display_role;
+                                                }
                                             ?>
                                         </span>
                                     </td>
                                     <td style="padding: 15px; text-align: right;" data-label="Action">
-                                        <?php if($u['email'] !== $user_email): ?>
+                                        <?php if($u['email'] === SUPER_ADMIN_EMAIL): ?>
+                                             <span style="opacity: 0.5; font-size: 12px; font-weight: bold; color: #f1c40f;">Protected</span>
+                                        <?php elseif($u['email'] !== $user_email): ?>
                                             <?php 
                                                 $role = strtolower(trim((string)$u['user_role']));
                                                 $is_admin = ($role === 'admin' || $role === 'administrator');
@@ -1416,6 +1425,12 @@ if ($users_result) {
                             </tbody>
                         </table>
                     </div>
+                    <?php else: ?>
+                        <div style="text-align: center; padding: 50px;">
+                            <h3 style="color: #e74c3c; margin-bottom: 15px;">🚫 Access Restricted</h3>
+                            <p style="font-size: 16px; opacity: 0.8;">Only superadmin has the permission to do this.</p>
+                        </div>
+                    <?php endif; ?>
                 </div>
             </div>
 
@@ -1615,7 +1630,9 @@ if ($users_result) {
                                     <?php echo strtoupper(substr($user_name, 0, 1)); ?>
                                 </div>
                                 <h3 style="margin-bottom: 5px; font-size: 18px;"><?php echo htmlspecialchars($user_name); ?></h3>
-                                <div style="font-size: 13px; opacity: 0.7;">Super Administrator</div>
+                                <div style="font-size: 13px; opacity: 0.7;">
+                                    <?php echo ($user_email === SUPER_ADMIN_EMAIL) ? 'Super Administrator' : 'Administrator'; ?>
+                                </div>
                             </div>
 
                             <!-- System Health -->
@@ -3295,17 +3312,29 @@ if ($users_result) {
         fetchSystemAlerts();
         fetchSensorStatus();
 
-        // Auto-refresh data every 30 seconds
-        setInterval(() => {
-            if (document.getElementById('dashboard').classList.contains('active')) {
-                fetchSystemAlerts();
-                fetchSensorStatus();
-            } else if (document.getElementById('alerts').classList.contains('active')) {
-                fetchSystemAlerts();
-            } else if (document.getElementById('sensors').classList.contains('active')) {
-                fetchSensorStatus();
-            }
-        }, 30000);
+        // Dynamic Polling System
+        let pollInterval;
+        
+        window.startPolling = function(seconds) {
+            if(pollInterval) clearInterval(pollInterval);
+            
+            const ms = (seconds && seconds > 5) ? seconds * 1000 : 30000;
+            console.log("[AquaSafe] Starting dashboard polling every", ms/1000, "seconds");
+            
+            pollInterval = setInterval(() => {
+                if (document.getElementById('dashboard').classList.contains('active')) {
+                    fetchSystemAlerts();
+                    fetchSensorStatus();
+                } else if (document.getElementById('alerts').classList.contains('active')) {
+                    fetchSystemAlerts();
+                } else if (document.getElementById('sensors').classList.contains('active')) {
+                    fetchSensorStatus();
+                }
+            }, ms);
+        };
+
+        // Start with default 30s
+        startPolling(30);
 
         // 10. Removed problematic centralized listener - sticking to robust inline calls
         // Global Export Diagnostic
@@ -3374,6 +3403,7 @@ if ($users_result) {
                 
                 if(json.success) {
                     window.showNotification(json.message, 'success');
+                    startPolling(parseInt(refresh));
                 } else {
                     window.showNotification("Error: " + json.message, 'error');
                 }
@@ -3392,7 +3422,11 @@ if ($users_result) {
                 if(json.success) {
                     const s = json.data;
                     if(document.getElementById('adminEmail')) document.getElementById('adminEmail').value = s.admin_email || '';
-                    if(document.getElementById('refreshRate')) document.getElementById('refreshRate').value = s.refresh_rate || '30';
+                    if(document.getElementById('refreshRate')) {
+                        const rate = s.refresh_rate || '30';
+                        document.getElementById('refreshRate').value = rate;
+                        startPolling(parseInt(rate));
+                    }
                 }
             } catch(e) { console.error("Fetch Settings Error", e); }
         };
