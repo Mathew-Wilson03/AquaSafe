@@ -1,0 +1,5 @@
+[broadcast_alert] Started. Severity: Warning, Area: All
+ - DB Insert Success
+ - Starting Push Service
+ - Push Error: [VAPID] Public key should be 65 bytes long when decoded.
+ - Starting Email (PHPMailer)

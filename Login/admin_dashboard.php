@@ -909,6 +909,9 @@ if ($users_result) {
                 <div class="card">
                     <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:15px; margin-bottom:20px;">
                         <h3>📡 Sensor Status</h3>
+                        <button onclick="window.openSensorModal()" style="padding: 8px 15px; background: rgba(74, 181, 196, 0.15); border: 1px solid #4ab5c4; color: #4ab5c4; border-radius: 8px; font-size: 13px; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 6px;">
+                            <i data-lucide="plus-circle" style="width: 14px;"></i> Add Sensor
+                        </button>
                         <div style="display:flex; gap:10px;">
                             <input type="text" id="sensorSearch" onkeyup="filterSensors()" placeholder="Search ID or Location..." 
                                 style="padding:10px 15px; border-radius:8px; border:1px solid rgba(255,255,255,0.1); background:rgba(0,0,0,0.2); color:white; outline:none; font-family:inherit;">
@@ -2091,6 +2094,19 @@ if ($users_result) {
             // Critical: Ensure status is captured from select
             formData.set('status', document.getElementById('pointStatus').value);
 
+            // Validation
+            const name = document.getElementById('pointName').value.trim();
+            const location = document.getElementById('pointLocation').value.trim();
+            const capacity = document.getElementById('pointCapacity').value;
+            const sensor = document.getElementById('pointSensor').value.trim();
+            const lat = document.getElementById('pointLat').value;
+            const lng = document.getElementById('pointLng').value;
+
+            if(!name || !location || !capacity || !sensor || !lat || !lng) {
+                alert("Please fill ALL fields. Assigned Sensor is mandatory.");
+                return;
+            }
+
             try {
                 const res = await fetch('manage_evacuation.php', { method: 'POST', body: formData });
                 const data = await res.json();
@@ -2576,6 +2592,18 @@ if ($users_result) {
                 alert('Connection failed: ' + e.message);
             }
         };
+
+        // 3. Global Event Delegation for Role Buttons
+        document.addEventListener('click', function(e) {
+            if(e.target && e.target.classList.contains('role-update-btn')) {
+                e.preventDefault();
+                const uid = e.target.getAttribute('data-id');
+                const role = e.target.getAttribute('data-role');
+                if(uid && role) {
+                    window.updateRole(uid, role);
+                }
+            }
+        });
 
         // REMOVED DUPLICATE switchTab LOGIC - NOW AT TOP OF SCRIPT
 
@@ -3278,15 +3306,16 @@ if ($users_result) {
                 async function() {
                     // On Confirm
                     const formData = new FormData();
-                    formData.append('action', 'broadcast');
+                    formData.append('action', 'broadcast_alert'); // Changed from 'broadcast' to match manage_community.php
                     formData.append('message', message);
                     formData.append('severity', severity);
-                    formData.append('location', area);
+                    formData.append('area', area); // Changed from 'location' to match manage_community.php
                     
                     try {
-                        const res = await fetch('manage_alerts.php', { method: 'POST', body: formData });
+                        const res = await fetch('manage_community.php', { method: 'POST', body: formData });
                         const json = await res.json();
-                        if(json.status === 'success') {
+                        // manage_community returns 'success': boolean
+                        if(json.success || json.status === 'success') {
                             window.showNotification("Broadcast Sent Successfully!", 'success');
                             msgInput.value = ''; // Clear input
                             if(typeof fetchSystemAlerts === 'function') fetchSystemAlerts(); 
@@ -3515,6 +3544,44 @@ if ($users_result) {
             }
         };
 
+        // --- SENSOR MANAGEMENT ---
+        window.openSensorModal = function() {
+            document.getElementById('sensorModal').style.display = 'flex';
+            document.getElementById('sensorForm').reset();
+        };
+
+        window.saveSensor = async function(e) {
+            e.preventDefault();
+            const sid = document.getElementById('newSensorId').value.trim();
+            const sloc = document.getElementById('newSensorLoc').value.trim();
+            
+            if(!sid || !sloc) {
+                alert("Please fill all fields.");
+                return;
+            }
+
+            const formData = new FormData();
+            formData.append('action', 'add');
+            formData.append('sensor_id', sid);
+            formData.append('location_name', sloc);
+
+            try {
+                const res = await fetch('manage_sensors.php', { method: 'POST', body: formData });
+                const json = await res.json();
+                
+                if(json.status === 'success') {
+                    window.showNotification("Sensor Added Successfully!", 'success');
+                    document.getElementById('sensorModal').style.display = 'none';
+                    if(typeof fetchSensorStatus === 'function') fetchSensorStatus(); 
+                } else {
+                    alert("Error: " + json.message);
+                }
+            } catch(err) {
+                console.error(err);
+                alert("Failed to add sensor.");
+            }
+        };
+
     </script>
 
 
@@ -3555,6 +3622,29 @@ if ($users_result) {
             <button onclick="uploadCensusData()" id="btnUploadCensus" style="width:100%; padding:12px; background:linear-gradient(135deg, #4ab5c4 0%, #2980b9 100%); border:none; border-radius:8px; color:white; font-weight:700; cursor:pointer; font-size:15px; box-shadow:0 4px 15px rgba(74, 181, 196, 0.4);">
                 Start Upload
             </button>
+        </div>
+    </div>
+
+    <!-- Add Sensor Modal -->
+    <div id="sensorModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.7); z-index:9999; justify-content:center; align-items:center; backdrop-filter:blur(5px);">
+        <div style="background:#0f2027; border:1px solid #4ab5c4; padding:30px; border-radius:16px; width:90%; max-width:450px; box-shadow:0 0 30px rgba(74,181,196,0.3); animation:fadeInUp 0.3s ease;">
+            <h3 style="color:#4ab5c4; margin:0 0 20px 0;">📡 Add New IoT Sensor</h3>
+            
+            <form id="sensorForm" onsubmit="window.saveSensor(event)">
+                <div class="form-group">
+                    <label>Sensor ID (Unique Hardware ID)</label>
+                    <input type="text" id="newSensorId" placeholder="e.g., SENS-005" required>
+                </div>
+                <div class="form-group">
+                    <label>Location Name</label>
+                    <input type="text" id="newSensorLoc" placeholder="e.g., East Canal" required>
+                </div>
+                
+                <div style="display:flex; justify-content:flex-end; gap:10px; margin-top:20px;">
+                    <button type="button" onclick="document.getElementById('sensorModal').style.display='none'" style="padding:10px 20px; background:transparent; border:1px solid rgba(255,255,255,0.2); color:white; border-radius:8px; cursor:pointer;">Cancel</button>
+                    <button type="submit" style="padding:10px 20px; background:#4ab5c4; border:none; color:#032023; font-weight:700; border-radius:8px; cursor:pointer;">Add Sensor</button>
+                </div>
+            </form>
         </div>
     </div>
 

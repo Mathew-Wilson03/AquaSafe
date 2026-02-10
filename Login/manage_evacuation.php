@@ -54,6 +54,16 @@ if ($method === 'POST') {
             exit;
         }
 
+        if (empty($capacity) || $capacity <= 0) {
+            echo json_encode(['status' => 'error', 'message' => 'Valid capacity is required']);
+            exit;
+        }
+
+        if (empty($sensor)) {
+            echo json_encode(['status' => 'error', 'message' => 'Assigned Sensor ID is required']);
+            exit;
+        }
+
         $sql = "INSERT INTO evacuation_points (name, location, latitude, longitude, capacity, status, assigned_sensor) VALUES ('$name', '$location', $latitude, $longitude, $capacity, '$status', '$sensor')";
         if (mysqli_query($link, $sql)) {
             echo json_encode(['status' => 'success', 'message' => 'Evacuation point added successfully']);
@@ -75,6 +85,16 @@ if ($method === 'POST') {
 
         if (!$id || empty($name) || empty($location)) {
             echo json_encode(['status' => 'error', 'message' => 'ID, name, and location are required']);
+            exit;
+        }
+
+        if (empty($capacity) || $capacity <= 0) {
+            echo json_encode(['status' => 'error', 'message' => 'Valid capacity is required']);
+            exit;
+        }
+
+        if (empty($sensor)) {
+            echo json_encode(['status' => 'error', 'message' => 'Assigned Sensor ID is required']);
             exit;
         }
 

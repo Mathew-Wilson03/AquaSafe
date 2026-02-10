@@ -481,7 +481,10 @@ if (file_exists($help_file)) {
                 <a href="#section-flood" class="active" data-target="section-flood">📊 Flood Status</a>
                 <a href="#section-evac" data-target="section-evac">📍 Evacuation</a>
                 <a href="#section-contacts" data-target="section-contacts">📞 Contacts</a>
-                <a href="#section-alerts" data-target="section-alerts">🚨 Alerts</a>
+                <a href="#section-alerts" data-target="section-alerts" style="position:relative;">
+                    🚨 Alerts
+                    <span id="alertBadge" style="display:none; position:absolute; top:8px; right:8px; background:#e74c3c; color:#fff; border-radius:50%; width:10px; height:10px; box-shadow:0 0 5px #e74c3c;"></span>
+                </a>
                 <a href="#section-help" data-target="section-help" id="helpDeskLink">
                     🆘 Help Desk
                     <span id="helpdeskNotificationBadge" style="display:none; position:absolute; top:8px; right:8px; background:#e74c3c; color:#fff; border-radius:50%; width:20px; height:20px; font-size:11px; font-weight:700; align-items:center; justify-content:center; box-shadow:0 2px 8px rgba(231,76,60,0.5);"></span>
@@ -505,6 +508,11 @@ if (file_exists($help_file)) {
                     <h1>User Dashboard</h1>
                 </div>
                 <div class="header-right">
+                    <!-- Notification Permission Button -->
+                    <button id="enableAlertsBtn" onclick="requestNotificationPermission()" style="display:none; padding:8px 16px; background:rgba(231,76,60,0.2); border:1px solid #e74c3c; color:#e74c3c; border-radius:30px; cursor:pointer; font-size:12px; font-weight:600; align-items:center; gap:6px; transition:all 0.3s;">
+                        🔔 Enable Alerts
+                    </button>
+
                     <div id="live-clock" class="last-updated">
                         🕒 <span>00:00:00</span>
                     </div>
@@ -1427,25 +1435,188 @@ if (file_exists($help_file)) {
                     window.loadMyRequests();
                 }
             }, 60000);
+            
+            // Clear Alert Badge on Click
+            const alertLink = document.querySelector('a[href="#section-alerts"]');
+            if(alertLink) {
+                alertLink.addEventListener('click', () => {
+                   document.getElementById('alertBadge').style.display = 'none';
+                   // Update seen time to now (or fetch latest alert time if cleaner)
+                   // For simplicity, we assume if they clicked, they saw whatever was latest.
+                   fetch('manage_alerts.php?action=fetch_all').then(r=>r.json()).then(json=>{
+                       if(json.data && json.data.length > 0) {
+                           localStorage.setItem('lastSeenAlertTime', new Date(json.data[0].timestamp).getTime());
+                       }
+                   });
+                });
+            }
         });
     </script>
     
         <script>
         // Existing script logic...
 
-        // Fetch Alerts for User
+        // --- WEB AUDIO API (Professional & Reliable) ---
+        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        
+        // GLOBAL UNLOCK: Verify audio context is ready on ANY interaction
+        function resumeAudioContext() {
+            if (audioCtx.state === 'suspended') {
+                audioCtx.resume().then(() => {
+                    console.log("Audio Context Resumed by Interaction");
+                });
+            }
+        }
+        document.addEventListener('click', resumeAudioContext);
+        document.addEventListener('keydown', resumeAudioContext);
+        document.addEventListener('touchstart', resumeAudioContext);
+
+        function playSystemBeep() {
+            if (audioCtx.state === 'suspended') {
+                audioCtx.resume(); // Try one last time just in case
+            }
+            
+            const oscillator = audioCtx.createOscillator();
+            const gainNode = audioCtx.createGain();
+            
+            oscillator.type = 'sine';
+            oscillator.frequency.setValueAtTime(523.25, audioCtx.currentTime); // C5 (High Beep)
+            oscillator.frequency.exponentialRampToValueAtTime(1046.5, audioCtx.currentTime + 0.1); // Ramp to C6
+            
+            gainNode.gain.setValueAtTime(0.3, audioCtx.currentTime);
+            gainNode.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.5);
+            
+            oscillator.connect(gainNode);
+            gainNode.connect(audioCtx.destination);
+            
+            oscillator.start();
+            oscillator.stop(audioCtx.currentTime + 0.5);
+        }
+
+        // Check Permission on Load and Update Button
+        function updateNotificationButton() {
+            const btn = document.getElementById('enableAlertsBtn');
+            if(!btn) return;
+            
+            if (!("Notification" in window)) {
+                btn.style.display = 'none';
+                return;
+            }
+
+            if (Notification.permission === 'granted') {
+                btn.innerHTML = '✅ Alerts Active';
+                btn.style.display = 'flex';
+                btn.style.borderColor = '#2ecc71';
+                btn.style.color = '#2ecc71';
+                btn.style.background = 'rgba(46, 204, 113, 0.1)';
+                btn.style.cursor = 'default';
+                btn.disabled = false; 
+                // We keep it clickable just for manual testing if they really want, but looks passive
+                btn.onclick = () => { playSystemBeep(); };
+            } else if (Notification.permission === 'denied') {
+                btn.innerHTML = '🚫 Alerts Blocked';
+                btn.style.display = 'flex';
+                btn.style.borderColor = '#e74c3c';
+                btn.style.color = '#e74c3c';
+                btn.style.background = 'rgba(231, 76, 60, 0.1)';
+                btn.title = "Please enable notifications in your browser settings.";
+                btn.disabled = true;
+            } else {
+                // Default
+                btn.innerHTML = '🔔 Enable Alerts';
+                btn.style.display = 'flex';
+                btn.style.borderColor = '#e74c3c';
+                btn.style.color = '#e74c3c';
+                btn.style.background = 'rgba(231, 76, 60, 0.2)';
+                btn.disabled = false;
+                btn.style.cursor = 'pointer';
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', updateNotificationButton);
+
+        function requestNotificationPermission() {
+             if (!("Notification" in window)) {
+                alert("This browser does not support desktop notifications");
+                return;
+            }
+
+            Notification.requestPermission().then(permission => {
+                updateNotificationButton();
+                if (permission === 'granted') {
+                    // Start Audio Context logic
+                    audioCtx.resume().then(() => {
+                        playSystemBeep();
+                    });
+                }
+            });
+        }
+        
         async function fetchUserAlerts() {
             const container = document.getElementById('userAlertsList');
             if(!container) return;
             
             try {
-                // Targeted Broadcast Logic
+                // Targeted Broadcast Logic + Cache Buster
                 const userLocParam = window.userLocation ? `&user_location=${encodeURIComponent(window.userLocation)}` : '';
-                const res = await fetch(`manage_alerts.php?action=fetch_all${userLocParam}`);
+                const cacheBuster = `&_t=${Date.now()}`;
+                
+                const res = await fetch(`manage_alerts.php?action=fetch_all${userLocParam}${cacheBuster}`);
                 const json = await res.json();
                 
                 if(json.status === 'success') {
                     const alerts = json.data || [];
+                    
+                    // --- NEW ALERT DETECTION ---
+                    if(alerts.length > 0) {
+                        const latestAlert = alerts[0];
+                        // SAFE DATE PARSING (Handle SQL format for Safari/Mobile)
+                        const safeTimeStr = latestAlert.timestamp.replace(" ", "T"); 
+                        const currentLatestTime = new Date(safeTimeStr).getTime();
+                        
+                        const lastSeenTime = localStorage.getItem('lastSeenAlertTime');
+                        
+                        // DEBUG LOGS (Check Console)
+                        // console.log("Latest Alert Time:", currentLatestTime, "Stored Last Seen:", lastSeenTime);
+
+                        // If we have a stored time, and the new alert is newer
+                        if(lastSeenTime && currentLatestTime > parseInt(lastSeenTime)) {
+                            console.log("!!! NEW ALERT DETECTED !!! NOTIFYING USER...");
+                            
+                            // Show Badge
+                            const badge = document.getElementById('alertBadge');
+                            if(badge) badge.style.display = 'flex';
+                            
+                            // PLAY SOUND ALWAYS (Regardless of tab)
+                            try {
+                                playSystemBeep();
+                                console.log("System beep triggered");
+                            } catch (e) {
+                                console.error("Beep failed", e);
+                            }
+                            
+                            // Show browser notification if possible
+                            if("Notification" in window && Notification.permission === "granted") {
+                                new Notification("New AquaSafe Alert", { body: latestAlert.message, icon: '../assets/logo.png' });
+                            }
+                            
+                            // Update LocalStorage AFTER notifying (so it doesn't loop forever, 
+                            // BUT we want it to loop if they reload? No, once notified is enough for that specific alert instance)
+                            // We update lastSeenTime ONLY when they acknowledge it or we've notified them?
+                            // Logic: If sound played, we can update it? 
+                            // User Request: "I should hear sound when new messages are received"
+                            // If we update it immediately, it won't play on next poll. That is correct behavior (play ONCE per alert).
+                            localStorage.setItem('lastSeenAlertTime', currentLatestTime);
+                        }
+                        
+                        // If this is the *very first* run (no localStorage), just set it without noise
+                        // This prevents blasting old alerts on first login.
+                        if(!lastSeenTime) {
+                            localStorage.setItem('lastSeenAlertTime', currentLatestTime);
+                        }
+                    }
+                    // ---------------------------
+
                     if(alerts.length > 0) {
                         let html = '';
                         alerts.forEach(alert => {
@@ -1467,7 +1638,7 @@ if (file_exists($help_file)) {
                             `;
                         });
                         container.innerHTML = html;
-                        lucide.createIcons(); // Refresh icons
+                        lucide.createIcons();
                     } else {
                         container.innerHTML = '<div style="text-align:center; padding:30px; opacity:0.5;">No active alerts at the moment. Stay safe! 🛡️</div>';
                     }
@@ -1480,7 +1651,7 @@ if (file_exists($help_file)) {
         
         // Initial Fetch
         fetchUserAlerts();
-        setInterval(fetchUserAlerts, 30000); // Poll every 30s
+        setInterval(fetchUserAlerts, 5000); // Poll every 5s for testing
 
         // --- NEW FILTERING LOGIC ---
         function filterEvacuationPoints() {

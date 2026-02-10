@@ -1,0 +1,186 @@
+Request received: Array
+(
+    [action] => broadcast_alert
+    [area] => All
+    [severity] => Warning
+    [message] => go
+)
+
+Request received: Array
+(
+    [action] => broadcast_alert
+    [area] => All
+    [severity] => Warning
+    [message] => frtyuiop
+)
+
+Session Email: sharonshibupandakasalayil2028@mca.ajce.in
+Expected Admin: mathewwilson2028@mca.ajce.in
+Auth Failed: 403
+Request received: Array
+(
+    [action] => broadcast_alert
+    [area] => All
+    [severity] => Warning
+    [message] => cnhghg
+)
+
+Session Email: sharonshibupandakasalayil2028@mca.ajce.in
+Expected Admin: mathewwilson2028@mca.ajce.in
+Auth Failed: 403
+Request received: Array
+(
+    [action] => broadcast_alert
+    [area] => All
+    [severity] => Warning
+    [message] => fmhg
+)
+
+Session Email: mathewwilson2028@mca.ajce.in
+Expected Admin: mathewwilson2028@mca.ajce.in
+Auth Check: Email=mathewwilson2028@mca.ajce.in, Role=administrator, Super=1, Admin=
+Auth Success. Proceeding...
+Request received: Array
+(
+    [action] => broadcast_alert
+    [area] => All
+    [severity] => Warning
+    [message] => gg
+)
+
+Session Email: sharonshibupandakasalayil2028@mca.ajce.in
+Expected Admin: mathewwilson2028@mca.ajce.in
+Auth Check: Email=sharonshibupandakasalayil2028@mca.ajce.in, Role=administrator, Super=, Admin=
+Auth Failed: 403
+Request received: Array
+(
+    [action] => broadcast_alert
+    [area] => All
+    [severity] => Warning
+    [message] => go
+)
+
+Session Email: mathewwilson2028@mca.ajce.in
+Expected Admin: mathewwilson2028@mca.ajce.in
+Auth Check: Email=mathewwilson2028@mca.ajce.in, Role=administrator, Super=1, Admin=
+Auth Success. Proceeding...
+Request received: Array
+(
+    [action] => broadcast_alert
+    [area] => All
+    [severity] => Warning
+    [message] => hai hello
+)
+
+Session Email: mathewwilson2028@mca.ajce.in
+Expected Admin: mathewwilson2028@mca.ajce.in
+Auth Check: Email=mathewwilson2028@mca.ajce.in, Role=administrator, Super=1, Admin=1
+Auth Success. Proceeding...
+Request received: Array
+(
+    [action] => broadcast_alert
+    [area] => All
+    [severity] => Warning
+    [message] => melccow
+)
+
+Session Email: sharonshibupandakasalayil2028@mca.ajce.in
+Expected Admin: mathewwilson2028@mca.ajce.in
+Auth Check: Email=sharonshibupandakasalayil2028@mca.ajce.in, Role=administrator, Super=, Admin=1
+Auth Success. Proceeding...
+Request received: Array
+(
+    [action] => broadcast_alert
+    [area] => All
+    [severity] => Warning
+    [message] => hegjhegkuf
+)
+
+Session Email: sharonshibupandakasalayil2028@mca.ajce.in
+Expected Admin: mathewwilson2028@mca.ajce.in
+Auth Check: Email=sharonshibupandakasalayil2028@mca.ajce.in, Role=administrator, Super=, Admin=1
+Auth Success. Proceeding...
+Request received: Array
+(
+    [action] => broadcast_alert
+    [area] => All
+    [severity] => Warning
+    [message] => hello bye
+)
+
+Session Email: sharonshibupandakasalayil2028@mca.ajce.in
+Expected Admin: mathewwilson2028@mca.ajce.in
+Auth Check: Email=sharonshibupandakasalayil2028@mca.ajce.in, Role=administrator, Super=, Admin=1
+Auth Success. Proceeding...
+Request received: Array
+(
+    [action] => broadcast_alert
+    [area] => All
+    [severity] => Warning
+    [message] => abel
+)
+
+Session Email: sharonshibupandakasalayil2028@mca.ajce.in
+Expected Admin: mathewwilson2028@mca.ajce.in
+Auth Check: Email=sharonshibupandakasalayil2028@mca.ajce.in, Role=administrator, Super=, Admin=1
+Auth Success. Proceeding...
+Request received: Array
+(
+    [action] => broadcast_alert
+    [area] => All
+    [severity] => Warning
+    [message] => bye
+)
+
+Session Email: sharonshibupandakasalayil2028@mca.ajce.in
+Expected Admin: mathewwilson2028@mca.ajce.in
+Auth Check: Email=sharonshibupandakasalayil2028@mca.ajce.in, Role=administrator, Super=, Admin=1
+Auth Success. Proceeding...
+Request received: Array
+(
+    [action] => broadcast_alert
+    [area] => All
+    [severity] => Warning
+    [message] => serious
+)
+
+Session Email: sharonshibupandakasalayil2028@mca.ajce.in
+Expected Admin: mathewwilson2028@mca.ajce.in
+Auth Check: Email=sharonshibupandakasalayil2028@mca.ajce.in, Role=administrator, Super=, Admin=1
+Auth Success. Proceeding...
+Request received: Array
+(
+    [action] => broadcast_alert
+    [area] => All
+    [severity] => Warning
+    [message] => emergency
+)
+
+Session Email: sharonshibupandakasalayil2028@mca.ajce.in
+Expected Admin: mathewwilson2028@mca.ajce.in
+Auth Check: Email=sharonshibupandakasalayil2028@mca.ajce.in, Role=administrator, Super=, Admin=1
+Auth Success. Proceeding...
+Request received: Array
+(
+    [action] => broadcast_alert
+    [area] => All
+    [severity] => Warning
+    [message] => emergency
+)
+
+Session Email: sharonshibupandakasalayil2028@mca.ajce.in
+Expected Admin: mathewwilson2028@mca.ajce.in
+Auth Check: Email=sharonshibupandakasalayil2028@mca.ajce.in, Role=administrator, Super=, Admin=1
+Auth Success. Proceeding...
+Request received: Array
+(
+    [action] => broadcast_alert
+    [area] => All
+    [severity] => Warning
+    [message] => emergency
+)
+
+Session Email: sharonshibupandakasalayil2028@mca.ajce.in
+Expected Admin: mathewwilson2028@mca.ajce.in
+Auth Check: Email=sharonshibupandakasalayil2028@mca.ajce.in, Role=administrator, Super=, Admin=1
+Auth Success. Proceeding...

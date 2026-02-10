@@ -2,12 +2,26 @@
 // manage_community.php
 session_start();
 require_once 'config.php';
+file_put_contents('debug_log.txt', "Request received: " . print_r($_POST, true) . "\n", FILE_APPEND);
 
 // Super Admin Check
-if (!isset($_SESSION['email']) || $_SESSION['email'] !== SUPER_ADMIN_EMAIL) {
+file_put_contents('debug_log.txt', "Session Email: " . ($_SESSION['email'] ?? 'NULL') . "\n", FILE_APPEND);
+file_put_contents('debug_log.txt', "Expected Admin: " . SUPER_ADMIN_EMAIL . "\n", FILE_APPEND);
+
+// Permission Check: Super Admin OR Admin Role
+$user_role = $_SESSION['user_role'] ?? 'user';
+$user_email = $_SESSION['email'] ?? '';
+$is_super = ($user_email === SUPER_ADMIN_EMAIL);
+$is_admin = (in_array(strtolower(trim($user_role)), ['admin', 'administrator']));
+
+file_put_contents('debug_log.txt', "Auth Check: Email=$user_email, Role=$user_role, Super=$is_super, Admin=$is_admin\n", FILE_APPEND);
+
+if (!$is_super && !$is_admin) {
+    file_put_contents('debug_log.txt', "Auth Failed: 403\n", FILE_APPEND);
     header('HTTP/1.1 403 Forbidden');
-    die("Only superadmin has the permission to do this");
+    die("Permission Denied: Only Admins can perform this action.");
 }
+file_put_contents('debug_log.txt', "Auth Success. Proceeding...\n", FILE_APPEND);
 
 // 1. Auto-Create Table & Schema Migration
 $table_sql = "CREATE TABLE IF NOT EXISTS `community_alerts` (
@@ -130,44 +144,59 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $resC = mysqli_query($link, $sqlComm);
         while($r = mysqli_fetch_assoc($resC)) $recipients[] = $r['email'];
 
-        // Send Emails (Using PHPMailer or Log Fallback)
+        // --- FIX: also insert into sensor_alerts for User Dashboard visibility ---
+        $insertAlert = mysqli_prepare($link, "INSERT INTO sensor_alerts (severity, message, location) VALUES (?, ?, ?)");
+        $dbLocation = ($targetArea === 'All') ? 'System Wide' : $targetArea;
+        mysqli_stmt_bind_param($insertAlert, "sss", $severity, $message, $dbLocation);
+        mysqli_stmt_execute($insertAlert);
+        mysqli_stmt_close($insertAlert);
+        // -------------------------------------------------------------------------
+
+        // --- OPTIMIZATION: Respond to User IMMEDIATELY, then send emails in background ---
+        ob_end_clean(); // Clean any previous output
+        ignore_user_abort(true); // Keep running if browser closes
+        ob_start(); // Buffer output
+
+        // Send Success Response
+        jsonResponse(true, "Alert posted! Emails are being queued in background.");
+        
+        $size = ob_get_length();
+        header("Content-Length: $size");
+        header("Connection: close");
+        ob_end_flush();
+        flush(); // Force output to browser
+        
+        // --- BACKGROUND PROCESS STARTS HERE ---
+        // (Browser has stopped waiting, but PHP is still running)
+        
         require 'vendor/autoload.php';
         $mail = new PHPMailer\PHPMailer\PHPMailer(true);
-        $sentCount = 0;
+        // ... mail setup ...
+        $mail->isSMTP();
+        $mail->Host = SMTP_HOST;
+        $mail->SMTPAuth = true;
+        $mail->Username = SMTP_USER;
+        $mail->Password = SMTP_PASS;
+        $mail->SMTPSecure = PHPMailer\PHPMailer\PHPMailer::ENCRYPTION_STARTTLS;
+        $mail->Port = SMTP_PORT;
+        $mail->setFrom(SMTP_FROM_EMAIL, SMTP_FROM_NAME);
+        $mail->isHTML(true);
+        $mail->Subject = "⚠️ $severity Alert: $targetArea";
 
-        try {
-            // Load Secrets
-            if(!defined('SMTP_HOST')) require_once 'config_secrets.php';
-
-            // Load Secrets
-            if(!defined('SMTP_HOST')) require_once 'config_secrets.php';
-
-            $mail->isSMTP();
-            $mail->Host = SMTP_HOST;
-            $mail->SMTPAuth = true;
-            $mail->Username = SMTP_USER;
-            $mail->Password = SMTP_PASS;
-            $mail->SMTPSecure = PHPMailer\PHPMailer\PHPMailer::ENCRYPTION_STARTTLS;
-            $mail->Port = SMTP_PORT;
-            $mail->setFrom(SMTP_FROM_EMAIL, SMTP_FROM_NAME);
-            $mail->isHTML(true);
-            $mail->Subject = "⚠️ $severity Alert: $targetArea";
-
-            // Loop and send (BCC for privacy or individual)
-            // For demo, we'll just log or send one by one
-            foreach(array_unique($recipients) as $toEmail) {
+        foreach(array_unique($recipients) as $toEmail) {
+            try {
                 $mail->clearAddresses();
                 $mail->addAddress($toEmail);
                 $mail->Body = "<h2>$severity Alert for $targetArea</h2><p>$message</p><p>Stay Safe,<br>AquaSafe Team</p>";
                 $mail->send();
-                $sentCount++;
+                file_put_contents('email_log.txt', "[" . date('Y-m-d H:i:s') . "] To: $toEmail | Status: Sent\n", FILE_APPEND);
+            } catch (Exception $e) {
+                file_put_contents('email_log.txt', "[" . date('Y-m-d H:i:s') . "] To: $toEmail | Status: Failed | Error: " . $mail->ErrorInfo . "\n", FILE_APPEND);
             }
-        } catch (Exception $e) {
-            // Log error
-            file_put_contents('email_log.txt', "Error: " . $mail->ErrorInfo . "\n", FILE_APPEND);
+            // Sleep tiny bit to be nice to SMTP server
+            usleep(100000); 
         }
-
-        jsonResponse(true, "Alert sent to $sentCount recipients (App Users + Offline Community).");
+        exit; // script ends here for real
     }
 }
 

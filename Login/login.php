@@ -327,7 +327,8 @@
     <?php
     // Fetch Public Alerts Logic
     $alert_js = "";
-    if(isset($link)){
+    $alert_js = "";
+    if(false && isset($link)){
         // Modified query: Fetch top 5 recent alerts
         $sql_alert = "SELECT * FROM sensor_alerts ORDER BY timestamp DESC LIMIT 5";
         $res_alert = mysqli_query($link, $sql_alert);
