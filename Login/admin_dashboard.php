@@ -882,6 +882,13 @@ if ($users_result) {
                             <div class="status-label">System Health</div>
                             <div class="status-value info-text" id="systemHealthText">Optimal</div>
                         </div>
+                        <!-- Live IoT Sensor Card -->
+                        <div class="status-card" style="border:1px solid rgba(74,181,196,0.35); position:relative; overflow:hidden;" title="Live reading from LoRa ESP32 sensor">
+                            <div style="position:absolute; top:8px; right:10px; font-size:9px; color:#4ab5c4; font-weight:700; letter-spacing:1px;">● LIVE</div>
+                            <div class="status-label">Water Level</div>
+                            <div class="status-value" id="adminLiveLevel" style="color:#4ab5c4; font-size:22px;">-- ft</div>
+                            <div id="adminLiveStatus" style="font-size:11px; margin-top:4px; font-weight:600; opacity:0.8;">Connecting...</div>
+                        </div>
                     </div>
 
                     <!-- Recent Alerts Summary for Dashboard -->
@@ -899,7 +906,38 @@ if ($users_result) {
                             </button>
                         </div>
                  </div>
-                    
+
+                    <!-- Live IoT Poller for Admin Dashboard -->
+                    <script>
+                    (function() {
+                        const iotColors = { 'SAFE':'#2ecc71', 'WARNING':'#f1c40f', 'CRITICAL':'#e74c3c' };
+                        const iotIcons  = { 'SAFE':'🛡️', 'WARNING':'⚠️', 'CRITICAL':'🚨' };
+
+                        async function pollAdminFloodData() {
+                            try {
+                                const res  = await fetch('get_flood_data.php?_t=' + Date.now());
+                                const json = await res.json();
+                                if (json.status !== 'success') return;
+
+                                const { level, status } = json.latest;
+                                const color = iotColors[status] || '#4ab5c4';
+
+                                const levelEl  = document.getElementById('adminLiveLevel');
+                                const statusEl = document.getElementById('adminLiveStatus');
+
+                                if (levelEl)  { levelEl.textContent  = parseFloat(level).toFixed(2) + ' ft'; levelEl.style.color  = color; }
+                                if (statusEl) { statusEl.textContent = (iotIcons[status] || '') + ' ' + status; statusEl.style.color = color; }
+                            } catch(e) {
+                                const el = document.getElementById('adminLiveStatus');
+                                if (el) el.textContent = '⚡ Offline';
+                            }
+                        }
+
+                        pollAdminFloodData();
+                        setInterval(pollAdminFloodData, 5000);
+                    })();
+                    </script>
+
 
                 </div>
             </div>
@@ -3159,6 +3197,9 @@ if ($users_result) {
                     
                     // Update ALL areas in background to keep history fresh
                     for(let area in chartDataStore) {
+                        // Skip IoT-live areas (these are updated via monitorFloodAlerts)
+                        if(['Churakullam', 'Kakkikavala', 'Nellimala'].includes(area)) continue;
+
                         const store = chartDataStore[area];
                         const lastVal = store.data[store.data.length - 1];
                         let newVal = Math.max(30, Math.min(90, lastVal + (Math.random() - 0.5) * 8));
@@ -3463,33 +3504,84 @@ if ($users_result) {
         // Initialize
         fetchSettings();
 
-        // --- IOT FLOOD MONITOR ---
+        // --- IOT FLOOD MONITOR — Live Chart Update ---
         let lastIoTAlertId = 0;
-        function monitorFloodAlerts() {
-            fetch('receive_iot_data.php') // GET request by default
-                .then(res => res.json())
-                .then(json => {
-                    if(json.status === 'success' && json.data.length > 0) {
-                        // Get the most recent one
-                        const latest = json.data[0];
-                        const latestId = parseInt(latest.id);
-                        
-                        if(latestId > lastIoTAlertId) {
-                            // Avoid showing on first load (optional, but good UX to not spam old alerts)
-                            // But usually we want to see if we missed something.
-                            // Let's only show if it's "fresh" (handled by SQL time check), but we need to track ID.
-                            if(lastIoTAlertId !== 0) { // If it's 0, we just sync. If >0, we show notification
-                                window.showNotification("🚨 IOT ALERT: " + latest.message + " (" + latest.alert_level + ")", 'error');
-                            }
-                            lastIoTAlertId = latestId;
-                        }
+
+        async function monitorFloodAlerts() {
+            try {
+                const res  = await fetch('get_flood_data.php?_t=' + Date.now());
+                const json = await res.json();
+
+                if (json.status !== 'success') return;
+
+                const history = json.history || [];   // array, oldest → newest
+                const latest  = json.latest;
+                if (!latest) return;
+
+                const latestId = parseInt(latest.id);
+
+                // ── 1. Update the Live Chart with real sensor data ──
+                if (history.length > 0) {
+                    const labels = history.map(r => {
+                        const d = new Date(r.created_at.replace(' ', 'T'));
+                        return d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+                    });
+                    const dataPoints = history.map(r => parseFloat(r.level));
+                    const pointColors = history.map(r =>
+                        r.status === 'CRITICAL' ? '#e74c3c' :
+                        r.status === 'WARNING'  ? '#f1c40f' : '#2ecc71'
+                    );
+
+                    // A. Update the Report Tab Chart (floodChart) if exists
+                    if (typeof floodChart !== 'undefined' && floodChart) {
+                        floodChart.data.labels                              = labels;
+                        floodChart.data.datasets[0].data                    = dataPoints;
+                        floodChart.data.datasets[0].label                   = 'Water Level (ft)';
+                        floodChart.data.datasets[0].pointBackgroundColor    = pointColors;
+                        floodChart.data.datasets[0].pointRadius             = 4;
+                        floodChart.options.scales.y.max                     = 25; 
+                        floodChart.options.scales.y.title                   = { display: true, text: 'Level (ft)', color: 'rgba(255,255,255,0.5)' };
+                        floodChart.update('none');
                     }
-                })
-                .catch(e => console.error("IoT Poll Error", e));
+
+                    // B. Sync with the Dashboard ChartDataStore (for Churakullam, Kakkikavala, Nellimala)
+                    ['Churakullam', 'Kakkikavala', 'Nellimala'].forEach(area => {
+                        if (chartDataStore[area]) {
+                            chartDataStore[area].labels = labels;
+                            chartDataStore[area].data   = dataPoints;
+                        }
+                    });
+
+                    // C. Refresh the Dashboard Chart (waterChart) if viewing an IoT area
+                    if (typeof waterChart !== 'undefined' && waterChart && ['Churakullam', 'Kakkikavala', 'Nellimala'].includes(currentArea)) {
+                        waterChart.data.labels = labels;
+                        waterChart.data.datasets[0].data = dataPoints;
+                        // Use status colors for points on dashboard too
+                        waterChart.data.datasets[0].pointBackgroundColor = pointColors;
+                        waterChart.options.scales.y.max = 25;
+                        waterChart.update('none');
+                    }
+                }
+
+                // ── 2. Only popup for NEW CRITICAL alerts (not every reading) ──
+                if (latestId > lastIoTAlertId) {
+                    if (lastIoTAlertId !== 0 && latest.status === 'CRITICAL') {
+                        window.showNotification(
+                            '🚨 CRITICAL FLOOD ALERT! Water level: ' + parseFloat(latest.level).toFixed(2) + ' ft',
+                            'error'
+                        );
+                    }
+                    lastIoTAlertId = latestId;
+                }
+
+            } catch(e) {
+                console.warn('IoT Poll Error:', e);
+            }
         }
+
         // Start Polling
-        monitorFloodAlerts(); // First run
-        setInterval(monitorFloodAlerts, 4000); // Repeat every 4s
+        monitorFloodAlerts();
+        setInterval(monitorFloodAlerts, 5000);
 
 
         // --- CENSUS UPLOAD LOGIC ---

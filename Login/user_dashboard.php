@@ -543,40 +543,107 @@ if (file_exists($help_file)) {
                 <div class="grid">
                     <div id="section-flood" class="content-section">
                         <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px;">
-                            <!-- Status Card -->
-                            <div class="card glass" style="padding: 25px; display:flex; flex-direction:column; justify-content:center;">
-                                <script>
-                                    (function() {
-                                        const loc = window.userLocation || 'Central City';
-                                        const statusMap = {
-                                            'Central City': { color: 'var(--safe)', text: 'Normal', icon: '🛡️', msg: 'Levels safe.' },
-                                            'North District': { color: '#f1c40f', text: 'Moderate', icon: '⚠️', msg: 'Levels elevated.' },
-                                            'South Reservoir': { color: 'var(--danger)', text: 'CRITICAL', icon: '🚨', msg: 'IMMEDIATE ACTION.' },
-                                            'West Bank': { color: 'var(--safe)', text: 'Normal', icon: '✅', msg: 'No risk.' },
-                                            'East Valley': { color: '#e67e22', text: 'Warning', icon: '🌧️', msg: 'Heavy rain.' }
-                                        };
-                                        const s = statusMap[loc] || statusMap['Central City'];
-                                        
-                                        document.write(`
-                                            <div style="display:flex; align-items:center; gap:20px; margin-bottom:20px;">
-                                                <div style="font-size: 48px; animation: pulse 2s infinite;">${s.icon}</div>
-                                                <div>
-                                                    <h2 style="color:${s.color}; font-size: 28px; margin:0;">${s.text}</h2>
-                                                    <div style="font-size:14px; opacity:0.7;">Zone: ${loc}</div>
-                                                </div>
-                                            </div>
-                                            <div style="background:rgba(255,255,255,0.05); border-radius:10px; padding:15px; margin-bottom:15px;">
-                                                <div style="font-size:12px; opacity:0.6; margin-bottom:5px;">Current Water Level</div>
-                                                <div style="display:flex; justify-content:space-between; align-items:end;">
-                                                    <div style="font-size:32px; font-weight:bold; color:#fff;">${loc === 'South Reservoir' ? '18.2 ft' : (loc === 'East Valley' ? '10.8 ft' : '3.2 ft')}</div>
-                                                    <div style="font-size:14px; color:${s.color}; padding-bottom:5px;">${loc === 'South Reservoir' ? '▲ Rising' : '● Stable'}</div>
-                                                </div>
-                                            </div>
-                                            <p style="font-size:13px; color:rgba(255,255,255,0.7); line-height:1.4; margin:0;">${s.msg}</p>
-                                        `);
-                                    })();
-                                </script>
+                            <!-- Live IoT Status Card -->
+                            <div class="card glass" style="padding: 25px; display:flex; flex-direction:column; justify-content:center;" id="liveFloodCard">
+
+                                <!-- Loading State -->
+                                <div id="floodCardLoading" style="text-align:center; opacity:0.5; padding: 20px 0;">
+                                    <div style="font-size:32px; animation: pulse 1.5s infinite;">🌊</div>
+                                    <div style="font-size:13px; margin-top:8px;">Connecting to sensor...</div>
+                                </div>
+
+                                <!-- Live Data (Hidden until loaded) -->
+                                <div id="floodCardData" style="display:none;">
+                                    <div style="display:flex; align-items:center; gap:20px; margin-bottom:20px;">
+                                        <div id="floodIcon" style="font-size: 48px; animation: pulse 2s infinite;">🛡️</div>
+                                        <div>
+                                            <h2 id="floodStatusText" style="font-size: 28px; margin:0; color: var(--safe);">--</h2>
+                                            <div style="font-size:14px; opacity:0.7;" id="floodZoneText">Zone: <?php echo htmlspecialchars($location ?? 'Central City'); ?></div>
+                                        </div>
+                                    </div>
+                                    <div style="background:rgba(255,255,255,0.05); border-radius:10px; padding:15px; margin-bottom:15px;">
+                                        <div style="font-size:12px; opacity:0.6; margin-bottom:5px;">Current Water Level <span style="font-size:10px; color:var(--accent);">● LIVE</span></div>
+                                        <div style="display:flex; justify-content:space-between; align-items:end;">
+                                            <div id="floodLevelText" style="font-size:32px; font-weight:bold; color:#fff;">-- ft</div>
+                                            <div id="floodTrendText" style="font-size:14px; color:var(--safe); padding-bottom:5px;">● Stable</div>
+                                        </div>
+                                    </div>
+                                    <p id="floodMsgText" style="font-size:13px; color:rgba(255,255,255,0.7); line-height:1.4; margin:0; display:flex; justify-content:space-between;">
+                                        <span id="floodMsg">Loading...</span>
+                                        <span id="floodLastUpdated" style="font-size:11px; opacity:0.5;"></span>
+                                    </p>
+                                </div>
+
+                                <!-- Error State -->
+                                <div id="floodCardError" style="display:none; text-align:center; padding:20px 0;">
+                                    <div style="font-size:32px;">⚡</div>
+                                    <div style="font-size:13px; margin-top:8px; opacity:0.7;">Sensor offline — showing last known data</div>
+                                </div>
                             </div>
+
+                            <script>
+                            // ─── Live IoT Flood Status Card ───────────────────
+                            (function() {
+                                const statusConfig = {
+                                    'SAFE':     { color: 'var(--safe)',   icon: '🛡️', text: 'Safe',     msg: 'Water levels are within safe range.' },
+                                    'WARNING':  { color: '#f1c40f',       icon: '⚠️', text: 'Warning',  msg: 'Water levels are elevated. Stay alert.' },
+                                    'CRITICAL': { color: 'var(--danger)', icon: '🚨', text: 'CRITICAL', msg: '⚠ IMMEDIATE ACTION REQUIRED! Evacuate low areas.' }
+                                };
+
+                                let prevLevel = null;
+
+                                async function updateFloodCard() {
+                                    try {
+                                        const res  = await fetch('get_flood_data.php?_t=' + Date.now());
+                                        const json = await res.json();
+
+                                        if (json.status !== 'success') throw new Error('No data');
+
+                                        const { level, status, created_at } = json.latest;
+                                        const cfg   = statusConfig[status] || statusConfig['SAFE'];
+                                        const levelF = parseFloat(level).toFixed(2);
+
+                                        // Update DOM
+                                        document.getElementById('floodIcon').textContent        = cfg.icon;
+                                        document.getElementById('floodStatusText').textContent  = cfg.text;
+                                        document.getElementById('floodStatusText').style.color  = cfg.color;
+                                        document.getElementById('floodLevelText').textContent   = levelF + ' ft';
+                                        document.getElementById('floodMsg').textContent         = cfg.msg;
+                                        document.getElementById('floodTrendText').style.color   = cfg.color;
+
+                                        // Rising / Falling / Stable
+                                        if (prevLevel !== null) {
+                                            const diff = parseFloat(level) - prevLevel;
+                                            document.getElementById('floodTrendText').textContent =
+                                                diff > 0.1 ? '▲ Rising' : diff < -0.1 ? '▼ Falling' : '● Stable';
+                                        }
+                                        prevLevel = parseFloat(level);
+
+                                        // Last updated time
+                                        const updTime = new Date(created_at.replace(' ', 'T'));
+                                        document.getElementById('floodLastUpdated').textContent = 'Updated: ' + updTime.toLocaleTimeString();
+
+                                        // Show data, hide loader
+                                        document.getElementById('floodCardLoading').style.display = 'none';
+                                        document.getElementById('floodCardError').style.display   = 'none';
+                                        document.getElementById('floodCardData').style.display    = 'block';
+
+                                    } catch(e) {
+                                        // Show error only if we've never loaded data
+                                        if (!prevLevel) {
+                                            document.getElementById('floodCardLoading').style.display = 'none';
+                                            document.getElementById('floodCardError').style.display   = 'block';
+                                        }
+                                        console.warn('Flood data fetch failed:', e);
+                                    }
+                                }
+
+                                // Run immediately + every 5 seconds
+                                updateFloodCard();
+                                setInterval(updateFloodCard, 5000);
+                            })();
+                            </script>
+
 
                             <!-- Mini Chart & Updates -->
                             <div style="display:flex; flex-direction:column; gap:20px;">

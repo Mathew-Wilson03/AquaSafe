@@ -302,12 +302,43 @@
         <div class="hero-section">
             <div class="header-row">
                 <img src="../assets/logo.png" alt="AquaSafe Logo" class="header-logo-img">
-                <h1>Smart Water<br>Monitoring</h1>
+                <h1>A Real-time Flood Monitoring &<br>Early Warning System</h1>
             </div>
             
-            <p class="subtitle" style="font-style: italic;">
-                Real-time tracking of water quality, safety levels, and environmental data. Secure access for residents and administrators.
-            </p>
+            <!-- Feature Grid (Replaces Subtitle) -->
+            <div class="feature-grid" style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px; margin-bottom: 30px; max-width: 500px; margin-left: auto; margin-right: auto;">
+                <!-- 1. Live Water Level -->
+                <div class="feature-item" style="display: flex; align-items: center; gap: 10px; background: rgba(255,255,255,0.05); padding: 12px; border-radius: 12px; border: 1px solid rgba(74, 181, 196, 0.2);">
+                    <div style="background: rgba(74, 181, 196, 0.1); padding: 8px; border-radius: 8px; color: #4ab5c4;">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2.69l5.74 5.88a6.39 6.39 0 0 1 1.76 4.39 6.32 6.32 0 0 1-2.91 5.38A6.32 6.32 0 0 1 12 21a6.32 6.32 0 0 1-4.59-2.66A6.32 6.32 0 0 1 4.5 12.96a6.39 6.39 0 0 1 1.76-4.39z"/><path d="M12 16v-4"/><path d="M12 8v0"/></svg>
+                    </div>
+                    <span style="font-size: 13px; color: rgba(255,255,255,0.8); font-weight: 500;">Live Water Monitoring</span>
+                </div>
+
+                <!-- 2. Flood Alert -->
+                <div class="feature-item" style="display: flex; align-items: center; gap: 10px; background: rgba(255,255,255,0.05); padding: 12px; border-radius: 12px; border: 1px solid rgba(231, 76, 60, 0.2);">
+                    <div style="background: rgba(231, 76, 60, 0.1); padding: 8px; border-radius: 8px; color: #e74c3c;">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+                    </div>
+                    <span style="font-size: 13px; color: rgba(255,255,255,0.8); font-weight: 500;">Instant Flood Alerts</span>
+                </div>
+
+                <!-- 3. Real-Time IoT -->
+                <div class="feature-item" style="display: flex; align-items: center; gap: 10px; background: rgba(255,255,255,0.05); padding: 12px; border-radius: 12px; border: 1px solid rgba(46, 204, 113, 0.2);">
+                    <div style="background: rgba(46, 204, 113, 0.1); padding: 8px; border-radius: 8px; color: #2ecc71;">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12h5"/><path d="M17 12h5"/><path d="M7 12l2.5-6 4 12 2.5-6"/></svg>
+                    </div>
+                    <span style="font-size: 13px; color: rgba(255,255,255,0.8); font-weight: 500;">Real-Time IoT Data</span>
+                </div>
+
+                <!-- 4. Secure Access -->
+                <div class="feature-item" style="display: flex; align-items: center; gap: 10px; background: rgba(255,255,255,0.05); padding: 12px; border-radius: 12px; border: 1px solid rgba(155, 89, 182, 0.2);">
+                    <div style="background: rgba(155, 89, 182, 0.1); padding: 8px; border-radius: 8px; color: #9b59b6;">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+                    </div>
+                    <span style="font-size: 13px; color: rgba(255,255,255,0.8); font-weight: 500;">Secure Portal Access</span>
+                </div>
+            </div>
 
             <div class="action-grid">
                 <a href="login.php" class="access-portal-btn">
@@ -327,6 +358,24 @@
             </div>
 
     <style>
+        /* FEATURE GRID STYLES */
+        .feature-item {
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            cursor: default;
+        }
+
+        .feature-item:hover {
+            transform: translateY(-5px);
+            background: rgba(255,255,255,0.1) !important;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.2);
+            border-color: rgba(255,255,255,0.3) !important;
+        }
+
+        .feature-item:hover div {
+            transform: scale(1.1);
+            transition: transform 0.3s ease;
+        }
+
         /* NEW ACCESS BUTTON STYLES */
         .access-portal-btn {
             position: relative;

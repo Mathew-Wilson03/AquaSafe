@@ -1,59 +1,141 @@
 <?php
-// receive_iot_data.php
-// API Endpoint to receive Flood Alerts from ESP32 Gateway
-// and store them in the database for the Dashboard to fetch.
+/**
+ * receive_iot_data.php
+ * AquaSafe IoT Flood Monitoring - Data Ingestion API
+ *
+ * Accepts POST requests from ESP32 (LoRa Receiver Gateway).
+ * Validates, sanitizes, and stores flood sensor readings.
+ *
+ * POST Parameters:
+ *   - level  (float) : Water level in feet, e.g. 3.2
+ *   - status (string): Alert status — SAFE, WARNING, or CRITICAL
+ *
+ * ALSO supports GET requests from the Admin Dashboard to fetch recent alerts.
+ */
 
 header('Content-Type: application/json');
+
+// ─────────────────────────────────────────────────────────────
+// 1. Database Connection
+// ─────────────────────────────────────────────────────────────
 require_once 'config.php';
 
-// 1. Auto-Create Table
-$table_sql = "CREATE TABLE IF NOT EXISTS `flood_alerts` (
-    `id` INT AUTO_INCREMENT PRIMARY KEY,
-    `alert_id` INT NOT NULL,
-    `alert_level` VARCHAR(20) NOT NULL,
-    `message` TEXT NOT NULL,
-    `received_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    `is_active` TINYINT(1) DEFAULT 1
-)";
-mysqli_query($link, $table_sql);
+if (!$link) {
+    http_response_code(500);
+    echo json_encode(['status' => 'error', 'message' => 'Database connection failed.']);
+    exit;
+}
 
-// 2. Handle POST Request (From ESP32)
+// ─────────────────────────────────────────────────────────────
+// 2. Auto-Create flood_data Table (if it doesn't exist)
+// ─────────────────────────────────────────────────────────────
+$create_table_sql = "
+    CREATE TABLE IF NOT EXISTS `flood_data` (
+        `id`         INT           AUTO_INCREMENT PRIMARY KEY,
+        `level`      FLOAT         NOT NULL COMMENT 'Water level in feet',
+        `status`     VARCHAR(20)   NOT NULL COMMENT 'SAFE | WARNING | CRITICAL',
+        `created_at` TIMESTAMP     DEFAULT CURRENT_TIMESTAMP
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+";
+
+if (!mysqli_query($link, $create_table_sql)) {
+    http_response_code(500);
+    echo json_encode(['status' => 'error', 'message' => 'Table creation failed: ' . mysqli_error($link)]);
+    exit;
+}
+
+// ─────────────────────────────────────────────────────────────
+// 3. Handle POST — Receive Data from ESP32
+// ─────────────────────────────────────────────────────────────
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    // Check if data is JSON or Form Data
-    $data = json_decode(file_get_contents('php://input'), true);
-    if(!$data) $data = $_POST; // Fallback to standard POST
 
-    $alert_id = $data['alert_id'] ?? 0;
-    $level = $data['alert_level'] ?? 'UNKNOWN';
-    $msg = $data['message'] ?? 'No message';
+    // Support both JSON body and standard form POST
+    $input = json_decode(file_get_contents('php://input'), true);
+    if (!$input) {
+        $input = $_POST;
+    }
 
-    if ($alert_id > 0) {
-        $stmt = mysqli_prepare($link, "INSERT INTO flood_alerts (alert_id, alert_level, message) VALUES (?, ?, ?)");
-        mysqli_stmt_bind_param($stmt, "iss", $alert_id, $level, $msg);
-        
-        if (mysqli_stmt_execute($stmt)) {
-            echo json_encode(["status" => "success", "message" => "Alert stored"]);
-        } else {
-            echo json_encode(["status" => "error", "message" => "Database error"]);
-        }
+    // --- Validate Required Fields ---
+    if (!isset($input['level']) || !isset($input['status'])) {
+        http_response_code(400);
+        echo json_encode(['status' => 'error', 'message' => 'Missing required fields: level and status.']);
+        exit;
+    }
+
+    // --- Sanitize and Validate Values ---
+    $level  = filter_var($input['level'], FILTER_VALIDATE_FLOAT);
+    $status = strtoupper(trim($input['status']));
+
+    if ($level === false || $level < 0) {
+        http_response_code(422);
+        echo json_encode(['status' => 'error', 'message' => 'Invalid level value. Must be a positive number.']);
+        exit;
+    }
+
+    $allowed_statuses = ['SAFE', 'WARNING', 'CRITICAL'];
+    if (!in_array($status, $allowed_statuses)) {
+        http_response_code(422);
+        echo json_encode(['status' => 'error', 'message' => 'Invalid status. Must be SAFE, WARNING, or CRITICAL.']);
+        exit;
+    }
+
+    // --- Insert into Database (Prepared Statement) ---
+    $stmt = mysqli_prepare($link, "INSERT INTO flood_data (level, status) VALUES (?, ?)");
+
+    if (!$stmt) {
+        http_response_code(500);
+        echo json_encode(['status' => 'error', 'message' => 'Statement preparation failed.']);
+        exit;
+    }
+
+    mysqli_stmt_bind_param($stmt, "ds", $level, $status);
+
+    if (mysqli_stmt_execute($stmt)) {
+        $inserted_id = mysqli_insert_id($link);
+        echo json_encode([
+            'status'  => 'success',
+            'message' => 'Flood data recorded.',
+            'data'    => [
+                'id'     => $inserted_id,
+                'level'  => $level,
+                'status' => $status
+            ]
+        ]);
     } else {
-        echo json_encode(["status" => "error", "message" => "Invalid Data"]);
+        http_response_code(500);
+        echo json_encode(['status' => 'error', 'message' => 'Database insert failed: ' . mysqli_stmt_error($stmt)]);
     }
+
+    mysqli_stmt_close($stmt);
     exit;
 }
 
-// 3. Handle GET Request (From Admin Dashboard polling)
+// ─────────────────────────────────────────────────────────────
+// 4. Handle GET — Dashboard Polling (Fetch Recent Alerts)
+// ─────────────────────────────────────────────────────────────
 if ($_SERVER['REQUEST_METHOD'] === 'GET') {
-    // Fetch latest active alerts (last 1 minute)
-    $sql = "SELECT * FROM flood_alerts WHERE received_at > DATE_SUB(NOW(), INTERVAL 1 MINUTE) ORDER BY id DESC LIMIT 5";
+    // Fetch the latest 20 readings from the last hour
+    $sql    = "SELECT * FROM flood_data ORDER BY created_at DESC LIMIT 20";
     $result = mysqli_query($link, $sql);
-    
-    $alerts = [];
-    while ($row = mysqli_fetch_assoc($result)) {
-        $alerts[] = $row;
+
+    if (!$result) {
+        http_response_code(500);
+        echo json_encode(['status' => 'error', 'message' => 'Query failed: ' . mysqli_error($link)]);
+        exit;
     }
-    
-    echo json_encode(["status" => "success", "data" => $alerts]);
+
+    $rows = [];
+    while ($row = mysqli_fetch_assoc($result)) {
+        $rows[] = $row;
+    }
+
+    echo json_encode(['status' => 'success', 'count' => count($rows), 'data' => $rows]);
     exit;
 }
+
+// ─────────────────────────────────────────────────────────────
+// 5. Reject All Other Methods
+// ─────────────────────────────────────────────────────────────
+http_response_code(405);
+echo json_encode(['status' => 'error', 'message' => 'Method not allowed. Use GET or POST.']);
 ?>

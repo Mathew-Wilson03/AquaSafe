@@ -184,3 +184,27 @@ Session Email: sharonshibupandakasalayil2028@mca.ajce.in
 Expected Admin: mathewwilson2028@mca.ajce.in
 Auth Check: Email=sharonshibupandakasalayil2028@mca.ajce.in, Role=administrator, Super=, Admin=1
 Auth Success. Proceeding...
+Request received: Array
+(
+    [action] => broadcast_alert
+    [area] => All
+    [severity] => Warning
+    [message] => emergency
+)
+
+Session Email: sharonshibupandakasalayil2028@mca.ajce.in
+Expected Admin: mathewwilson2028@mca.ajce.in
+Auth Check: Email=sharonshibupandakasalayil2028@mca.ajce.in, Role=administrator, Super=, Admin=1
+Auth Success. Proceeding...
+Request received: Array
+(
+    [action] => broadcast_alert
+    [area] => All
+    [severity] => Warning
+    [message] => emergency
+)
+
+Session Email: sharonshibupandakasalayil2028@mca.ajce.in
+Expected Admin: mathewwilson2028@mca.ajce.in
+Auth Check: Email=sharonshibupandakasalayil2028@mca.ajce.in, Role=administrator, Super=, Admin=1
+Auth Success. Proceeding...
