@@ -24,7 +24,7 @@ if($_SERVER["REQUEST_METHOD"] == "POST"){
     }
     
     // Validate location against allowed list (optional but safer)
-    $allowed_locations = ["Central City", "North District", "South Reservoir", "West Bank", "East Valley"];
+    $allowed_locations = ["Central City", "North District", "South Reservoir", "West Bank", "East Valley", "Churakullam", "Kakkikavala", "Nellimala"];
     if(!in_array($newLocation, $allowed_locations)){
         echo json_encode(['status' => 'error', 'message' => 'Invalid location selected.']);
         exit;

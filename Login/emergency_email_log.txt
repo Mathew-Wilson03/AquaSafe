@@ -1,0 +1,60 @@
+--- ALERT: 2026-02-24 17:50:13 ---
+Subject: ⚠️ WARNING Alert: Churakullam, Kakkikavala, & Nellimala
+Recipients: mathew.akashwillson@gmail.com, alice@example.com, bob@example.com, Daily Summary, ebanabrahansaji2028@mca.ajce.in, jane.smith@example.com, jane@example.com, john.doe@example.com, john@example.com
+Body: Water level has reached 11.61 ft (WARNING).
+--------------------------------------
+
+--- ALERT: 2026-02-24 18:29:43 ---
+Subject: ⚠️ Warning Alert: System Wide
+Recipients: abin@gmail.com, admin1@aquasafe.com, admin2@aquasafe.com, admin@aquasafe.com, agnussabu2028@mca.ajce.in, albinsunny0420@gmail.com, ardrasnair2028@mca.ajce.in, ebanabrahamsaji2028@mca.ajce.in, kevindaniel2028@mca.ajce.in, manoj@gmail.com, mathew.akashwillson@gmail.com, mathewwilson2028@mca.ajce.in, sharonshibupandakasalayil2028@mca.ajce.in, alice@example.com, bob@example.com, Daily Summary, ebanabrahansaji2028@mca.ajce.in, jane.smith@example.com, jane@example.com, john.doe@example.com, john@example.com
+Body: goooo
+--------------------------------------
+
+--- ALERT: 2026-02-24 18:30:53 ---
+Subject: ⚠️ Warning Alert: Churakullam
+Recipients: admin@aquasafe.com, admin1@aquasafe.com, admin2@aquasafe.com, mathewwilson2028@mca.ajce.in, mathew.akashwillson@gmail.com, albinsunny0420@gmail.com, sharonshibupandakasalayil2028@mca.ajce.in, ebanabrahamsaji2028@mca.ajce.in, abin@gmail.com, manoj@gmail.com, agnussabu2028@mca.ajce.in, ardrasnair2028@mca.ajce.in, kevindaniel2028@mca.ajce.in, alice@example.com, bob@example.com, Daily Summary, ebanabrahansaji2028@mca.ajce.in, jane.smith@example.com, jane@example.com, john.doe@example.com, john@example.com
+Body: goooo
+--------------------------------------
+
+--- ALERT: 2026-02-24 18:41:22 ---
+Subject: ⚠️ Warning Alert: System Wide
+Recipients: abin@gmail.com, admin1@aquasafe.com, admin2@aquasafe.com, admin@aquasafe.com, agnussabu2028@mca.ajce.in, albinsunny0420@gmail.com, ardrasnair2028@mca.ajce.in, ebanabrahamsaji2028@mca.ajce.in, kevindaniel2028@mca.ajce.in, manoj@gmail.com, mathew.akashwillson@gmail.com, mathewwilson2028@mca.ajce.in, sharonshibupandakasalayil2028@mca.ajce.in, alice@example.com, bob@example.com, Daily Summary, ebanabrahansaji2028@mca.ajce.in, jane.smith@example.com, jane@example.com, john.doe@example.com, john@example.com
+Body: weel done
+--------------------------------------
+
+--- ALERT: 2026-02-24 18:42:09 ---
+Subject: ⚠️ Warning Alert: System Wide
+Recipients: abin@gmail.com, admin1@aquasafe.com, admin2@aquasafe.com, admin@aquasafe.com, agnussabu2028@mca.ajce.in, albinsunny0420@gmail.com, ardrasnair2028@mca.ajce.in, ebanabrahamsaji2028@mca.ajce.in, kevindaniel2028@mca.ajce.in, manoj@gmail.com, mathew.akashwillson@gmail.com, mathewwilson2028@mca.ajce.in, sharonshibupandakasalayil2028@mca.ajce.in, alice@example.com, bob@example.com, Daily Summary, ebanabrahansaji2028@mca.ajce.in, jane.smith@example.com, jane@example.com, john.doe@example.com, john@example.com
+Body: move
+--------------------------------------
+
+--- ALERT: 2026-02-24 18:53:56 ---
+Subject: ⚠️ WARNING Alert: Churakullam, Kakkikavala, & Nellimala
+Recipients: admin@aquasafe.com, admin1@aquasafe.com, admin2@aquasafe.com, mathewwilson2028@mca.ajce.in, mathew.akashwillson@gmail.com, albinsunny0420@gmail.com, sharonshibupandakasalayil2028@mca.ajce.in, ebanabrahamsaji2028@mca.ajce.in, abin@gmail.com, manoj@gmail.com, agnussabu2028@mca.ajce.in, ardrasnair2028@mca.ajce.in, kevindaniel2028@mca.ajce.in, alice@example.com, bob@example.com, Daily Summary, ebanabrahansaji2028@mca.ajce.in, jane.smith@example.com, jane@example.com, john.doe@example.com, john@example.com
+Body: Water level has reached 12.91 ft (WARNING).
+--------------------------------------
+
+--- ALERT: 2026-02-24 18:54:52 ---
+Subject: ⚠️ Warning Alert: System Wide
+Recipients: abin@gmail.com, admin1@aquasafe.com, admin2@aquasafe.com, admin@aquasafe.com, agnussabu2028@mca.ajce.in, albinsunny0420@gmail.com, ardrasnair2028@mca.ajce.in, ebanabrahamsaji2028@mca.ajce.in, kevindaniel2028@mca.ajce.in, manoj@gmail.com, mathew.akashwillson@gmail.com, mathewwilson2028@mca.ajce.in, sharonshibupandakasalayil2028@mca.ajce.in, alice@example.com, bob@example.com, Daily Summary, ebanabrahansaji2028@mca.ajce.in, jane.smith@example.com, jane@example.com, john.doe@example.com, john@example.com
+Body: mm
+--------------------------------------
+
+--- ALERT: 2026-02-24 19:38:52 ---
+Subject: ⚠️ WARNING Alert: Churakullam, Kakkikavala, & Nellimala
+Recipients: admin@aquasafe.com, admin1@aquasafe.com, admin2@aquasafe.com, mathewwilson2028@mca.ajce.in, mathew.akashwillson@gmail.com, albinsunny0420@gmail.com, sharonshibupandakasalayil2028@mca.ajce.in, ebanabrahamsaji2028@mca.ajce.in, abin@gmail.com, manoj@gmail.com, agnussabu2028@mca.ajce.in, ardrasnair2028@mca.ajce.in, kevindaniel2028@mca.ajce.in, alice@example.com, bob@example.com, Daily Summary, ebanabrahansaji2028@mca.ajce.in, jane.smith@example.com, jane@example.com, john.doe@example.com, john@example.com
+Body: Water level has reached 10.61 ft (WARNING).
+--------------------------------------
+
+--- ALERT: 2026-02-24 20:15:31 ---
+Subject: ⚠️ WARNING Alert: Churakullam, Kakkikavala, & Nellimala
+Recipients: admin@aquasafe.com, admin1@aquasafe.com, admin2@aquasafe.com, mathewwilson2028@mca.ajce.in, mathew.akashwillson@gmail.com, albinsunny0420@gmail.com, sharonshibupandakasalayil2028@mca.ajce.in, ebanabrahamsaji2028@mca.ajce.in, abin@gmail.com, manoj@gmail.com, agnussabu2028@mca.ajce.in, ardrasnair2028@mca.ajce.in, kevindaniel2028@mca.ajce.in, alice@example.com, bob@example.com, Daily Summary, ebanabrahansaji2028@mca.ajce.in, jane.smith@example.com, jane@example.com, john.doe@example.com, john@example.com
+Body: Water level has reached 10.79 ft (WARNING).
+--------------------------------------
+
+--- ALERT: 2026-02-25 05:25:53 ---
+Subject: ⚠️ WARNING Alert: Churakullam, Kakkikavala, & Nellimala
+Recipients: admin@aquasafe.com, admin1@aquasafe.com, admin2@aquasafe.com, mathewwilson2028@mca.ajce.in, mathew.akashwillson@gmail.com, albinsunny0420@gmail.com, sharonshibupandakasalayil2028@mca.ajce.in, ebanabrahamsaji2028@mca.ajce.in, abin@gmail.com, manoj@gmail.com, agnussabu2028@mca.ajce.in, ardrasnair2028@mca.ajce.in, kevindaniel2028@mca.ajce.in, alice@example.com, bob@example.com, Daily Summary, ebanabrahansaji2028@mca.ajce.in, jane.smith@example.com, jane@example.com, john.doe@example.com, john@example.com
+Body: Water level has reached 12.59 ft (WARNING).
+--------------------------------------
+

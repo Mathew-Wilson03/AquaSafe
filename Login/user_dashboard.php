@@ -470,6 +470,15 @@ if (file_exists($help_file)) {
     </style>
 </head>
 <body>
+    <!-- Emergency Alarm Banner -->
+    <div id="alarmBanner" style="display:none; position:fixed; top:0; left:0; width:100%; padding:20px; background:#e74c3c; color:#fff; z-index:20000; justify-content:center; align-items:center; flex-direction:column; gap:15px; box-shadow:0 10px 30px rgba(0,0,0,0.5); animation:slideDown 0.5s ease;">
+        <div style="font-size:40px; animation: pulse 1s infinite;">🚨 EMERGENCY ALARM 🚨</div>
+        <div id="alarmStatus" style="font-size:18px; font-weight:700; text-align:center;">Flood Alert Detected!</div>
+        <button onclick="window.stopEmergencyAlarm()" style="padding:15px 40px; background:#fff; color:#e74c3c; border:none; border-radius:50px; font-weight:900; font-size:18px; cursor:pointer; box-shadow:0 4px 15px rgba(0,0,0,0.2); transition:transform 0.2s;" onmouseover="this.style.transform='scale(1.1)'" onmouseout="this.style.transform='scale(1)'">
+            STOP ALARM
+        </button>
+    </div>
+
     <div class="sidebar-overlay" id="sidebarOverlay"></div>
     <div class="container">
         <div class="sidebar glass animate__animated animate__fadeInLeft" id="sidebar">
@@ -483,7 +492,7 @@ if (file_exists($help_file)) {
                 <a href="#section-contacts" data-target="section-contacts">📞 Contacts</a>
                 <a href="#section-alerts" data-target="section-alerts" style="position:relative;">
                     🚨 Alerts
-                    <span id="alertBadge" style="display:none; position:absolute; top:8px; right:8px; background:#e74c3c; color:#fff; border-radius:50%; width:10px; height:10px; box-shadow:0 0 5px #e74c3c;"></span>
+                    <span id="alertBadge" style="display:none; position:absolute; top:8px; right:8px; background:#e74c3c; color:#fff; border-radius:50%; width:20px; height:20px; font-size:11px; font-weight:700; align-items:center; justify-content:center; box-shadow:0 2px 8px rgba(231,76,60,0.5);"></span>
                 </a>
                 <a href="#section-help" data-target="section-help" id="helpDeskLink">
                     🆘 Help Desk
@@ -1090,20 +1099,35 @@ if (file_exists($help_file)) {
             function showSection(id){
                 sections.forEach(s => {
                     s.classList.toggle('active', s.id === id);
-                    if(s.id === id) {
-                    if(s.id === id) {
-                        // Trigger specific initializations logic with tiny delay to allow CSS transitions
-                        setTimeout(() => {
-                            if(id === 'section-water') initChart();
-                            if(id === 'section-flood') initMiniChart();
-                            if(id === 'section-map') initMap();
-                            if(id === 'section-help') {
-                                loadMyRequests();
-                                markHelpdeskAsRead(); 
+                if(s.id === id) {
+                    // Trigger specific initializations logic with tiny delay to allow CSS transitions
+                    setTimeout(() => {
+                        if(id === 'section-water') initChart();
+                        if(id === 'section-flood') initMiniChart();
+                        if(id === 'section-map') initMap();
+                        if(id === 'section-help') {
+                            loadMyRequests();
+                            markHelpdeskAsRead(); 
+                        }
+                        if(id === 'section-alerts') {
+                            // Clear Alert Badge when viewing
+                            const badge = document.getElementById('alertBadge');
+                            if(badge) {
+                                badge.style.display = 'none';
+                                badge.textContent = '';
                             }
-                        }, 50);
-                    }
-                    }
+                            // Update lastSeenAlertId to mark as read
+                            fetch('manage_alerts.php?action=fetch_all&user_location=' + encodeURIComponent(window.userLocation || ''))
+                                .then(r => r.json())
+                                .then(json => {
+                                    if(json.status === 'success' && json.data && json.data.length > 0) {
+                                        const latest = json.data[0];
+                                        localStorage.setItem('lastSeenAlertId', latest.id);
+                                    }
+                                });
+                        }
+                    }, 50);
+                }
                 });
                 links.forEach(l => l.classList.toggle('active', l.getAttribute('href') === '#' + id));
                 try{ history.replaceState(null, '', '#' + id); } catch(e){}
@@ -1161,6 +1185,7 @@ if (file_exists($help_file)) {
                     const locSelect = document.getElementById('editLocation');
                     if(window.userLocation && locSelect) {
                         locSelect.value = window.userLocation;
+                        if(window.checkSensorSupport) window.checkSensorSupport(window.userLocation);
                     }
                     document.getElementById('editProfileModal').style.display = 'flex';
                 });
@@ -1531,6 +1556,9 @@ if (file_exists($help_file)) {
             if (audioCtx.state === 'suspended') {
                 audioCtx.resume().then(() => {
                     console.log("Audio Context Resumed by Interaction");
+                    if (pendingAlarmData && !isAlarmPlaying) {
+                        playEmergencyAlarm(pendingAlarmData.severity, pendingAlarmData.message);
+                    }
                 });
             }
         }
@@ -1538,17 +1566,113 @@ if (file_exists($help_file)) {
         document.addEventListener('keydown', resumeAudioContext);
         document.addEventListener('touchstart', resumeAudioContext);
 
+        // --- EMERGENCY ALARM SYSTEM ---
+        let alarmOscillators = [];
+        let alarmInterval = null;
+        let isAlarmPlaying = false;
+        let pendingAlarmData = null; // Stores {severity, message} if audio blocked
+
+        function playEmergencyAlarm(severity, message, alertId = null, shouldSiren = true) {
+            // 1. Visual Popup (SweetAlert2) - Independent of Siren
+            const currentAlertId = alertId || localStorage.getItem('lastAlertId');
+            if (lastSwalAlertId !== currentAlertId) {
+                lastSwalAlertId = currentAlertId;
+                Swal.fire({
+                    title: `🚨 ${severity} ALERT!`,
+                    text: message,
+                    icon: (severity || '').toUpperCase() === 'CRITICAL' ? 'error' : 'warning',
+                    confirmButtonText: 'I UNDERSTAND',
+                    background: '#1e2029',
+                    color: '#fff',
+                    confirmButtonColor: '#e74c3c',
+                    backdrop: `rgba(231, 76, 60, 0.4)`
+                });
+            }
+
+            // 2. Audible Siren Logic
+            if (!shouldSiren || isAlarmPlaying) return;
+
+            if (audioCtx.state === 'suspended') {
+                console.warn("Audio Context Suspended. Alarm will start on next interaction.");
+                pendingAlarmData = { severity, message };
+                // Still show UI banner so user knows something is wrong
+                const banner = document.getElementById('alarmBanner');
+                if(banner) {
+                    banner.style.display = 'flex';
+                    document.getElementById('alarmStatus').textContent = severity + ": " + message;
+                }
+                return;
+            }
+
+            isAlarmPlaying = true;
+            pendingAlarmData = null;
+            
+            // Show UI
+            const banner = document.getElementById('alarmBanner');
+            if(banner) {
+                banner.style.display = 'flex';
+                document.getElementById('alarmStatus').textContent = severity + ": " + message;
+            }
+
+            function createSiren(freq, startTime) {
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                osc.type = 'triangle';
+                osc.frequency.setValueAtTime(freq, startTime);
+                gain.gain.setValueAtTime(0, startTime);
+                gain.gain.linearRampToValueAtTime(1.0, startTime + 0.1);
+                
+                osc.connect(gain);
+                gain.connect(audioCtx.destination);
+                osc.start(startTime);
+                return { osc, gain };
+            }
+
+            // Two-tone siren loop
+            alarmInterval = setInterval(() => {
+                const now = audioCtx.currentTime;
+                // Tone 1
+                const t1 = createSiren(960, now);
+                t1.gain.gain.setValueAtTime(1.0, now + 0.4);
+                t1.gain.gain.linearRampToValueAtTime(0, now + 0.5);
+                t1.osc.stop(now + 0.5);
+                
+                // Tone 2
+                const t2 = createSiren(800, now + 0.5);
+                t2.gain.gain.setValueAtTime(1.0, now + 0.9);
+                t2.gain.gain.linearRampToValueAtTime(0, now + 1.0);
+                t2.osc.stop(now + 1.0);
+            }, 1000);
+        }
+
+        let lastSwalAlertId = null; // Track which alert we've shown a popup for
+
+        window.stopEmergencyAlarm = function() {
+            isAlarmPlaying = false;
+            pendingAlarmData = null;
+            if(alarmInterval) clearInterval(alarmInterval);
+            alarmInterval = null;
+            
+            // Hide UI
+            const banner = document.getElementById('alarmBanner');
+            if(banner) banner.style.display = 'none';
+
+            // Mark highest seen alert ID as "silenced"
+            const latestId = localStorage.getItem('lastAlertId');
+            if(latestId) localStorage.setItem('silencedAlertId', latestId);
+        }
+
         function playSystemBeep() {
             if (audioCtx.state === 'suspended') {
-                audioCtx.resume(); // Try one last time just in case
+                audioCtx.resume(); 
             }
             
             const oscillator = audioCtx.createOscillator();
             const gainNode = audioCtx.createGain();
             
             oscillator.type = 'sine';
-            oscillator.frequency.setValueAtTime(523.25, audioCtx.currentTime); // C5 (High Beep)
-            oscillator.frequency.exponentialRampToValueAtTime(1046.5, audioCtx.currentTime + 0.1); // Ramp to C6
+            oscillator.frequency.setValueAtTime(523.25, audioCtx.currentTime); 
+            oscillator.frequency.exponentialRampToValueAtTime(1046.5, audioCtx.currentTime + 0.1); 
             
             gainNode.gain.setValueAtTime(0.3, audioCtx.currentTime);
             gainNode.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.5);
@@ -1634,82 +1758,98 @@ if (file_exists($help_file)) {
                 if(json.status === 'success') {
                     const alerts = json.data || [];
                     
-                    // --- NEW ALERT DETECTION ---
-                    if(alerts.length > 0) {
-                        const latestAlert = alerts[0];
-                        // SAFE DATE PARSING (Handle SQL format for Safari/Mobile)
-                        const safeTimeStr = latestAlert.timestamp.replace(" ", "T"); 
-                        const currentLatestTime = new Date(safeTimeStr).getTime();
+                        // --- NEW ALERT DETECTION (Robust ID-based) ---
+                        const lastSeenId = parseInt(localStorage.getItem('lastSeenAlertId') || '0');
+                        let newCount = 0;
                         
-                        const lastSeenTime = localStorage.getItem('lastSeenAlertTime');
-                        
-                        // DEBUG LOGS (Check Console)
-                        // console.log("Latest Alert Time:", currentLatestTime, "Stored Last Seen:", lastSeenTime);
-
-                        // If we have a stored time, and the new alert is newer
-                        if(lastSeenTime && currentLatestTime > parseInt(lastSeenTime)) {
-                            console.log("!!! NEW ALERT DETECTED !!! NOTIFYING USER...");
-                            
-                            // Show Badge
-                            const badge = document.getElementById('alertBadge');
-                            if(badge) badge.style.display = 'flex';
-                            
-                            // PLAY SOUND ALWAYS (Regardless of tab)
-                            try {
-                                playSystemBeep();
-                                console.log("System beep triggered");
-                            } catch (e) {
-                                console.error("Beep failed", e);
-                            }
-                            
-                            // Show browser notification if possible
-                            if("Notification" in window && Notification.permission === "granted") {
-                                new Notification("New AquaSafe Alert", { body: latestAlert.message, icon: '../assets/logo.png' });
-                            }
-                            
-                            // Update LocalStorage AFTER notifying (so it doesn't loop forever, 
-                            // BUT we want it to loop if they reload? No, once notified is enough for that specific alert instance)
-                            // We update lastSeenTime ONLY when they acknowledge it or we've notified them?
-                            // Logic: If sound played, we can update it? 
-                            // User Request: "I should hear sound when new messages are received"
-                            // If we update it immediately, it won't play on next poll. That is correct behavior (play ONCE per alert).
-                            localStorage.setItem('lastSeenAlertTime', currentLatestTime);
-                        }
-                        
-                        // If this is the *very first* run (no localStorage), just set it without noise
-                        // This prevents blasting old alerts on first login.
-                        if(!lastSeenTime) {
-                            localStorage.setItem('lastSeenAlertTime', currentLatestTime);
-                        }
-                    }
-                    // ---------------------------
-
-                    if(alerts.length > 0) {
-                        let html = '';
                         alerts.forEach(alert => {
-                            const isCrit = alert.severity === 'Critical';
-                            const borderColor = isCrit ? '#e74c3c' : (alert.severity === 'Warning' ? '#f1c40f' : '#4ab5c4');
-                            const bgColor = isCrit ? 'rgba(231, 76, 60, 0.1)' : 'rgba(255,255,255,0.05)';
-                            
-                            html += `
-                                <div class="list-item" style="border-left: 4px solid ${borderColor}; background: ${bgColor}; align-items: flex-start; flex-direction: column; gap: 8px;">
-                                    <div style="display: flex; justify-content: space-between; width: 100%;">
-                                        <strong style="color: ${borderColor};">${alert.severity}</strong>
-                                        <span style="font-size: 11px; opacity: 0.6;">${new Date(alert.timestamp).toLocaleTimeString()}</span>
-                                    </div>
-                                    <div style="font-size: 14px; line-height: 1.4;">${alert.message}</div>
-                                    <div style="font-size: 11px; opacity: 0.5; display: flex; gap: 5px; align-items: center;">
-                                        <i data-lucide="map-pin" style="width: 12px;"></i> ${alert.location || 'System Wide'}
-                                    </div>
-                                </div>
-                            `;
+                            if(parseInt(alert.id) > lastSeenId) {
+                                newCount++;
+                            }
                         });
-                        container.innerHTML = html;
-                        lucide.createIcons();
-                    } else {
-                        container.innerHTML = '<div style="text-align:center; padding:30px; opacity:0.5;">No active alerts at the moment. Stay safe! 🛡️</div>';
-                    }
-                }
+
+                        if(newCount > 0) {
+                            console.log(`!!! ${newCount} NEW ALERT(S) DETECTED (IDs > ${lastSeenId}) !!!`);
+                            
+                            // 🚨 EMERGENCY ALARM TRIGGER (Scan all new alerts) 🚨
+                            const silencedId = localStorage.getItem('silencedAlertId');
+                            let maxNewId = parseInt(localStorage.getItem('lastAlertId') || '0');
+                            
+                            alerts.forEach(alert => {
+                                const id = parseInt(alert.id);
+                                if (id > lastSeenId) {
+                                    const severityUpper = (alert.severity || '').toUpperCase();
+                                    if ((severityUpper === 'WARNING' || severityUpper === 'CRITICAL') && id > parseInt(silencedId || '0')) {
+                                        if (id > maxNewId) {
+                                            maxNewId = id;
+                                            localStorage.setItem('lastAlertId', id); // STICKY ID for Stop Alarm
+                                        }
+                                        const shouldSiren = (alert.alert_type === 'IoT');
+                                        playEmergencyAlarm(alert.severity, alert.message, alert.id, shouldSiren);
+                                    }
+                                }
+                            });
+
+                            // Show Badge with count (unless already in alerts section)
+                            const isAlertsActive = document.getElementById('section-alerts').classList.contains('active');
+                            if(!isAlertsActive) {
+                                const badge = document.getElementById('alertBadge');
+                                if(badge) {
+                                    badge.textContent = newCount;
+                                    badge.style.display = 'flex';
+                                }
+                            }
+                            
+                            // PLAY NOTIFICATION BEEP once per fetch batch
+                            const latestAlert = alerts[0];
+                            const lastBeepedId = parseInt(localStorage.getItem('lastBeepedId') || '0');
+                            if(latestAlert && parseInt(latestAlert.id) > lastBeepedId) {
+                                try {
+                                    if (!isAlarmPlaying) playSystemBeep(); 
+                                    if("Notification" in window && Notification.permission === "granted") {
+                                        new Notification("New AquaSafe Alerts", { 
+                                            body: `You have ${newCount} new flood alert(s) in your area.`, 
+                                            icon: '../assets/logo.png' 
+                                        });
+                                    }
+                                    localStorage.setItem('lastBeepedId', latestAlert.id);
+                                } catch (e) {
+                                    console.error("Notification failed", e);
+                                }
+                            }
+                        }
+                        
+                        // Bootstrap initial state so we don't alert on historical data
+                        if(!localStorage.getItem('lastSeenAlertId') && alerts.length > 0) {
+                            localStorage.setItem('lastSeenAlertId', alerts[0].id);
+                        }
+
+                        if(alerts.length > 0) {
+                            let html = '';
+                            alerts.forEach(alert => {
+                                const isCrit = alert.severity === 'Critical';
+                                const borderColor = isCrit ? '#e74c3c' : (alert.severity === 'Warning' ? '#f1c40f' : '#4ab5c4');
+                                const bgColor = isCrit ? 'rgba(231, 76, 60, 0.1)' : 'rgba(255,255,255,0.05)';
+                                
+                                html += `
+                                    <div class="list-item" style="border-left: 4px solid ${borderColor}; background: ${bgColor}; align-items: flex-start; flex-direction: column; gap: 8px;">
+                                        <div style="display: flex; justify-content: space-between; width: 100%;">
+                                            <strong style="color: ${borderColor};">${alert.severity}</strong>
+                                            <span style="font-size: 11px; opacity: 0.6;">${new Date(alert.timestamp).toLocaleTimeString()}</span>
+                                        </div>
+                                        <div style="font-size: 14px; line-height: 1.4;">${alert.message}</div>
+                                        <div style="font-size: 11px; opacity: 0.5; display: flex; gap: 5px; align-items: center;">
+                                            <i data-lucide="map-pin" style="width: 12px;"></i> ${alert.location || 'System Wide'}
+                                        </div>
+                                    </div>
+                                `;
+                            });
+                            container.innerHTML = html;
+                            lucide.createIcons();
+                        } else {
+                            container.innerHTML = '<div style="text-align:center; padding:30px; opacity:0.5;">No active alerts at the moment. Stay safe! 🛡️</div>';
+                        }
+                    } 
             } catch(e) {
                 console.error("Alert Fetch Error:", e);
                 container.innerHTML = '<div style="text-align:center; color:#e74c3c;">Failed to load alerts.</div>';
@@ -1796,8 +1936,28 @@ if (file_exists($help_file)) {
                         <option value="South Reservoir">South Reservoir</option>
                         <option value="West Bank">West Bank</option>
                         <option value="East Valley">East Valley</option>
+                        <option value="Churakullam">Churakullam</option>
+                        <option value="Kakkikavala">Kakkikavala</option>
+                        <option value="Nellimala">Nellimala</option>
                     </select>
+                    <div id="sensorNotice" style="margin-top:8px; font-size:12px; color:#f1c40f; display:none; padding:10px; background:rgba(241,196,15,0.1); border-radius:8px; border:1px solid rgba(241,196,15,0.2);">
+                        ℹ️ <strong>Heads up!</strong> Sensors for this area are not yet active. Automated implementation will be available soon.
+                    </div>
                 </div>
+                
+                <script>
+                    window.checkSensorSupport = function(loc) {
+                        const supported = ['Churakullam', 'Kakkikavala', 'Nellimala'];
+                        const notice = document.getElementById('sensorNotice');
+                        if (notice) {
+                            notice.style.display = (supported.includes(loc) || !loc) ? 'none' : 'block';
+                        }
+                    };
+                    
+                    document.getElementById('editLocation').addEventListener('change', function() {
+                        window.checkSensorSupport(this.value);
+                    });
+                </script>
                 
                 <div style="display:flex; justify-content:flex-end; gap:10px;">
                     <button type="button" onclick="document.getElementById('editProfileModal').style.display='none'" style="padding:10px 20px; background:transparent; border:1px solid #2d2f39; color:#fff; border-radius:8px; cursor:pointer;">Cancel</button>

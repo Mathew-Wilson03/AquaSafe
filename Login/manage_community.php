@@ -123,80 +123,34 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         jsonResponse(true, "Processing Complete!", $stats);
     }
 
-    // --- BROADCAST ALERT ---
+// 126. BROADCAST ALERT
     if ($action === 'broadcast_alert') {
-        $targetArea = $_POST['area'] ?? 'All'; // e.g., 'South Reservoir'
+        require_once 'alert_utils.php';
+
+        $targetArea = $_POST['area'] ?? 'All'; 
         $message = $_POST['message'] ?? 'Emergency Alert!';
         $severity = $_POST['severity'] ?? 'Warning';
 
-        // Gather all recipients
-        $recipients = [];
-        
-        // 1. App Users
-        $sqlUser = "SELECT email, name FROM users";
-        if($targetArea !== 'All') $sqlUser .= " WHERE location = '$targetArea'";
-        $resU = mysqli_query($link, $sqlUser);
-        while($r = mysqli_fetch_assoc($resU)) $recipients[] = $r['email'];
-
-        // 2. Offline Contacts
-        $sqlComm = "SELECT email, name FROM community_alerts";
-        if($targetArea !== 'All') $sqlComm .= " WHERE location = '$targetArea'";
-        $resC = mysqli_query($link, $sqlComm);
-        while($r = mysqli_fetch_assoc($resC)) $recipients[] = $r['email'];
-
-        // --- FIX: also insert into sensor_alerts for User Dashboard visibility ---
-        $insertAlert = mysqli_prepare($link, "INSERT INTO sensor_alerts (severity, message, location) VALUES (?, ?, ?)");
-        $dbLocation = ($targetArea === 'All') ? 'System Wide' : $targetArea;
-        mysqli_stmt_bind_param($insertAlert, "sss", $severity, $message, $dbLocation);
-        mysqli_stmt_execute($insertAlert);
-        mysqli_stmt_close($insertAlert);
-        // -------------------------------------------------------------------------
-
         // --- OPTIMIZATION: Respond to User IMMEDIATELY, then send emails in background ---
-        ob_end_clean(); // Clean any previous output
-        ignore_user_abort(true); // Keep running if browser closes
-        ob_start(); // Buffer output
-
-        // Send Success Response
-        jsonResponse(true, "Alert posted! Emails are being queued in background.");
-        
-        $size = ob_get_length();
-        header("Content-Length: $size");
-        header("Connection: close");
-        ob_end_flush();
-        flush(); // Force output to browser
-        
-        // --- BACKGROUND PROCESS STARTS HERE ---
-        // (Browser has stopped waiting, but PHP is still running)
-        
-        require 'vendor/autoload.php';
-        $mail = new PHPMailer\PHPMailer\PHPMailer(true);
-        // ... mail setup ...
-        $mail->isSMTP();
-        $mail->Host = SMTP_HOST;
-        $mail->SMTPAuth = true;
-        $mail->Username = SMTP_USER;
-        $mail->Password = SMTP_PASS;
-        $mail->SMTPSecure = PHPMailer\PHPMailer\PHPMailer::ENCRYPTION_STARTTLS;
-        $mail->Port = SMTP_PORT;
-        $mail->setFrom(SMTP_FROM_EMAIL, SMTP_FROM_NAME);
-        $mail->isHTML(true);
-        $mail->Subject = "⚠️ $severity Alert: $targetArea";
-
-        foreach(array_unique($recipients) as $toEmail) {
-            try {
-                $mail->clearAddresses();
-                $mail->addAddress($toEmail);
-                $mail->Body = "<h2>$severity Alert for $targetArea</h2><p>$message</p><p>Stay Safe,<br>AquaSafe Team</p>";
-                $mail->send();
-                file_put_contents('email_log.txt', "[" . date('Y-m-d H:i:s') . "] To: $toEmail | Status: Sent\n", FILE_APPEND);
-            } catch (Exception $e) {
-                file_put_contents('email_log.txt', "[" . date('Y-m-d H:i:s') . "] To: $toEmail | Status: Failed | Error: " . $mail->ErrorInfo . "\n", FILE_APPEND);
-            }
-            // Sleep tiny bit to be nice to SMTP server
-            usleep(100000); 
+        if (php_sapi_name() !== 'cli') {
+            ignore_user_abort(true); 
+            ob_start(); 
+            echo json_encode(['success' => true, 'message' => "Alert posted! Emails are being queued in background."]);
+            $size = ob_get_length();
+            header("Content-Length: $size");
+            header("Connection: close");
+            ob_end_flush();
+            flush(); 
+            session_write_close(); // Release session lock for background process
         }
-        exit; // script ends here for real
+
+        // --- BACKGROUND PROCESS ---
+        // Location mapping for 'All'
+        $dbLocation = ($targetArea === 'All') ? 'System Wide' : $targetArea;
+        
+        // Trigger the unified broadcast
+        sendBroadcast($link, $dbLocation, $message, $severity);
+        exit;
     }
 }
 

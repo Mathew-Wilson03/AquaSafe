@@ -375,13 +375,19 @@
                 </div>
                 <div class="form-group">
                     <label class="form-label">Residential Area</label>
-                    <select name="location" style="width: 100%; padding: 12px 14px; background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 10px; font-size: 14px; color: white; height: 46px; outline: none;">
+                    <select id="signupLocation" name="location" style="width: 100%; padding: 12px 14px; background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 10px; font-size: 14px; color: white; height: 46px; outline: none;">
                         <option value="Central City" style="color:black;">Central City</option>
                         <option value="North District" style="color:black;">North District</option>
                         <option value="South Reservoir" style="color:black;">South Reservoir</option>
                         <option value="West Bank" style="color:black;">West Bank</option>
                         <option value="East Valley" style="color:black;">East Valley</option>
+                        <option value="Churakullam" style="color:black;">Churakullam</option>
+                        <option value="Kakkikavala" style="color:black;">Kakkikavala</option>
+                        <option value="Nellimala" style="color:black;">Nellimala</option>
                     </select>
+                    <div id="signupSensorNotice" style="margin-top:8px; font-size:12px; color:#f1c40f; display:none; padding:10px; background:rgba(241,196,15,0.1); border-radius:8px; border:1px solid rgba(241,196,15,0.2);">
+                        ℹ️ <strong>Heads up!</strong> Sensors for this area are not yet active. Automated implementation will be available soon.
+                    </div>
                 </div>
                 <button class="submit-btn" type="submit" name="signup_btn">Sign Up</button>
             </form>
@@ -450,6 +456,18 @@
                     else if (metCount <= 4) strengthBar.style.background = '#f1c40f';
                     else strengthBar.style.background = '#2ecc71';
                 });
+            }
+
+            // Sensor implementation notice
+            const signupLocation = document.getElementById('signupLocation');
+            const signupNotice = document.getElementById('signupSensorNotice');
+            if (signupLocation && signupNotice) {
+                const checkSupport = (loc) => {
+                    const supported = ['Churakullam', 'Kakkikavala', 'Nellimala'];
+                    signupNotice.style.display = (supported.includes(loc) || !loc) ? 'none' : 'block';
+                };
+                signupLocation.addEventListener('change', (e) => checkSupport(e.target.value));
+                checkSupport(signupLocation.value);
             }
         });
 

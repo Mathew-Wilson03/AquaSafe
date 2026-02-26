@@ -10,8 +10,9 @@ if ($action === 'fetch_all') {
     // Base SQL
     $whereClause = "";
     if (!empty($user_location)) {
-        // Filter: Show matching location OR 'System Wide' OR 'System Broadcast'
-        $whereClause = "WHERE location = '$user_location' OR location = 'System Wide' OR location = 'System Broadcast'";
+        // Filter: Show matching location OR 'System Wide' OR 'System Broadcast' OR 'All'
+        // Using LIKE to support combined areas like "Churakullam, Kakkikavala, & Nellimala"
+        $whereClause = "WHERE location LIKE '%$user_location%' OR location = 'System Wide' OR location = 'System Broadcast' OR location = 'All'";
     }
 
     $sql = "SELECT * FROM sensor_alerts $whereClause ORDER BY timestamp DESC LIMIT 20";
@@ -38,14 +39,16 @@ if ($action === 'fetch_sensors') {
 if ($action === 'broadcast') {
     $severity = $_POST['severity'] ?? 'Info';
     $message = $_POST['message'] ?? '';
-    $location = $_POST['location'] ?? 'System Broadcast';
+    // Map 'All' to 'System Wide' for consistency if needed, but the filter now handles 'All' too
+    $location = $_POST['location'] ?? 'System Wide';
+    if ($location === 'All') $location = 'System Wide'; 
 
     if (empty($message)) {
         echo json_encode(['status' => 'error', 'message' => 'Message is required']);
         exit;
     }
 
-    $sql = "INSERT INTO sensor_alerts (severity, message, location) VALUES ('$severity', '$message', '$location')";
+    $sql = "INSERT INTO sensor_alerts (severity, message, location, alert_type) VALUES ('$severity', '$message', '$location', 'Admin')";
     if (mysqli_query($link, $sql)) {
         echo json_encode(['status' => 'success', 'message' => 'Alert broadcasted successfully']);
     } else {
