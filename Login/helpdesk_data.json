@@ -1,0 +1,93 @@
+[
+    {
+        "id": "12",
+        "user_name": "Mathew Wills",
+        "user_email": "mathew.akashwillson@gmail.com",
+        "location": "",
+        "title": "blocked drain",
+        "details": "water drain blocks foul smell",
+        "admin_reply": null,
+        "status": "Pending",
+        "priority": "Normal",
+        "created_at": "2026-02-28 00:57:02",
+        "updated_at": "2026-02-28 00:57:02"
+    },
+    {
+        "id": "11",
+        "user_name": "Mathew Wills",
+        "user_email": "mathew.akashwillson@gmail.com",
+        "location": "",
+        "title": "wallardie",
+        "details": "help",
+        "admin_reply": null,
+        "status": "Resolved",
+        "priority": "Normal",
+        "created_at": "2026-02-24 22:39:10",
+        "updated_at": "2026-02-24 22:39:26"
+    },
+    {
+        "id": "10",
+        "user_name": "Mathew Wills",
+        "user_email": "mathew.akashwillson@gmail.com",
+        "location": "",
+        "title": "emergency",
+        "details": "help me out",
+        "admin_reply": "where is your place... we will rech out once we know the place",
+        "status": "Resolved",
+        "priority": "Normal",
+        "created_at": "2026-02-02 11:41:58",
+        "updated_at": "2026-02-02 11:43:22"
+    },
+    {
+        "id": "9",
+        "user_name": "Mathew Wills",
+        "user_email": "mathew.akashwillson@gmail.com",
+        "location": "",
+        "title": "gssysy",
+        "details": "ksbsdgfhawg",
+        "admin_reply": "ugzusdgfk",
+        "status": "Resolved",
+        "priority": "Normal",
+        "created_at": "2026-01-12 15:23:11",
+        "updated_at": "2026-01-12 15:24:43"
+    },
+    {
+        "id": "4",
+        "user_name": "Mathew Wills",
+        "user_email": "mathew.akashwillson@gmail.com",
+        "location": "",
+        "title": "need help",
+        "details": "as water is raising in my locality(wallardie) please guide me to the nearest evacuation point as i have my belongings with me.",
+        "admin_reply": "sure we will would help you to move",
+        "status": "Resolved",
+        "priority": "Normal",
+        "created_at": "2026-01-10 10:19:19",
+        "updated_at": "2026-01-10 10:21:09"
+    },
+    {
+        "id": "3",
+        "user_name": "Mathew Wills",
+        "user_email": "mathew.akashwillson@gmail.com",
+        "location": "",
+        "title": "ggsgs",
+        "details": "hhrth fghfgh fgghfgh fghgf",
+        "admin_reply": "gggnghfh",
+        "status": "Resolved",
+        "priority": "Normal",
+        "created_at": "2026-01-07 22:41:10",
+        "updated_at": "2026-01-07 23:36:59"
+    },
+    {
+        "id": "1",
+        "user_name": "System Verification",
+        "user_email": "verify@aquasafe.com",
+        "location": "",
+        "title": "Final Sync Test",
+        "details": "This is a test request to verify the admin view.",
+        "admin_reply": null,
+        "status": "Resolved",
+        "priority": "Normal",
+        "created_at": "2026-01-07 21:58:52",
+        "updated_at": "2026-01-07 23:29:45"
+    }
+]

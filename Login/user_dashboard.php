@@ -82,6 +82,13 @@ if (file_exists($help_file)) {
             --safe: #2ecc71;
             --warning: #f1c40f;
             --danger: #e74c3c;
+
+            /* Professional Safety Assistant Additions */
+            --hero-bg: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+            --hero-border: rgba(176, 251, 255, 0.2);
+            --teal-accent: #b0fbff;
+            --soft-blue: #3b82f6;
+            --soft-gray: #64748b;
         }
 
         * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -99,8 +106,6 @@ if (file_exists($help_file)) {
         /* Glassmorphism Utility */
         .glass {
             background: var(--glass);
-            /* backdrop-filter: blur(12px); Removed for solid professional look */
-            /* -webkit-backdrop-filter: blur(12px); */
             border: 1px solid var(--glass-border);
             border-radius: 20px;
             box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
@@ -141,7 +146,6 @@ if (file_exists($help_file)) {
             padding-right: 10px;
         }
         
-        /* Custom scrollbar for sidebar */
         .sidebar-menu::-webkit-scrollbar { width: 4px; }
         .sidebar-menu::-webkit-scrollbar-track { background: transparent; }
         .sidebar-menu::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 10px; }
@@ -167,305 +171,385 @@ if (file_exists($help_file)) {
             box-shadow: 0 4px 15px rgba(0,0,0,0.1);
         }
 
-        .sidebar-footer a {
-            color: var(--accent) !important;
-            margin-bottom: 0;
-        }
-        
-        .sidebar-footer a:hover {
-            background: rgba(255,141,133,0.1);
-            color: var(--accent) !important;
-        }
-
         .sidebar-footer { 
             border-top: 1px solid rgba(255,255,255,0.1); 
             padding-top: 20px; 
         }
 
-        /* --- Icon Animations --- */
-        @keyframes spin-slow { 100% { transform: rotate(360deg); } }
-        @keyframes bounce-gentle { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-3px); } }
-        @keyframes pulse-soft { 0% { opacity: 0.8; transform: scale(1); } 50% { opacity: 1; transform: scale(1.1); } 100% { opacity: 0.8; transform: scale(1); } }
-
-        /* Apply to Lucide Icons specifically */
-        .sidebar-menu a i, .sidebar-footer a i {
-            transition: transform 0.3s ease;
+        /* Hero Card & Safety Asst Styles */
+        .hero-card {
+            background: var(--hero-bg);
+            border: 1px solid var(--hero-border);
+            border-radius: 24px;
+            padding: 30px;
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.4);
+            margin-bottom: 24px;
         }
 
-        .sidebar-menu a:hover i {
-            animation: bounce-gentle 1s infinite;
-            color: var(--primary);
+        .hero-card::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle at center, rgba(176, 251, 255, 0.05) 0%, transparent 50%);
+            pointer-events: none;
         }
 
-        .sidebar-header i {
-            animation: spin-slow 10s linear infinite;
-        }
-
-        .card-icon {
-            transition: transform 0.3s ease;
-        }
-        
-        .list-item:hover .card-icon, .card:hover .card-icon {
-            transform: scale(1.2) rotate(5deg);
-        }
-        
-        /* Specific Icon Tweaks */
-        i[data-lucide="alert-triangle"] { animation: pulse-soft 2s infinite; color: var(--warning); }
-        i[data-lucide="alert-octagon"] { animation: pulse-soft 1s infinite; color: var(--danger); }
-        i[data-lucide="settings"]:hover { animation: spin-slow 4s linear infinite; }
-
-        /* Main Content */
-        .main { flex: 1; display: flex; flex-direction: column; gap: 24px; }
-
-        .header { 
-            padding: 20px 30px; 
-            display: flex; 
-            justify-content: space-between; 
-            align-items: center; 
-        }
-
-        .header-left h1 { 
-            font-size: 24px; 
-            font-weight: 700; 
-            background: linear-gradient(to right, #fff, var(--primary));
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-        }
-
-        .header-right { display:flex; align-items:center; gap:20px; }
-        
-        .last-updated { 
-            background: rgba(0,0,0,0.4); 
-            padding: 10px 16px; 
-            border-radius: 50px; 
-            font-size: 13px; 
-            color: var(--primary); 
-            border: 1px solid rgba(74,181,196,0.3); 
-            display:flex; 
-            align-items:center; 
-            gap:8px;
-            font-weight: 600;
-        }
-
-        /* User Profile */
-        .user-profile {
-            display: flex;
+        .safety-badge {
+            display: inline-flex;
             align-items: center;
-            gap: 12px;
-            padding: 6px 16px;
-            background: rgba(255,255,255,0.05);
+            gap: 8px;
+            padding: 8px 16px;
             border-radius: 50px;
-            border: 1px solid rgba(255,255,255,0.1);
+            font-weight: 700;
+            font-size: 14px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
         }
 
-        .user-avatar {
-            width: 36px;
-            height: 36px;
-            background: var(--primary);
-            color: #032023;
-            border-radius: 50%;
+        .badge-safe { background: rgba(46, 204, 113, 0.15); color: #2ecc71; border: 1px solid rgba(46, 204, 113, 0.3); }
+        .badge-warning { background: rgba(241, 196, 15, 0.15); color: #f1c40f; border: 1px solid rgba(241, 196, 15, 0.3); }
+        .badge-danger { background: rgba(231, 76, 60, 0.15); color: #e74c3c; border: 1px solid rgba(231, 76, 60, 0.3); }
+
+        .emergency-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        .emergency-btn {
+            background: rgba(255,255,255,0.03);
+            border: 1px solid rgba(255,255,255,0.08);
+            padding: 15px 10px;
+            border-radius: 16px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 8px;
+            color: #fff;
+            text-decoration: none;
+            font-size: 12px;
+            font-weight: 600;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .emergency-btn:hover {
+            background: rgba(255,255,255,0.08);
+            transform: translateY(-5px);
+            border-color: var(--teal-accent);
+        }
+
+        .emergency-btn.sos {
+            background: rgba(231, 76, 60, 0.1);
+            border-color: rgba(231, 76, 60, 0.3);
+        }
+        .emergency-btn.sos i { color: #e74c3c; }
+
+        .timeline-item {
+            display: flex;
+            gap: 15px;
+            padding: 12px 0;
+            border-bottom: 1px solid rgba(255,255,255,0.05);
+        }
+        .timeline-item:last-child { border-bottom: none; }
+
+        .item-icon {
+            width: 32px;
+            height: 32px;
+            border-radius: 8px;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-weight: 800;
+            flex-shrink: 0;
             font-size: 14px;
         }
 
-        /* Content Sections */
-        .content-section { display: none; width: 100%; }
-        .content-section.active { display: block; animation: fadeInUp 0.5s ease both; }
-
-        .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 24px; }
-        .grid.full { grid-template-columns: 1fr; }
-
-        .card { 
-            padding: 24px; 
-            height: 100%;
-            display: flex;
-            flex-direction: column;
-        }
-        
-        .card h3 { 
-            margin-bottom: 20px; 
-            font-size: 18px; 
-            font-weight: 700;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            color: var(--primary);
-        }
-
-        /* Status Pills */
-        .status-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(100px, 1fr)); gap: 12px; margin-bottom: 20px; }
-        .status-pill { 
-            padding: 12px 10px; 
-            border-radius: 12px; 
-            text-align: center; 
-            font-size: 14px;
-            font-weight: 700; 
-            transition: all 0.3s ease;
-            opacity: 0.5;
-            cursor: default;
-        }
-        .status-pill.active { 
-            opacity: 1; 
-            transform: scale(1.05);
-            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
-        }
-        
-        .safe { background: rgba(46,204,113,0.1); color: var(--safe); border: 2px solid rgba(46,204,113,0.2); }
-        .warning { background: rgba(241,196,15,0.1); color: var(--warning); border: 2px solid rgba(241,196,15,0.2); }
-        .danger { background: rgba(231,76,60,0.1); color: var(--danger); border: 2px solid rgba(231,76,60,0.2); }
-
-        /* Lists */
-        .list-container { display: flex; flex-direction: column; gap: 12px; }
-        .list-item { 
-            padding: 16px; 
-            border-radius: 14px; 
-            background: rgba(0,0,0,0.25); 
-            border: 1px solid rgba(255,255,255,0.05);
-            transition: all 0.3s ease;
+        .intelligence-reading {
             display: flex;
             justify-content: space-between;
             align-items: center;
-        }
-        .list-item:hover {
-            background: rgba(255,255,255,0.05);
-            transform: translateY(-2px);
-            border-color: rgba(74,181,196,0.2);
+            padding: 10px 0;
+            border-bottom: 1px dotted rgba(255,255,255,0.1);
         }
 
-        .small-btn { 
-            padding: 8px 16px; 
-            border-radius: 10px; 
-            background: rgba(74,181,196,0.15); 
-            color: var(--primary); 
-            border: 1px solid rgba(74,181,196,0.2); 
-            text-decoration: none; 
-            font-size: 13px;
-            font-weight: 600;
+        /* --- Alert & Timeline Enhancements --- */
+        .alert-card-professional {
+            padding: 18px;
+            border-radius: 16px;
+            margin-top: 12px;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .alert-theme-critical {
+            background: rgba(231, 76, 60, 0.08);
+            border: 1px solid rgba(231, 76, 60, 0.3);
+            box-shadow: 0 0 20px rgba(231, 76, 60, 0.1);
+        }
+
+        .alert-theme-warning {
+            background: rgba(241, 196, 15, 0.08);
+            border: 1px solid rgba(241, 196, 15, 0.3);
+        }
+
+        .alert-theme-safe {
+            background: rgba(46, 204, 113, 0.08);
+            border: 1px solid rgba(46, 204, 113, 0.3);
+        }
+
+        .alert-theme-evac {
+            background: rgba(59, 130, 246, 0.08);
+            border: 1px solid rgba(59, 130, 246, 0.3);
+            box-shadow: 0 0 20px rgba(59, 130, 246, 0.1);
+        }
+
+        .alert-theme-system {
+            background: rgba(168, 85, 247, 0.08);
+            border: 1px solid rgba(168, 85, 247, 0.3);
+        }
+
+        .alert-header-prof {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+
+        .severity-pill {
+            padding: 4px 10px;
+            border-radius: 50px;
+            font-size: 10px;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .pill-critical { background: #e74c3c; color: #fff; box-shadow: 0 0 10px rgba(231,76,60,0.4); }
+        .pill-warning { background: #f1c40f; color: #13141b; }
+        .pill-safe { background: #2ecc71; color: #fff; }
+        .pill-evac { background: #3b82f6; color: #fff; box-shadow: 0 0 10px rgba(59,130,246,0.4); }
+        .pill-system { background: #a855f7; color: #fff; }
+
+        .alert-pulse {
+            animation: alert-pulse-animation 2s infinite;
+        }
+
+        @keyframes alert-pulse-animation {
+            0% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.7; transform: scale(1.05); }
+            100% { opacity: 1; transform: scale(1); }
+        }
+
+        /* Grouped History Styles */
+        .date-group-header {
+            font-size: 11px;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            color: var(--primary);
+            margin: 25px 0 15px;
+            padding-left: 10px;
+            border-left: 3px solid var(--primary);
+            opacity: 0.8;
+        }
+
+        .history-item-prof {
+            padding: 20px;
+            border-radius: 18px;
+            background: rgba(30,32,41,0.4);
+            border: 1px solid rgba(255,255,255,0.05);
+            margin-bottom: 15px;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            cursor: pointer;
+            position: relative;
+        }
+
+        .history-item-prof:hover {
+            background: rgba(30,32,41,0.7);
+            border-color: rgba(255,255,255,0.15);
+            transform: translateY(-3px);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+        }
+
+        .alert-details-panel {
+            max-height: 0;
+            overflow: hidden;
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            opacity: 0;
+            margin-top: 0;
+            padding: 0 5px;
+        }
+
+        .history-item-prof.expanded .alert-details-panel {
+            max-height: 500px;
+            opacity: 1;
+            margin-top: 20px;
+            padding-top: 15px;
+            border-top: 1px solid rgba(255,255,255,0.05);
+        }
+
+        .intelligence-tag {
+            background: rgba(176, 251, 255, 0.1);
+            border: 1px solid rgba(176, 251, 255, 0.2);
+            color: var(--teal-accent);
+            padding: 4px 8px;
+            border-radius: 6px;
+            font-size: 10px;
+            font-weight: 700;
+        }
+
+        .trend-icon { font-size: 16px; vertical-align: middle; }
+
+        .control-panel {
+            background: rgba(0,0,0,0.2);
+            padding: 15px;
+            border-radius: 16px;
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+            align-items: center;
+            margin-bottom: 25px;
+            border: 1px solid rgba(255,255,255,0.05);
+        }
+
+        .ctrl-group { display: flex; align-items: center; gap: 10px; }
+        .ctrl-label { font-size: 11px; font-weight: 700; opacity: 0.5; text-transform: uppercase; }
+
+        .terminal-input {
+            background: #13141b;
+            border: 1px solid #2d2f39;
+            color: #fff;
+            padding: 10px 15px;
+            border-radius: 10px;
+            font-size: 12px;
+            outline: none;
             transition: all 0.2s;
         }
+
+        .terminal-input:focus { border-color: var(--primary); box-shadow: 0 0 15px rgba(192, 84, 255, 0.2); }
+
+        .terminal-select {
+            background: #13141b;
+            border: 1px solid #2d2f39;
+            color: #fff;
+            padding: 8px 12px;
+            border-radius: 10px;
+            font-size: 12px;
+            cursor: pointer;
+        }
+
+        .btn-terminal {
+            background: rgba(255,255,255,0.05);
+            border: 1px solid rgba(255,255,255,0.1);
+            color: #fff;
+            padding: 10px 18px;
+            border-radius: 10px;
+            font-size: 12px;
+            font-weight: 700;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.2s;
+        }
+
+        .btn-terminal:hover { background: rgba(255,255,255,0.1); border-color: var(--primary); }
+        .btn-terminal.active { background: var(--primary); color: #1e2029; }
+
+        /* --- Original Functional Styles --- */
+        .main { flex: 1; display: flex; flex-direction: column; gap: 0; min-width: 0; overflow: visible; }
+        .header { padding: 20px 30px; display: flex; justify-content: space-between; align-items: center; }
+        .header-left h1 { font-size: 24px; font-weight: 700; color: #fff; }
+        .last-updated { background: rgba(0,0,0,0.4); padding: 10px 16px; border-radius: 50px; font-size: 13px; color: var(--primary); border: 1px solid rgba(74,181,196,0.3); display:flex; align-items:center; gap:8px; font-weight: 600; }
+        .user-profile { display: flex; align-items: center; gap: 12px; padding: 6px 16px; background: rgba(255,255,255,0.05); border-radius: 50px; border: 1px solid rgba(255,255,255,0.1); }
+        .user-avatar { width: 36px; height: 36px; background: var(--primary); color: #032023; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 14px; position: relative; z-index: 10; }
+
+        .content-section { display: none; width: 100%; }
+        .content-section.active { display: block; animation: fadeInUp 0.5s ease both; }
+        .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 24px; }
+        .card { padding: 24px; height: 100%; display: flex; flex-direction: column; }
+        .card h3 { margin-bottom: 20px; font-size: 18px; font-weight: 700; display: flex; align-items: center; gap: 10px; color: var(--primary); }
+        .list-container { display: flex; flex-direction: column; gap: 12px; }
+        .list-item { padding: 16px; border-radius: 14px; background: rgba(0,0,0,0.25); border: 1px solid rgba(255,255,255,0.05); transition: all 0.3s ease; display: flex; justify-content: space-between; align-items: center; }
+        .small-btn { padding: 8px 16px; border-radius: 10px; background: rgba(74,181,196,0.15); color: var(--primary); border: 1px solid rgba(74,181,196,0.2); text-decoration: none; font-size: 13px; font-weight: 600; transition: all 0.2s; }
         .small-btn:hover { background: var(--primary); color: #032023; }
-
-        /* Forms */
-        .help-form { display: flex; flex-direction: column; gap: 12px; }
-        .help-form input, .help-form textarea { 
-            width: 100%; 
-            padding: 14px; 
-            border-radius: 12px; 
-            border: 1px solid rgba(255,255,255,0.1); 
-            background: rgba(0,0,0,0.3); 
-            color: #fff; 
-            font-family: inherit;
-            transition: all 0.3s;
-        }
-        .help-form input:focus, .help-form textarea:focus {
-            outline: none;
-            border-color: var(--primary);
-            background: rgba(0,0,0,0.4);
-        }
-        .help-form button { 
-            background: var(--primary); 
-            color: #032023; 
-            padding: 14px; 
-            border: none; 
-            border-radius: 12px; 
-            cursor: pointer; 
-            font-weight: 700; 
-            transition: all 0.3s;
-        }
-        .help-form button:hover { transform: translateY(-3px); box-shadow: 0 5px 15px rgba(74,181,196,0.3); }
-
-        /* Map and Charts */
+        
+        .weather-widget { display: flex; align-items: center; gap: 15px; padding: 15px 25px; background: rgba(74,181,196,0.1); border-radius: 20px; border: 1px solid rgba(74,181,196,0.2); margin-bottom: 20px; }
         #map { height: 400px; border-radius: 16px; margin-top: 10px; z-index: 10; }
         .chart-container { position: relative; height: 300px; width: 100%; }
 
-        /* Animations */
-        @keyframes fadeInUp {
-            from { opacity: 0; transform: translateY(20px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-
-        /* Floating Weather Widget */
-        .weather-widget {
+        /* Safety Navbar Rework */
+        .safety-navbar {
             display: flex;
+            justify-content: space-between;
             align-items: center;
-            gap: 15px;
-            padding: 15px 25px;
-            background: rgba(74,181,196,0.1);
-            border-radius: 20px;
-            border: 1px solid rgba(74,181,196,0.2);
-            margin-bottom: 20px;
+            padding: 12px 24px;
+            margin-bottom: 24px;
+            background: rgba(30, 32, 41, 0.8); /* Slightly more opaque for stickiness */
+            backdrop-filter: blur(15px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 16px;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            margin-top: -5px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
         }
 
+        .navbar-info { display: flex; align-items: center; gap: 20px; }
+        .nav-item { display: flex; align-items: center; gap: 8px; font-size: 13px; font-weight: 600; color: rgba(255,255,255,0.7); }
+        .nav-item i { width: 16px; color: var(--primary); }
+        .nav-weather { display: flex; align-items: center; gap: 10px; padding: 6px 14px; background: rgba(0,0,0,0.2); border-radius: 50px; border: 1px solid rgba(255,255,255,0.05); }
+
+        /* Unified Card Styling */
+        .card-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+        .card-header h3 { margin-bottom: 0 !important; }
+
+        /* Contacts Grid */
+        .contact-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 16px; }
+        .contact-card { 
+            padding: 20px; border-radius: 18px; background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.05);
+            transition: all 0.3s ease; display: flex; flex-direction: column; gap: 12px;
+        }
+        .contact-card:hover { border-color: var(--primary); transform: translateY(-3px); }
+        .contact-cat { font-size: 10px; font-weight: 800; text-transform: uppercase; letter-spacing: 1px; color: var(--primary); opacity: 0.6; }
+
+        /* Help Desk Ticketing */
+        .ticket-item { padding: 20px; border-radius: 18px; background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.05); margin-bottom: 15px; }
+        .ticket-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 12px; }
+        .ticket-status { font-size: 11px; padding: 4px 10px; border-radius: 50px; font-weight: 700; }
+
+        /* Settings Tabs */
+        .settings-layout { display: flex; gap: 24px; }
+        .settings-nav { width: 200px; display: flex; flex-direction: column; gap: 5px; }
+        .settings-nav button { 
+            text-align: left; padding: 12px 16px; border-radius: 10px; background: transparent; border: none; color: rgba(255,255,255,0.6); 
+            cursor: pointer; font-size: 14px; font-weight: 600; transition: all 0.2s;
+        }
+        .settings-nav button.active { background: rgba(192, 84, 255, 0.1); color: var(--primary); }
+        .settings-content { flex: 1; padding: 5px; }
+
+        @keyframes fadeInUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+        
         @media (max-width: 1100px) { 
             .container { flex-direction: column; padding: 15px; }
-            .sidebar { 
-                position: fixed;
-                left: -320px;
-                top: 0;
-                height: 100vh;
-                z-index: 2000;
-                width: 280px;
-                transition: left 0.3s ease;
-                border-radius: 0 20px 20px 0;
-                overflow-y: auto; /* Allow scrolling if menu is long */
-                max-height: 100vh;
-            }
+            .sidebar { position: fixed; left: -320px; top: 0; height: 100vh; z-index: 2000; width: 280px; transition: left 0.3s ease; border-radius: 0 20px 20px 0; overflow-y: auto; max-height: 100vh; }
             .sidebar.active { left: 0; }
-            .main { gap: 15px; }
             .grid { grid-template-columns: 1fr; gap: 15px; }
             .mobile-toggle { display: block !important; }
-            .header { padding: 15px; flex-wrap: wrap; gap: 15px; }
-            .header-right { gap: 10px; width: 100%; justify-content: space-between; }
-            .user-profile span { display: none; }
-            .last-updated { flex: 1; justify-content: center; }
+            .safety-navbar { flex-wrap: wrap; gap: 10px; }
         }
-
-        @media (max-width: 600px) {
-            .status-row { grid-template-columns: 1fr; }
-            .weather-widget { flex-direction: column; text-align: center; gap: 10px; }
-            .weather-widget div:last-child { margin-left: 0; text-align: center; width: 100%; display: flex; justify-content: space-around; }
-            .header-left h1 { 
-                font-size: 24px; 
-                font-weight: 700; 
-                background: linear-gradient(to right, #fff, var(--primary));
-                -webkit-background-clip: text;
-                -webkit-text-fill-color: transparent;
-                display: flex; align-items: center; gap: 10px;
-            }
-            .header-left h1::before {
-                content: '👤';
-                -webkit-text-fill-color: initial;
-                color: #fff;
-                font-size: 30px;
-            }
-        }
-
-        .mobile-toggle {
-            display: none;
-            background: rgba(255, 255, 255, 0.1);
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            color: white;
-            padding: 10px;
-            border-radius: 12px;
-            cursor: pointer;
-            margin-right: 15px;
-        }
-
-        .sidebar-overlay {
-            display: none;
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0, 0, 0, 0.5);
-            backdrop-filter: blur(5px);
-            z-index: 1999;
-        }
-
+        .mobile-toggle { display: none; background: rgba(255, 255, 255, 0.1); border: 1px solid rgba(255, 255, 255, 0.2); color: white; padding: 10px; border-radius: 12px; cursor: pointer; margin-right: 15px; }
+        .sidebar-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.5); backdrop-filter: blur(5px); z-index: 1999; }
         .sidebar-overlay.active { display: block; }
     </style>
 </head>
@@ -509,233 +593,241 @@ if (file_exists($help_file)) {
         </div>
 
         <div class="main">
-            <div class="header glass animate__animated animate__fadeInDown">
-                <div class="header-left" style="display: flex; align-items: center;">
-                    <button class="mobile-toggle" onclick="toggleSidebar()">
-                        ☰
-                    </button>
-                    <h1>User Dashboard</h1>
+            <!-- Compact Safety Navbar -->
+            <div class="safety-navbar animate__animated animate__fadeInDown">
+                <div class="navbar-info">
+                    <button class="mobile-toggle" onclick="toggleSidebar()">☰</button>
+                    <div class="nav-item">
+                        <i data-lucide="map-pin"></i>
+                        <span id="nav-location"><?php echo $db_location; ?></span>
+                    </div>
+                    <div class="nav-item">
+                        <i data-lucide="clock"></i>
+                        <span id="nav-clock">00:00:00</span>
+                    </div>
                 </div>
-                <div class="header-right">
-                    <!-- Notification Permission Button -->
-                    <button id="enableAlertsBtn" onclick="requestNotificationPermission()" style="display:none; padding:8px 16px; background:rgba(231,76,60,0.2); border:1px solid #e74c3c; color:#e74c3c; border-radius:30px; cursor:pointer; font-size:12px; font-weight:600; align-items:center; gap:6px; transition:all 0.3s;">
-                        🔔 Enable Alerts
-                    </button>
 
-                    <div id="live-clock" class="last-updated">
-                        🕒 <span>00:00:00</span>
+                <div style="display: flex; gap: 15px; align-items: center;">
+                    <div class="nav-weather">
+                        <span style="font-size: 18px;">🌤️</span>
+                        <span style="font-size: 12px; font-weight: 700;">28°C</span>
                     </div>
                     <div class="user-profile">
                         <div class="user-avatar"><?php echo strtoupper(substr($name, 0, 1)); ?></div>
-                        <div style="text-align:left">
-                            <strong style="display:block; font-size:14px;"><?php echo $name; ?></strong>
-                            <span style="font-size:11px; color:rgba(255,255,255,0.6);"><?php echo $email; ?></span>
+                        <div class="user-info" style="line-height: 1.2;">
+                            <div style="font-size: 13px; font-weight: 700;"><?php echo $name; ?></div>
+                            <div style="font-size: 10px; opacity: 0.6;"><?php echo $email; ?></div>
                         </div>
                     </div>
                 </div>
             </div>
 
-            <div class="content">
-                <!-- Weather Widget -->
-                <div class="weather-widget glass animate__animated animate__fadeIn">
-                    <span style="font-size: 32px;">🌤️</span>
-                    <div>
-                        <div style="font-size: 18px; font-weight: 700;">28°C</div>
-                        <div style="font-size: 12px; color: rgba(255,255,255,0.6);">Partly Cloudy — Riverbend Area</div>
-                    </div>
-                    <div style="margin-left: auto; text-align: right;">
-                        <div style="font-size: 11px; color: var(--primary);">Humidity: 65%</div>
-                        <div style="font-size: 11px; color: var(--primary);">Precipitation: 10%</div>
-                    </div>
-                </div>
-
                 <div class="grid">
-                    <div id="section-flood" class="content-section">
-                        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px;">
-                            <!-- Live IoT Status Card -->
-                            <div class="card glass" style="padding: 25px; display:flex; flex-direction:column; justify-content:center;" id="liveFloodCard">
-
-                                <!-- Loading State -->
-                                <div id="floodCardLoading" style="text-align:center; opacity:0.5; padding: 20px 0;">
-                                    <div style="font-size:32px; animation: pulse 1.5s infinite;">🌊</div>
-                                    <div style="font-size:13px; margin-top:8px;">Connecting to sensor...</div>
-                                </div>
-
-                                <!-- Live Data (Hidden until loaded) -->
-                                <div id="floodCardData" style="display:none;">
-                                    <div style="display:flex; align-items:center; gap:20px; margin-bottom:20px;">
-                                        <div id="floodIcon" style="font-size: 48px; animation: pulse 2s infinite;">🛡️</div>
-                                        <div>
-                                            <h2 id="floodStatusText" style="font-size: 28px; margin:0; color: var(--safe);">--</h2>
-                                            <div style="font-size:14px; opacity:0.7;" id="floodZoneText">Zone: <?php echo htmlspecialchars($location ?? 'Central City'); ?></div>
-                                        </div>
+                    <div id="section-flood" class="content-section active"> <!-- Made active by default for redesigned dashboard -->
+                        <!-- Hero Safety Card -->
+                        <div class="hero-card animate__animated animate__fadeIn" id="heroSafetyCard">
+                            <div style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 20px;">
+                                <div>
+                                    <div class="safety-badge badge-safe" id="heroBadge">
+                                        <i data-lucide="shield-check"></i> <span>Safety Status: Safe</span>
                                     </div>
-                                    <div style="background:rgba(255,255,255,0.05); border-radius:10px; padding:15px; margin-bottom:15px;">
-                                        <div style="font-size:12px; opacity:0.6; margin-bottom:5px;">Current Water Level <span style="font-size:10px; color:var(--accent);">● LIVE</span></div>
-                                        <div style="display:flex; justify-content:space-between; align-items:end;">
-                                            <div id="floodLevelText" style="font-size:32px; font-weight:bold; color:#fff;">-- ft</div>
-                                            <div id="floodTrendText" style="font-size:14px; color:var(--safe); padding-bottom:5px;">● Stable</div>
-                                        </div>
+                                    <h2 style="font-size: 42px; margin: 15px 0 5px; font-weight: 800; color: #fff;" id="heroLevel">-- ft</h2>
+                                    <div style="color: var(--teal-accent); font-size: 14px; font-weight: 600;" id="heroLocation">
+                                        <i data-lucide="map-pin" style="width: 14px; vertical-align: middle; display: inline-block;"></i> --
                                     </div>
-                                    <p id="floodMsgText" style="font-size:13px; color:rgba(255,255,255,0.7); line-height:1.4; margin:0; display:flex; justify-content:space-between;">
-                                        <span id="floodMsg">Loading...</span>
-                                        <span id="floodLastUpdated" style="font-size:11px; opacity:0.5;"></span>
-                                    </p>
                                 </div>
-
-                                <!-- Error State -->
-                                <div id="floodCardError" style="display:none; text-align:center; padding:20px 0;">
-                                    <div style="font-size:32px;">⚡</div>
-                                    <div style="font-size:13px; margin-top:8px; opacity:0.7;">Sensor offline — showing last known data</div>
-                                </div>
-                            </div>
-
-                            <script>
-                            // ─── Live IoT Flood Status Card ───────────────────
-                            (function() {
-                                const statusConfig = {
-                                    'SAFE':     { color: 'var(--safe)',   icon: '🛡️', text: 'Safe',     msg: 'Water levels are within safe range.' },
-                                    'WARNING':  { color: '#f1c40f',       icon: '⚠️', text: 'Warning',  msg: 'Water levels are elevated. Stay alert.' },
-                                    'CRITICAL': { color: 'var(--danger)', icon: '🚨', text: 'CRITICAL', msg: '⚠ IMMEDIATE ACTION REQUIRED! Evacuate low areas.' }
-                                };
-
-                                let prevLevel = null;
-
-                                async function updateFloodCard() {
-                                    try {
-                                        const res  = await fetch('get_flood_data.php?_t=' + Date.now());
-                                        const json = await res.json();
-
-                                        if (json.status !== 'success') throw new Error('No data');
-
-                                        const { level, status, created_at } = json.latest;
-                                        const cfg   = statusConfig[status] || statusConfig['SAFE'];
-                                        const levelF = parseFloat(level).toFixed(2);
-
-                                        // Update DOM
-                                        document.getElementById('floodIcon').textContent        = cfg.icon;
-                                        document.getElementById('floodStatusText').textContent  = cfg.text;
-                                        document.getElementById('floodStatusText').style.color  = cfg.color;
-                                        document.getElementById('floodLevelText').textContent   = levelF + ' ft';
-                                        document.getElementById('floodMsg').textContent         = cfg.msg;
-                                        document.getElementById('floodTrendText').style.color   = cfg.color;
-
-                                        // Rising / Falling / Stable
-                                        if (prevLevel !== null) {
-                                            const diff = parseFloat(level) - prevLevel;
-                                            document.getElementById('floodTrendText').textContent =
-                                                diff > 0.1 ? '▲ Rising' : diff < -0.1 ? '▼ Falling' : '● Stable';
-                                        }
-                                        prevLevel = parseFloat(level);
-
-                                        // Last updated time
-                                        const updTime = new Date(created_at.replace(' ', 'T'));
-                                        document.getElementById('floodLastUpdated').textContent = 'Updated: ' + updTime.toLocaleTimeString();
-
-                                        // Show data, hide loader
-                                        document.getElementById('floodCardLoading').style.display = 'none';
-                                        document.getElementById('floodCardError').style.display   = 'none';
-                                        document.getElementById('floodCardData').style.display    = 'block';
-
-                                    } catch(e) {
-                                        // Show error only if we've never loaded data
-                                        if (!prevLevel) {
-                                            document.getElementById('floodCardLoading').style.display = 'none';
-                                            document.getElementById('floodCardError').style.display   = 'block';
-                                        }
-                                        console.warn('Flood data fetch failed:', e);
-                                    }
-                                }
-
-                                // Run immediately + every 5 seconds
-                                updateFloodCard();
-                                setInterval(updateFloodCard, 5000);
-                            })();
-                            </script>
-
-
-                            <!-- Mini Chart & Updates -->
-                            <div style="display:flex; flex-direction:column; gap:20px;">
-                                <div class="card glass" style="padding: 20px; flex:1;">
-                                    <h4 style="margin-bottom:15px; font-size:16px; color:var(--accent);">🌊 24h Trend</h4>
-                                    <div style="height:120px; width:100%;">
+                                <div style="text-align: right; min-width: 120px; display:flex; flex-direction:column; align-items:flex-end;">
+                                    <div id="heroTrend" style="font-size: 18px; font-weight: 700; color: var(--safe);">--</div>
+                                    <div style="width: 100px; height: 30px; margin: 5px 0;">
                                         <canvas id="miniFloodChart"></canvas>
                                     </div>
+                                    <div id="heroUpdated" style="font-size: 12px; opacity: 0.6; margin-top: 5px;">Updated: --</div>
                                 </div>
-                                <div class="card glass" style="padding: 20px; flex:1;">
-                                    <h4 style="margin-bottom:10px; font-size:16px; color:#fff;">📅 Updates</h4>
-                                    <div style="font-size:13px; color:rgba(255,255,255,0.6); display:flex; align-items:center; gap:10px;">
-                                        <span>📢</span> System monitoring active.
+                            </div>
+                            <p id="heroGuidance" style="margin-top: 25px; font-size: 15px; color: rgba(255,255,255,0.9); line-height: 1.6; max-width: 600px;">
+                                Loading safety intelligence...
+                            </p>
+                        </div>
+
+                        <!-- Intelligence Grid -->
+                        <div class="grid">
+                            <!-- Admin Alert Card -->
+                            <div class="card glass animate__animated animate__fadeInUp" id="adminAlertCard" style="animation-delay: 0.1s;">
+                                <h3><i data-lucide="megaphone" style="color: #e74c3c;"></i> Latest Alert</h3>
+                                <div id="adminAlertContent">
+                                    <div style="text-align: center; padding: 20px; opacity: 0.5; font-size: 14px;">No active broadcast alerts.</div>
+                                </div>
+                            </div>
+
+                            <!-- Water Level Intelligence -->
+                            <div class="card glass animate__animated animate__fadeInUp" style="animation-delay: 0.2s;">
+                                <h3><i data-lucide="activity"></i> Level Intelligence</h3>
+                                <div id="intelligenceList" class="list-container">
+                                    <div style="text-align: center; padding: 20px; opacity: 0.5; font-size: 14px;">Fetching trends...</div>
+                                </div>
+                                <div style="margin-top: auto; padding-top: 15px; border-top: 1px solid rgba(255,255,255,0.05); display: flex; justify-content: space-between; font-size: 11px;">
+                                    <span>Sensor Health</span>
+                                    <span style="color: var(--safe);" id="sensorHealth">● Healthy</span>
+                                </div>
+                            </div>
+
+                            <!-- Nearest Evacuation -->
+                            <div class="card glass animate__animated animate__fadeInUp" id="nearestEvacCard" style="animation-delay: 0.3s;">
+                                <h3><i data-lucide="navigation"></i> Nearest Evacuation</h3>
+                                <div id="nearestEvacContent">
+                                    <div style="font-weight: 700; font-size: 18px; color: var(--teal-accent);" id="evacName">--</div>
+                                    <div style="font-size: 13px; opacity: 0.7; margin: 5px 0 15px;" id="evacLoc">--</div>
+                                    <div style="display: flex; justify-content: space-between; align-items: center;">
+                                        <span class="safety-badge badge-safe" style="font-size: 10px; padding: 4px 10px;" id="evacStatus">Available</span>
+                                        <a href="#" class="small-btn" id="evacButton" target="_blank">Directions</a>
                                     </div>
                                 </div>
                             </div>
+
+                            <!-- Mini IQ Timeline -->
+                            <div class="card glass animate__animated animate__fadeInUp" style="animation-delay: 0.4s;">
+                                <h3><i data-lucide="history"></i> Notification Timeline</h3>
+                                <div id="iqTimeline" class="list-container">
+                                    <div style="text-align: center; padding: 20px; opacity: 0.5; font-size: 14px;">Loading IQ events...</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Emergency Action Panel -->
+                        <div class="emergency-grid animate__animated animate__fadeInUp" style="animation-delay: 0.5s;">
+                            <a href="#" class="emergency-btn" onclick="window.openHelpModal(); return false;">
+                                <i data-lucide="help-circle" style="color: var(--teal-accent);"></i>
+                                <span>Request Help</span>
+                            </a>
+                            <a href="tel:108" class="emergency-btn sos">
+                                <i data-lucide="phone-call" style="color: #e74c3c;"></i>
+                                <span>SOS Call</span>
+                            </a>
+                            <a href="#section-map" class="emergency-btn" data-target="section-map" onclick="window.showSection('section-map'); return false;">
+                                <i data-lucide="map" style="color: var(--teal-accent);"></i>
+                                <span>Live Map</span>
+                            </a>
+                            <a href="#" class="emergency-btn" id="shareLocBtn" onclick="window.shareLocation(); return false;">
+                                <i data-lucide="share-2" style="color: var(--teal-accent);"></i>
+                                <span>Share Location</span>
+                            </a>
                         </div>
                     </div>
 
                     <div id="section-evac" class="content-section">
                         <div class="card glass">
-                                <h3>📍 Evacuation Points</h3>
-                                
-                                <!-- Search & Filter -->
-                                <div style="display:flex; gap:10px; margin-bottom:15px; flex-wrap:wrap;">
-                                    <input type="text" id="evacSearch" onkeyup="filterEvacuationPoints()" placeholder="🔍 Search location..." 
-                                           style="flex:1; padding:10px; background:rgba(255,255,255,0.05); border:1px solid rgba(255,255,255,0.1); border-radius:8px; color:white;">
-                                    
+                            <div class="card-header">
+                                <h3><i data-lucide="map-pin" style="color: var(--teal-accent);"></i> Safe Shelters</h3>
+                                <div style="display: flex; gap: 10px;">
+                                    <input type="text" id="evacSearch" onkeyup="filterEvacuationPoints()" placeholder="Search Shelters..." 
+                                           style="padding: 8px 12px; font-size: 12px; background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.1); border-radius: 8px; color: #fff; width: 160px;">
                                     <select id="evacFilter" onchange="filterEvacuationPoints()" 
-                                            style="padding:10px; background:rgba(255,255,255,0.05); border:1px solid rgba(255,255,255,0.1); border-radius:8px; color:white; cursor:pointer;">
-                                        <option value="All" style="background: #1e2029; color: white;">All Status</option>
-                                        <option value="Open" style="background: #1e2029; color: white;">Available</option>
-                                        <option value="Full" style="background: #1e2029; color: white;">Full</option>
-                                        <option value="Closed" style="background: #1e2029; color: white;">Closed</option>
+                                            style="padding: 8px; background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.1); border-radius: 8px; color: white; cursor: pointer; font-size: 12px;">
+                                        <option value="All">All Status</option>
+                                        <option value="Open">Available</option>
+                                        <option value="Full">Full</option>
                                     </select>
                                 </div>
-
-                                <div class="list-container" id="evacuation-list-container">
-                                    <div style="text-align:center; padding:20px; color:rgba(255,255,255,0.5);">Loading points...</div>
-                                </div>
+                            </div>
+                            
+                            <div class="grid" id="evacuation-list-container" style="grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));">
+                                <div style="text-align:center; padding:40px; color:rgba(255,255,255,0.4); font-size:13px;">Scanning for active shelters...</div>
+                            </div>
                         </div>
                     </div>
 
                     <div id="section-alerts" class="content-section">
                         <div class="card glass">
-                            <h3>🚨 System Alerts</h3>
-                            <div id="userAlertsList" class="list-container">
-                                <div style="text-align:center; padding: 20px; opacity: 0.6;">Loading latest alerts...</div>
+                            <div class="card-header">
+                                <div style="display: flex; align-items: center; gap: 12px;">
+                                    <div style="width: 40px; height: 40px; background: rgba(231, 76, 60, 0.1); border-radius: 12px; display: flex; align-items: center; justify-content: center; color: #e74c3c;">
+                                        <i data-lucide="shield-alert" style="width: 24px; height: 24px;"></i>
+                                    </div>
+                                    <div>
+                                        <h3 style="margin: 0; font-size: 20px;">Safety Intelligence Terminal</h3>
+                                        <div style="font-size: 11px; opacity: 0.5; font-weight: 700; text-transform: uppercase; letter-spacing: 1px;">Official Warning & Alert Registry</div>
+                                    </div>
+                                </div>
+                                <div style="display: flex; gap: 10px;">
+                                    <button class="btn-terminal" onclick="window.refreshSafetyDashboard(); fetchUserAlerts();">
+                                        <i data-lucide="refresh-cw" style="width: 14px;"></i> Sync Terminal
+                                    </button>
+                                </div>
+                            </div>
+
+                            <!-- Terminal Control Panel -->
+                            <div class="control-panel animate__animated animate__fadeIn">
+                                <div class="ctrl-group" style="flex: 1; min-width: 250px;">
+                                    <span class="ctrl-label">Registry Search</span>
+                                    <input type="text" id="alertTerminalSearch" class="terminal-input" placeholder="Filter by event, location, or source..." style="flex: 1;" onkeyup="window.filterAlertTerminal()">
+                                </div>
+                                
+                                <div class="ctrl-group">
+                                    <span class="ctrl-label">Severity Filter</span>
+                                    <select id="alertSeverityFilter" class="terminal-select" onchange="window.filterAlertTerminal()">
+                                        <option value="ALL">All Levels</option>
+                                        <option value="CRITICAL">Critical Only</option>
+                                        <option value="WARNING">Warnings</option>
+                                        <option value="SAFE">Safe Status</option>
+                                        <option value="EVACUATION">Evacuation</option>
+                                        <option value="SYSTEM">System</option>
+                                    </select>
+                                </div>
+
+                                <div class="ctrl-group">
+                                    <span class="ctrl-label">Temporal Sort</span>
+                                    <button id="alertSortBtn" class="btn-terminal" onclick="window.toggleAlertSort()" data-sort="desc">
+                                        <i data-lucide="arrow-down-narrow-wide" style="width: 14px;"></i> 
+                                        <span>Newest First</span>
+                                    </button>
+                                </div>
+                            </div>
+
+                            <div id="userAlertsList" class="list-container" style="min-height: 400px; padding: 0 5px;">
+                                <div style="text-align:center; padding: 100px 40px; color:rgba(255,255,255,0.2); font-size: 14px;">
+                                    <i data-lucide="cpu" style="width: 40px; height: 40px; margin-bottom: 20px; opacity: 0.2;"></i>
+                                    <br>Connecting to AquaSafe Data Pipeline...
+                                </div>
                             </div>
                         </div>
                     </div>
 
                     <div id="section-contacts" class="content-section">
                         <div class="card glass">
-                            <h3>📞 Emergency Contacts</h3>
-                            
-                            <!-- Search Bar -->
-                            <div style="margin-bottom:15px;">
-                                <input type="text" id="contactSearch" onkeyup="filterContacts()" placeholder="🔍 Search contacts..." 
-                                       style="width:100%; padding:10px; background:rgba(255,255,255,0.05); border:1px solid rgba(255,255,255,0.1); border-radius:8px; color:white;">
+                            <div class="card-header">
+                                <h3><i data-lucide="phone-call" style="color: var(--teal-accent);"></i> Emergency Contacts</h3>
+                                <div style="display: flex; gap: 8px;">
+                                    <input type="text" id="contactSearch" onkeyup="filterContacts()" placeholder="Search..." 
+                                           style="padding: 8px 12px; font-size: 12px; background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.1); border-radius: 8px; color: #fff; width: 180px;">
+                                </div>
                             </div>
-
-                            <div class="list-container" id="contacts-list-container">
-                                <div class="list-item">
-                                    <div>
-                                        <strong>Panchayat Office</strong>
-                                        <div style="font-size:12px; color:rgba(255,255,255,0.6);">General Assistance</div>
-                                    </div>
-                                    <a class="small-btn" href="tel:01234567890">Call Now</a>
+                            
+                            <div class="contact-grid" id="contacts-list-container">
+                                <!-- Emergency Category -->
+                                <div class="contact-card">
+                                    <span class="contact-cat">Emergency</span>
+                                    <div style="font-weight: 700; font-size: 16px;">Medical Emergency</div>
+                                    <div style="font-size: 12px; opacity: 0.6;">Ambulance (108/102)</div>
+                                    <a class="small-btn" href="tel:108" style="text-align: center;">Call 108</a>
                                 </div>
-                                <div class="list-item">
-                                    <div>
-                                        <strong>Disaster Control Room</strong>
-                                        <div style="font-size:12px; color:rgba(255,255,255,0.6);">24/7 Helpline</div>
-                                    </div>
-                                    <a class="small-btn" href="tel:09876543210">Call Now</a>
+                                <div class="contact-card">
+                                    <span class="contact-cat">Emergency</span>
+                                    <div style="font-weight: 700; font-size: 16px;">Fire & Rescue</div>
+                                    <div style="font-size: 12px; opacity: 0.6;">Local Fire Station</div>
+                                    <a class="small-btn" href="tel:101" style="text-align: center;">Call 101</a>
                                 </div>
-                                <div class="list-item">
-                                    <div>
-                                        <strong>Medical Emergency</strong>
-                                        <div style="font-size:12px; color:rgba(255,255,255,0.6);">Ambulance (108/102)</div>
-                                    </div>
-                                    <a class="small-btn" href="tel:108">Call Now</a>
+                                <!-- Rescue Category -->
+                                <div class="contact-card">
+                                    <span class="contact-cat">Rescue</span>
+                                    <div style="font-weight: 700; font-size: 16px;">Disaster Relief</div>
+                                    <div style="font-size: 12px; opacity: 0.6;">24/7 National Hotline</div>
+                                    <a class="small-btn" href="tel:1070" style="text-align: center;">Call 1070</a>
+                                </div>
+                                <div class="contact-card">
+                                    <span class="contact-cat">Community</span>
+                                    <div style="font-weight: 700; font-size: 16px;">Panchayat Office</div>
+                                    <div style="font-size: 12px; opacity: 0.6;">Churakullam Regional</div>
+                                    <a class="small-btn" href="tel:04869200100" style="text-align: center;">Call Office</a>
                                 </div>
                             </div>
                         </div>
@@ -745,20 +837,36 @@ if (file_exists($help_file)) {
 
                     <div id="section-help" class="content-section">
                         <div class="card glass">
-                            <h3>🆘 Help Desk</h3>
-                            <div id="helpdesk-status-msg"></div>
+                            <div class="card-header">
+                                <h3><i data-lucide="help-circle" style="color: var(--teal-accent);"></i> Support Ticket Center</h3>
+                                <div id="helpdesk-status-msg"></div>
+                            </div>
                             
-                            <form class="help-form" id="helpRequestForm" method="POST" onsubmit="window.submitHelpRequest(event)">
-                                <input type="text" name="title" id="helpTitle" placeholder="Short title (e.g. Rising water level)" required>
-                                <textarea name="details" id="helpDetails" rows="3" placeholder="Describe your request or situation..." required></textarea>
-                                <button type="submit" id="helpSubmitBtn"><i data-lucide="send" style="width:16px; display:inline-block; vertical-align:middle; margin-right:6px;"></i> Send Request</button>
-                            </form>
+                            <div style="background: rgba(255,255,255,0.02); padding: 20px; border-radius: 20px; border: 1px solid rgba(255,255,255,0.05); margin-bottom: 24px;">
+                                <h4 style="font-size: 14px; margin-bottom: 15px; opacity: 0.8;">Open a new request</h4>
+                                <form class="help-form" id="helpRequestForm" method="POST" onsubmit="window.submitHelpRequest(event)">
+                                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 15px;">
+                                        <input type="text" name="title" id="helpTitle" placeholder="Problem Summary (e.g., Blocked Drain)" required
+                                               style="width: 100%; padding: 12px; background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.1); border-radius: 12px; color: white;">
+                                        <select id="helpPriority" name="priority" style="padding: 12px; background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.1); border-radius: 12px; color: white; cursor: pointer;">
+                                            <option value="Normal">Normal Priority</option>
+                                            <option value="High">High Priority</option>
+                                            <option value="Urgent">Urgent / Emergency</option>
+                                        </select>
+                                    </div>
+                                    <textarea name="details" id="helpDetails" rows="3" placeholder="Explain the situation in detail..." required
+                                              style="width: 100%; padding: 12px; background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.1); border-radius: 12px; color: white; margin-bottom: 15px;"></textarea>
+                                    <button type="submit" id="helpSubmitBtn" style="width: 100%; padding: 14px; background: var(--primary); border: none; border-radius: 12px; color: #fff; font-weight: 700; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 10px;">
+                                        <i data-lucide="send" style="width: 18px;"></i> Submit Rescue Ticket
+                                    </button>
+                                </form>
+                            </div>
 
-                            <h4 style="margin: 25px 0 10px; font-size: 14px; color: var(--primary); display: flex; align-items: center; gap: 8px;">
-                                <i data-lucide="history" style="width:16px;"></i> My Recent Requests
+                            <h4 style="margin-bottom: 15px; font-size: 14px; color: var(--primary); display: flex; align-items: center; gap: 8px;">
+                                <i data-lucide="list" style="width:16px;"></i> My Active Tickets
                             </h4>
-                            <div class="list-container" id="my-requests-list">
-                                <div style="text-align:center; padding:20px; color:rgba(255,255,255,0.4); font-size:13px;">Fetching your requests...</div>
+                            <div id="my-requests-list">
+                                <div style="text-align:center; padding:40px; color:rgba(255,255,255,0.4); font-size:13px;">Fetching your ticket history...</div>
                             </div>
                         </div>
                     </div>
@@ -831,26 +939,87 @@ if (file_exists($help_file)) {
 
                     <div id="section-settings" class="content-section">
                         <div class="card glass">
-                            <h3><i data-lucide="settings"></i> Account Settings</h3>
-                            <div class="list-container">
-                                <div class="list-item">
-                                    <span>Profile Information</span>
-                                    <button class="small-btn" id="editProfileBtn" style="position:relative; z-index:10;">Edit</button>
+                            <div class="card-header">
+                                <h3><i data-lucide="settings"></i> Personal Safety Settings</h3>
+                            </div>
+                            
+                            <div class="settings-layout">
+                                <div class="settings-nav">
+                                    <button class="active" onclick="switchSettingsTab('profile')">👤 Profile Info</button>
+                                    <button onclick="switchSettingsTab('alerts')">🔔 Notifications</button>
+                                    <button onclick="switchSettingsTab('security')">🔒 Security</button>
                                 </div>
-                                <div class="list-item">
-                                    <span>Notification Preferences</span>
-                                    <button class="small-btn" id="manageNotificationsBtn" style="position:relative; z-index:10;">Manage</button>
-                                </div>
-                                <div class="list-item">
-                                    <span>Security & Password</span>
-                                    <button class="small-btn" id="updatePasswordBtn" style="position:relative; z-index:10;">Update</button>
+                                <div class="settings-content" id="settings-dynamic-content">
+                                    <!-- Profile Tab (Default) -->
+                                    <div id="tab-profile" class="tab-pane">
+                                        <div style="background: rgba(255,255,255,0.02); padding: 25px; border-radius: 20px; border: 1px solid rgba(255,255,255,0.05);">
+                                            <div style="display: flex; gap: 20px; align-items: center; margin-bottom: 25px;">
+                                                <div style="width: 80px; height: 80px; background: var(--primary); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 32px; font-weight: 800; color: #1e2029;">
+                                                    <?php echo strtoupper(substr($name, 0, 1)); ?>
+                                                </div>
+                                                <div>
+                                                    <h4 style="font-size: 20px;"><?php echo $name; ?></h4>
+                                                    <p style="opacity: 0.6; font-size: 14px;"><?php echo $email; ?></p>
+                                                </div>
+                                            </div>
+                                            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+                                                <div>
+                                                    <label style="display: block; font-size: 12px; margin-bottom: 8px; opacity: 0.6;">Primary Location</label>
+                                                    <div style="padding: 12px; background: rgba(0,0,0,0.3); border-radius: 10px; border: 1px solid rgba(255,255,255,0.1);"><?php echo $db_location; ?></div>
+                                                </div>
+                                                <div>
+                                                    <label style="display: block; font-size: 12px; margin-bottom: 8px; opacity: 0.6;">Account Status</label>
+                                                    <div style="padding: 12px; background: rgba(0,0,0,0.3); border-radius: 10px; border: 1px solid rgba(255,255,255,0.1); color: var(--safe); font-weight: 700;">Verified User</div>
+                                                </div>
+                                            </div>
+                                            <button class="small-btn" onclick="document.getElementById('editProfileModal').style.display='flex'" style="margin-top: 25px; padding: 12px 24px;">Update Profile Details</button>
+                                        </div>
+                                    </div>
+
+                                    <div id="tab-alerts" class="tab-pane" style="display: none;">
+                                        <div style="background: rgba(255,255,255,0.02); padding: 25px; border-radius: 20px; border: 1px solid rgba(255,255,255,0.05);">
+                                            <div class="list-item" style="margin-bottom: 12px;">
+                                                <div>
+                                                    <div style="font-weight: 700;">Browser Notifications</div>
+                                                    <div style="font-size: 11px; opacity: 0.6;">Real-time desktop alerts for flood warnings</div>
+                                                </div>
+                                                <button class="small-btn" onclick="requestNotificationPermission()">Manage</button>
+                                            </div>
+                                            <div class="list-item">
+                                                <div>
+                                                    <div style="font-weight: 700;">SMS Alerts</div>
+                                                    <div style="font-size: 11px; opacity: 0.6;">Receive emergency texts on your registered mobile</div>
+                                                </div>
+                                                <span class="safety-badge badge-warning" style="font-size: 9px;">Inactive</span>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div id="tab-security" class="tab-pane" style="display: none;">
+                                        <div style="background: rgba(255,255,255,0.02); padding: 25px; border-radius: 20px; border: 1px solid rgba(255,255,255,0.05);">
+                                            <div class="list-item" style="margin-bottom: 12px;">
+                                                <div>
+                                                    <div style="font-weight: 700;">Password</div>
+                                                    <div style="font-size: 11px; opacity: 0.6;">Last changed 3 months ago</div>
+                                                </div>
+                                                <button class="small-btn" onclick="alert('Password reset link sent to your email.')">Reset</button>
+                                            </div>
+                                            <div class="list-item">
+                                                <div>
+                                                    <div style="font-weight: 700;">Two-Factor Auth</div>
+                                                    <div style="font-size: 11px; opacity: 0.6;">Secure your account with 2FA</div>
+                                                </div>
+                                                <button class="small-btn">Enable</button>
+                                            </div>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
                         </div>
                     </div>
-                </div>
-            </div>
-        </div>
+                </div> <!-- Closes .grid -->
+            </div> <!-- Closes .main -->
+        </div> <!-- Closes .container -->
     </div>
     <script>
         // --- ULTIMATE DIAGNOSTICS ---
@@ -947,22 +1116,39 @@ if (file_exists($help_file)) {
         };
 
         window.deleteHelpRequest = function(id) {
-            window.showConfirm("Are you sure you want to CANCEL/DELETE this request?", async function() {
+            window.showConfirm("Are you sure you want to CANCEL this request?", async function() {
                 const formData = new FormData();
-                formData.append('action', 'delete'); // Correct action 'delete'
+                formData.append('action', 'delete'); 
                 formData.append('id', id);
 
                 try {
                     const res = await fetch('manage_helpdesk.php', { method: 'POST', body: formData });
                     const json = await res.json();
                     if(json.status === 'success') {
-                        window.showStatusMsg("Request cancelled.", "var(--safe)");
+                        if(typeof Swal !== 'undefined') {
+                            Swal.fire({
+                                title: 'Cancelled',
+                                text: 'Your request has been removed.',
+                                icon: 'success',
+                                background: '#1e2029',
+                                color: '#fff'
+                            });
+                        } else {
+                            alert("Request cancelled.");
+                        }
                         window.loadMyRequests();
                     } else {
-                        alert("Failed: " + (json.message || "Action not supported"));
+                        // Better error reporting
+                        const errorMsg = json.message || "Could not cancel request. It might be already resolved.";
+                        if(typeof Swal !== 'undefined') {
+                            Swal.fire('Error', errorMsg, 'error');
+                        } else {
+                            alert("Failed: " + errorMsg);
+                        }
                     }
                 } catch(e) {
-                    alert("Network Error");
+                    console.error("Delete Request Error:", e);
+                    alert("Network Error: Could not reach server.");
                 }
             });
         };
@@ -992,8 +1178,8 @@ if (file_exists($help_file)) {
                                     <div style="font-size:12px; color:#fff;">${req.admin_reply}</div>
                                 </div>` : '';
 
-                            const isPending = req.status === 'Pending';
-                            const deleteBtn = isPending ? `
+                            const isUnresolved = req.status !== 'Resolved';
+                            const deleteBtn = isUnresolved ? `
                                 <button onclick="window.deleteHelpRequest(${req.id})" 
                                     style="margin-top:5px; padding:6px 12px; background:rgba(231,76,60,0.15); border:1px solid #e74c3c; color:#e74c3c; border-radius:8px; font-size:11px; font-weight:600; cursor:pointer; display:flex; align-items:center; gap:5px; transition:all 0.2s;" 
                                     onmouseover="this.style.background='rgba(231,76,60,0.3)'" 
@@ -1069,24 +1255,22 @@ if (file_exists($help_file)) {
             }
         };
 
-        window.markHelpdeskAsRead = function() {
-            // Mark all current requests with replies as "seen"
-            fetchWithTimeout('manage_helpdesk.php?action=fetch_user', { timeout: 10000 })
-                .then(res => res.json())
-                .then(json => {
-                    if(json.status === 'success' && json.data) {
-                        const repliedIds = json.data
-                            .filter(req => req.admin_reply)
-                            .map(req => req.id);
-                        localStorage.setItem('seenHelpdeskReplies', JSON.stringify(repliedIds));
-                        
-                        // Hide badge
-                        const badge = document.getElementById('helpdeskNotificationBadge');
-                        if(badge) badge.style.display = 'none';
-                    }
-                })
-                .catch(err => console.log('Mark as read failed:', err));
+        // --- SETTINGS TAB SWITCHER ---
+        window.switchSettingsTab = function(tabId) {
+            // Update buttons
+            document.querySelectorAll('.settings-nav button').forEach(btn => {
+                btn.classList.remove('active');
+                if(btn.textContent.toLowerCase().includes(tabId)) btn.classList.add('active');
+            });
+            // Update panes
+            document.querySelectorAll('.tab-pane').forEach(pane => {
+                pane.style.display = 'none';
+            });
+            const activePane = document.getElementById('tab-' + tabId);
+            if(activePane) activePane.style.display = 'block';
         };
+
+        // --- NOTIFICATION BADGE SYSTEM ---
 
         document.addEventListener('DOMContentLoaded', function(){
             // Initialize Lucide Icons
@@ -1096,7 +1280,7 @@ if (file_exists($help_file)) {
             const links = document.querySelectorAll('.sidebar-menu a');
             const sections = document.querySelectorAll('.content-section');
             
-            function showSection(id){
+            window.showSection = function(id){
                 sections.forEach(s => {
                     s.classList.toggle('active', s.id === id);
                 if(s.id === id) {
@@ -1137,7 +1321,7 @@ if (file_exists($help_file)) {
                 link.addEventListener('click', function(e){
                     e.preventDefault();
                     const target = this.getAttribute('href').replace('#','');
-                    showSection(target);
+                    window.showSection(target);
                     if (window.innerWidth <= 1100) {
                         toggleSidebar();
                     }
@@ -1145,7 +1329,7 @@ if (file_exists($help_file)) {
             });
 
             // Initialize first section
-            showSection('section-flood');
+            window.showSection('section-flood');
 
             // Check for new Help Desk replies on page load
             checkForNewReplies();
@@ -1163,10 +1347,10 @@ if (file_exists($help_file)) {
 
             document.getElementById('sidebarOverlay').addEventListener('click', toggleSidebar);
 
-            // Live Clock
+            // Live Clock (Targeting Navbar Version)
             function updateClock() {
                 const now = new Date();
-                const clock = document.querySelector('#live-clock span');
+                const clock = document.getElementById('nav-clock');
                 if(clock) {
                     clock.innerText = now.toLocaleTimeString();
                 }
@@ -1247,7 +1431,7 @@ if (file_exists($help_file)) {
             let chartInstance = null;
             let miniChartInstance = null;
 
-            function initMiniChart() {
+            function initMiniChart(realData = null) {
                 const ctxCanvas = document.getElementById('miniFloodChart');
                 if(!ctxCanvas) return;
                 
@@ -1256,26 +1440,25 @@ if (file_exists($help_file)) {
                     miniChartInstance = null;
                 }
 
-                const location = window.userLocation || 'Central City';
-                // Simplified trends
-                const trends = {
-                    'Central City': [3.1, 3.2, 3.2, 3.3, 3.2, 3.1],
-                    'South Reservoir': [17.5, 17.8, 18.0, 18.1, 18.2, 18.3], 
-                    'East Valley': [9.0, 9.5, 9.8, 10.2, 10.5, 10.8],
-                    'West Bank': [2.8, 2.9, 3.0, 3.1, 3.1, 3.2],
-                    'North District': [5.0, 5.2, 5.4, 5.5, 5.8, 6.0]
-                };
-                const data = trends[location] || trends['Central City'];
-                const color = location === 'South Reservoir' ? '#e74c3c' : (location === 'East Valley' ? '#e67e22' : '#00e5ff');
+                let data = realData;
+                if (!data) {
+                    const location = window.userLocation || 'Central City';
+                    const trends = {
+                        'Central City': [3.1, 3.2, 3.2, 3.3, 3.2, 3.1],
+                        'South Reservoir': [17.5, 17.8, 18.0, 18.1, 18.2, 18.3], 
+                        'East Valley': [9.0, 9.5, 9.8, 10.2, 10.5, 10.8],
+                        'West Bank': [2.8, 2.9, 3.0, 3.1, 3.1, 3.2],
+                        'North District': [5.0, 5.2, 5.4, 5.5, 5.8, 6.0]
+                    };
+                    data = trends[location] || trends['Central City'];
+                }
 
-                // Ensure parent dimensions are set
-                ctxCanvas.style.width = '100%';
-                ctxCanvas.style.height = '100%';
+                const color = (data[data.length-1] > 18) ? '#e74c3c' : ((data[data.length-1] > 10) ? '#e67e22' : '#00e5ff');
 
                 miniChartInstance = new Chart(ctxCanvas, {
                     type: 'line',
                     data: {
-                        labels: ['1', '2', '3', '4', '5', '6'],
+                        labels: data.map((_, i) => i),
                         datasets: [{
                             data: data,
                             borderColor: color,
@@ -1288,56 +1471,53 @@ if (file_exists($help_file)) {
                     options: {
                         responsive: true,
                         maintainAspectRatio: false,
-                        animation: { duration: 0 }, // Instant render for reliability
+                        animation: { duration: 0 },
                         plugins: { legend: { display: false }, tooltip: { enabled: false } },
                         scales: { x: { display: false }, y: { display: false } }
                     }
                 });
             }
 
-            function initChart() {
+            function initChart(realLevels = null, realLabels = null) {
                 const ctxCanvas = document.getElementById('waterLevelChart');
                 if(!ctxCanvas) return;
                 
-                // Ensure visibility
                 if(chartInstance) {
                     chartInstance.destroy();
                     chartInstance = null;
                 }
 
-                // Cyber Theme Colors
                 const colorPrimary = '#c054ff'; 
                 const colorAccent = '#00e5ff'; 
 
-                // Dynamic Data based on Location
-                const location = window.userLocation || 'Central City';
+                let chartData = realLevels;
+                let chartLabels = realLabels;
 
-                // Define data profiles
-                const dataProfiles = {
-                    'Central City': { data: [3.2, 3.4, 3.1, 3.5, 3.3, 3.4, 3.2], label: 'Safe' },
-                    'North District': { data: [4.5, 4.8, 5.2, 5.0, 5.5, 5.8, 6.0], label: 'Moderate' },
-                    'South Reservoir': { data: [12.5, 13.0, 14.2, 13.8, 15.5, 17.0, 18.2], label: 'Critical' }, // High water
-                    'West Bank': { data: [2.1, 2.3, 2.2, 2.4, 2.8, 3.0, 3.1], label: 'Safe' },
-                    'East Valley': { data: [8.5, 8.8, 9.2, 9.5, 10.1, 10.5, 10.8], label: 'Warning' }
-                };
-
-                const profile = dataProfiles[location] || dataProfiles['Central City'];
-                
-                // Update Card Title if possible
-                const chartTitle = document.querySelector('#section-water h3');
-                if(chartTitle) chartTitle.innerHTML = `🌊 Water Levels - ${location} <span style="font-size:12px; opacity:0.7; margin-left:10px; color:#fff;">(${profile.label})</span>`;
-
-                // Force layout
-                ctxCanvas.style.width = '100%';
-                ctxCanvas.style.height = '100%';
+                if (!chartData) {
+                    const location = window.userLocation || 'Central City';
+                    const dataProfiles = {
+                        'Central City': { data: [3.2, 3.4, 3.1, 3.5, 3.3, 3.4, 3.2], label: 'Safe' },
+                        'North District': { data: [4.5, 4.8, 5.2, 5.0, 5.5, 5.8, 6.0], label: 'Moderate' },
+                        'South Reservoir': { data: [12.5, 13.0, 14.2, 13.8, 15.5, 17.0, 18.2], label: 'Critical' },
+                        'West Bank': { data: [2.1, 2.3, 2.2, 2.4, 2.8, 3.0, 3.1], label: 'Safe' },
+                        'East Valley': { data: [8.5, 8.8, 9.2, 9.5, 10.1, 10.5, 10.8], label: 'Warning' }
+                    };
+                    const profile = dataProfiles[location] || dataProfiles['Central City'];
+                    chartData = profile.data;
+                    chartLabels = ['12 AM', '4 AM', '8 AM', '12 PM', '4 PM', '8 PM', 'Now'];
+                    
+                    // Update Title
+                    const chartTitle = document.querySelector('#section-water h3');
+                    if(chartTitle) chartTitle.innerHTML = `🌊 Water Levels - ${location} <span style="font-size:12px; opacity:0.7; margin-left:10px; color:#fff;">(${profile.label})</span>`;
+                }
 
                 chartInstance = new Chart(ctxCanvas, {
                     type: 'line',
                     data: {
-                        labels: ['12 AM', '4 AM', '8 AM', '12 PM', '4 PM', '8 PM', 'Now'],
+                        labels: chartLabels,
                         datasets: [{
-                            label: `Water Level (${location})`,
-                            data: profile.data,
+                            label: `Water Level (ft)`,
+                            data: chartData,
                             borderColor: colorAccent,
                             backgroundColor: (context) => {
                                 const ctx = context.chart.ctx;
@@ -1359,34 +1539,44 @@ if (file_exists($help_file)) {
                     options: {
                         responsive: true,
                         maintainAspectRatio: false,
-                        animation: { duration: 0 }, // Instant render to avoid invisible charts
+                        animation: { duration: 0 },
                         plugins: {
                             legend: { display: false },
-                            tooltip: {
-                                backgroundColor: '#1e2029',
-                                titleColor: '#fff',
-                                bodyColor: colorAccent,
-                                borderColor: '#2d2f39',
-                                borderWidth: 1,
-                                displayColors: false,
-                                padding: 10
+                            annotation: {
+                                annotations: {
+                                    criticalLine: {
+                                        type: 'line',
+                                        yMin: 18,
+                                        yMax: 18,
+                                        borderColor: 'rgba(231, 76, 60, 0.5)',
+                                        borderWidth: 2,
+                                        borderDash: [5, 5],
+                                        label: { content: 'Critical (18+)', display: true, position: 'end', backgroundColor: 'rgba(231, 76, 60, 0.8)', color: '#fff', font: { size: 10 } }
+                                    },
+                                    warningLine: {
+                                        type: 'line',
+                                        yMin: 10,
+                                        yMax: 10,
+                                        borderColor: 'rgba(241, 196, 15, 0.5)',
+                                        borderWidth: 2,
+                                        borderDash: [5, 5],
+                                        label: { content: 'Warning (10+)', display: true, position: 'end', backgroundColor: 'rgba(241, 196, 15, 0.8)', color: '#fff', font: { size: 10 } }
+                                    }
+                                }
                             }
                         },
                         scales: {
                             y: {
                                 grid: { color: 'rgba(255,255,255,0.05)' },
                                 ticks: { color: 'rgba(255,255,255,0.5)', font: { family: 'Outfit' } },
-                                beginAtZero: false
+                                beginAtZero: true,
+                                max: 25
                             },
                             x: {
                                 grid: { display: false },
                                 ticks: { color: 'rgba(255,255,255,0.5)', font: { family: 'Outfit' } }
                             }
-                        },
-                        interaction: {
-                            mode: 'index',
-                            intersect: false,
-                        },
+                        }
                     }
                 });
             }
@@ -1480,7 +1670,7 @@ if (file_exists($help_file)) {
             const initial = (location.hash && location.hash.replace('#','')) || 'section-flood';
             showSection(initial);
 
-            // Fetch Evacuation Points (Dynamic)
+            // Fetch Evacuation Points (Dynamic Grid)
             function loadEvacuationPoints() {
                 fetch('fetch_evacuation_points.php')
                     .then(r => r.json())
@@ -1489,26 +1679,26 @@ if (file_exists($help_file)) {
                         if(res.status === 'success' && res.data.length > 0) {
                             let html = '';
                             res.data.forEach(pt => {
-                                const statusColor = pt.status === 'Available' ? 'var(--safe)' : (pt.status === 'Full' ? 'var(--danger)' : 'var(--warning)');
-                                const statusLabel = pt.status === 'Available' ? 'Open' : pt.status;
+                                const statusColor = pt.status === 'Available' ? 'var(--safe)' : (pt.status === 'Full' ? '#e74c3c' : '#f1c40f');
+                                const statusLabel = pt.status === 'Available' ? 'Available' : pt.status;
                                 
                                 html += `
-                                <div class="list-item">
-                                    <div>
-                                        <div style="display:flex; align-items:center; gap:8px;">
-                                            <strong style="color: #fff;">${pt.name}</strong>
-                                            <span style="font-size:10px; padding:2px 8px; border-radius:10px; border:1px solid ${statusColor}; color:${statusColor};">${statusLabel}</span>
-                                        </div>
-                                        <div style="font-size: 12px; color: rgba(255,255,255,0.6); margin-top: 4px;">
-                                            Location: ${pt.location} • Capacity: ${pt.current_occupancy || 0}/${pt.capacity}
-                                        </div>
+                                <div class="contact-card animate__animated animate__fadeInUp">
+                                    <span class="contact-cat" style="background:${statusColor}20; color:${statusColor}">${statusLabel}</span>
+                                    <div style="font-weight: 700; font-size: 16px; margin: 10px 0 5px;">${pt.name}</div>
+                                    <div style="font-size: 12px; opacity: 0.7; margin-bottom: 15px;">
+                                        <i data-lucide="map-pin" style="width:12px;"></i> ${pt.location}<br>
+                                        <i data-lucide="users" style="width:12px;"></i> Capacity: ${pt.current_occupancy || 0}/${pt.capacity}
                                     </div>
-                                    <a class="small-btn" href="https://www.google.com/maps/search/?api=1&query=${pt.query}" target="_blank">Directions</a>
+                                    <a class="small-btn" href="https://www.google.com/maps/search/?api=1&query=${pt.query}" target="_blank" style="text-align: center;">
+                                        <i data-lucide="navigation" style="width:14px;"></i> Get Directions
+                                    </a>
                                 </div>`;
                             });
                             container.innerHTML = html;
+                            if(typeof lucide !== 'undefined') lucide.createIcons();
                         } else {
-                            container.innerHTML = '<div style="padding:20px; text-align:center; opacity:0.6;">No safe points found nearby.</div>';
+                            container.innerHTML = '<div style="grid-column: 1/-1; text-align:center; padding:40px; opacity:0.5;">No safe points found nearby.</div>';
                         }
                     })
                     .catch(() => {
@@ -1743,161 +1933,251 @@ if (file_exists($help_file)) {
             });
         }
         
+        let rawAlertRegistry = [];
+        let terminalAlertSort = 'desc';
+
         async function fetchUserAlerts() {
             const container = document.getElementById('userAlertsList');
             if(!container) return;
             
             try {
-                // Targeted Broadcast Logic + Cache Buster
                 const userLocParam = window.userLocation ? `&user_location=${encodeURIComponent(window.userLocation)}` : '';
-                const cacheBuster = `&_t=${Date.now()}`;
-                
-                const res = await fetch(`manage_alerts.php?action=fetch_all${userLocParam}${cacheBuster}`);
+                const res = await fetch(`manage_alerts.php?action=fetch_all${userLocParam}&_t=${Date.now()}`);
                 const json = await res.json();
                 
                 if(json.status === 'success') {
-                    const alerts = json.data || [];
+                    rawAlertRegistry = json.data || [];
                     
-                        // --- NEW ALERT DETECTION (Robust ID-based) ---
-                        const lastSeenId = parseInt(localStorage.getItem('lastSeenAlertId') || '0');
-                        let newCount = 0;
-                        
-                        alerts.forEach(alert => {
-                            if(parseInt(alert.id) > lastSeenId) {
-                                newCount++;
+                    // --- Notification & Siren Logic ---
+                    const lastSeenId = parseInt(localStorage.getItem('lastSeenAlertId') || '0');
+                    let newCount = 0;
+                    rawAlertRegistry.forEach(alert => { if(parseInt(alert.id) > lastSeenId) newCount++; });
+
+                    if(newCount > 0) {
+                        const silencedId = parseInt(localStorage.getItem('silencedAlertId') || '0');
+                        rawAlertRegistry.slice(0, 10).forEach(alert => {
+                            const id = parseInt(alert.id);
+                            if (id > lastSeenId) {
+                                const sev = (alert.severity || '').toUpperCase();
+                                if ((sev === 'WARNING' || sev === 'CRITICAL') && id > silencedId) {
+                                    playEmergencyAlarm(alert.severity, alert.message, alert.id, alert.alert_type === 'IoT');
+                                }
                             }
                         });
 
-                        if(newCount > 0) {
-                            console.log(`!!! ${newCount} NEW ALERT(S) DETECTED (IDs > ${lastSeenId}) !!!`);
-                            
-                            // 🚨 EMERGENCY ALARM TRIGGER (Scan all new alerts) 🚨
-                            const silencedId = localStorage.getItem('silencedAlertId');
-                            let maxNewId = parseInt(localStorage.getItem('lastAlertId') || '0');
-                            
-                            alerts.forEach(alert => {
-                                const id = parseInt(alert.id);
-                                if (id > lastSeenId) {
-                                    const severityUpper = (alert.severity || '').toUpperCase();
-                                    if ((severityUpper === 'WARNING' || severityUpper === 'CRITICAL') && id > parseInt(silencedId || '0')) {
-                                        if (id > maxNewId) {
-                                            maxNewId = id;
-                                            localStorage.setItem('lastAlertId', id); // STICKY ID for Stop Alarm
-                                        }
-                                        const shouldSiren = (alert.alert_type === 'IoT');
-                                        playEmergencyAlarm(alert.severity, alert.message, alert.id, shouldSiren);
-                                    }
-                                }
-                            });
-
-                            // Show Badge with count (unless already in alerts section)
-                            const isAlertsActive = document.getElementById('section-alerts').classList.contains('active');
-                            if(!isAlertsActive) {
-                                const badge = document.getElementById('alertBadge');
-                                if(badge) {
-                                    badge.textContent = newCount;
-                                    badge.style.display = 'flex';
-                                }
-                            }
-                            
-                            // PLAY NOTIFICATION BEEP once per fetch batch
-                            const latestAlert = alerts[0];
-                            const lastBeepedId = parseInt(localStorage.getItem('lastBeepedId') || '0');
-                            if(latestAlert && parseInt(latestAlert.id) > lastBeepedId) {
-                                try {
-                                    if (!isAlarmPlaying) playSystemBeep(); 
-                                    if("Notification" in window && Notification.permission === "granted") {
-                                        new Notification("New AquaSafe Alerts", { 
-                                            body: `You have ${newCount} new flood alert(s) in your area.`, 
-                                            icon: '../assets/logo.png' 
-                                        });
-                                    }
-                                    localStorage.setItem('lastBeepedId', latestAlert.id);
-                                } catch (e) {
-                                    console.error("Notification failed", e);
-                                }
-                            }
+                        // Badge management
+                        const badge = document.getElementById('alertBadge');
+                        if(badge && !document.getElementById('section-alerts').classList.contains('active')) {
+                            badge.textContent = newCount;
+                            badge.style.display = 'flex';
                         }
                         
-                        // Bootstrap initial state so we don't alert on historical data
-                        if(!localStorage.getItem('lastSeenAlertId') && alerts.length > 0) {
-                            localStorage.setItem('lastSeenAlertId', alerts[0].id);
+                        // System notification
+                        const latest = rawAlertRegistry[0];
+                        if(latest && parseInt(latest.id) > parseInt(localStorage.getItem('lastBeepedId') || '0')) {
+                            if (!isAlarmPlaying) playSystemBeep(); 
+                            if("Notification" in window && Notification.permission === "granted") {
+                                new Notification("AquaSafe Intelligence", { body: `Detected ${newCount} new security/safety events.`, icon: '../assets/logo.png' });
+                            }
+                            localStorage.setItem('lastBeepedId', latest.id);
                         }
+                    }
+                    
+                    if(!localStorage.getItem('lastSeenAlertId') && rawAlertRegistry.length > 0) {
+                        localStorage.setItem('lastSeenAlertId', rawAlertRegistry[0].id);
+                    }
 
-                        if(alerts.length > 0) {
-                            let html = '';
-                            alerts.forEach(alert => {
-                                const isCrit = alert.severity === 'Critical';
-                                const borderColor = isCrit ? '#e74c3c' : (alert.severity === 'Warning' ? '#f1c40f' : '#4ab5c4');
-                                const bgColor = isCrit ? 'rgba(231, 76, 60, 0.1)' : 'rgba(255,255,255,0.05)';
-                                
-                                html += `
-                                    <div class="list-item" style="border-left: 4px solid ${borderColor}; background: ${bgColor}; align-items: flex-start; flex-direction: column; gap: 8px;">
-                                        <div style="display: flex; justify-content: space-between; width: 100%;">
-                                            <strong style="color: ${borderColor};">${alert.severity}</strong>
-                                            <span style="font-size: 11px; opacity: 0.6;">${new Date(alert.timestamp).toLocaleTimeString()}</span>
-                                        </div>
-                                        <div style="font-size: 14px; line-height: 1.4;">${alert.message}</div>
-                                        <div style="font-size: 11px; opacity: 0.5; display: flex; gap: 5px; align-items: center;">
-                                            <i data-lucide="map-pin" style="width: 12px;"></i> ${alert.location || 'System Wide'}
-                                        </div>
-                                    </div>
-                                `;
-                            });
-                            container.innerHTML = html;
-                            lucide.createIcons();
-                        } else {
-                            container.innerHTML = '<div style="text-align:center; padding:30px; opacity:0.5;">No active alerts at the moment. Stay safe! 🛡️</div>';
-                        }
-                    } 
+                    window.renderAlertTerminal();
+                } 
             } catch(e) {
-                console.error("Alert Fetch Error:", e);
-                container.innerHTML = '<div style="text-align:center; color:#e74c3c;">Failed to load alerts.</div>';
+                console.error("Terminal Sync Error:", e);
+                container.innerHTML = '<div style="text-align:center; color:#e74c3c; padding: 50px;">Terminal Sync Failed. Check Pipeline Connection.</div>';
             }
         }
-        
-        // Initial Fetch
-        fetchUserAlerts();
-        setInterval(fetchUserAlerts, 5000); // Poll every 5s for testing
 
-        // --- NEW FILTERING LOGIC ---
+        window.renderAlertTerminal = function() {
+            const container = document.getElementById('userAlertsList');
+            const searchTerm = (document.getElementById('alertTerminalSearch')?.value || '').toUpperCase();
+            const sevFilter = document.getElementById('alertSeverityFilter')?.value || 'ALL';
+            
+            let filtered = rawAlertRegistry.filter(a => {
+                const content = `${a.message} ${a.location} ${a.severity}`.toUpperCase();
+                const matchesSearch = content.includes(searchTerm);
+                const matchesSev = sevFilter === 'ALL' || (a.severity || '').toUpperCase() === sevFilter;
+                return matchesSearch && matchesSev;
+            });
+
+            // Improved Sort Logic
+            filtered.sort((a, b) => {
+                const dateA = new Date(a.timestamp.replace(/-/g, '/').replace(' ', 'T'));
+                const dateB = new Date(b.timestamp.replace(/-/g, '/').replace(' ', 'T'));
+                
+                // Fallback for invalid dates
+                const timeA = isNaN(dateA.getTime()) ? 0 : dateA.getTime();
+                const timeB = isNaN(dateB.getTime()) ? 0 : dateB.getTime();
+                
+                return terminalAlertSort === 'desc' ? timeB - timeA : timeA - timeB;
+            });
+
+            if(filtered.length === 0) {
+                container.innerHTML = '<div style="text-align:center; padding:100px; opacity:0.3;">NO ENTRIES MATCHING REGISTRY FILTERS</div>';
+                return;
+            }
+
+            // Group by Date
+            const groups = { 'TODAY': [], 'YESTERDAY': [], 'EARLIER': [] };
+            const today = new Date(); today.setHours(0,0,0,0);
+            const yesterday = new Date(today); yesterday.setDate(yesterday.getDate() - 1);
+
+            filtered.forEach(alert => {
+                const d = new Date(alert.timestamp.replace(' ', 'T'));
+                d.setHours(0,0,0,0);
+                if(d.getTime() === today.getTime()) groups['TODAY'].push(alert);
+                else if(d.getTime() === yesterday.getTime()) groups['YESTERDAY'].push(alert);
+                else groups['EARLIER'].push(alert);
+            });
+
+            let html = '';
+            let groupOrder = ['TODAY', 'YESTERDAY', 'EARLIER'];
+            if(terminalAlertSort === 'asc') groupOrder.reverse();
+
+            groupOrder.forEach(label => {
+                if(groups[label].length > 0) {
+                    html += `<div class="date-group-header">${label}</div>`;
+                    groups[label].forEach(alert => {
+                        const sev = (alert.severity || 'INFO').toUpperCase();
+                        const theme = sev === 'CRITICAL' ? 'critical' : (sev === 'WARNING' ? 'warning' : (sev === 'EVACUATION' ? 'evac' : (sev === 'SYSTEM' ? 'system' : 'safe')));
+                        const icon = sev === 'CRITICAL' ? 'octagon-alert' : (sev === 'WARNING' ? 'triangle-alert' : (sev === 'EVACUATION' ? 'map-pin' : (sev === 'SYSTEM' ? 'settings' : 'shield-check')));
+                        const trendIcon = (alert.water_level && alert.water_level > 5) ? '<span class="trend-icon" style="color:#e74c3c;">↗</span>' : (alert.water_level ? '<span class="trend-icon" style="color:#2ecc71;">↘</span>' : '');
+                        
+                        html += `
+                            <div class="history-item-prof alert-theme-${theme} animate__animated animate__fadeIn" onclick="window.toggleAlertDetails(this)">
+                                <div class="alert-header-prof">
+                                    <div style="display: flex; align-items: center; gap: 10px;">
+                                        <div class="${sev==='CRITICAL'?'alert-pulse':''}" style="color: ${getSevColor(sev)};">
+                                            <i data-lucide="${icon}" style="width: 20px; height: 20px;"></i>
+                                        </div>
+                                        <span class="severity-pill pill-${theme}">${sev}</span>
+                                        ${trendIcon}
+                                    </div>
+                                    <div style="text-align: right;">
+                                        <div style="font-size: 13px; font-weight: 700; color: #fff;">${new Date(alert.timestamp).toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'})}</div>
+                                        <div style="font-size: 10px; opacity: 0.5;">${new Date(alert.timestamp).toLocaleDateString()}</div>
+                                    </div>
+                                </div>
+                                <div style="font-size: 15px; font-weight: 600; color: #fff; margin-bottom: 8px;">${alert.message.split('.')[0]}.</div>
+                                <div style="display: flex; gap: 12px; align-items: center; font-size: 11px; opacity: 0.6;">
+                                    <span style="display: flex; align-items: center; gap: 4px;"><i data-lucide="map-pin" style="width:12px;"></i> ${alert.location || 'Terminal Area'}</span>
+                                    <span style="display: flex; align-items: center; gap: 4px;"><i data-lucide="cpu" style="width:12px;"></i> ${alert.alert_type || 'System'}</span>
+                                </div>
+
+                                <div class="alert-details-panel">
+                                    <div style="background: rgba(0,0,0,0.2); padding: 15px; border-radius: 12px; font-size: 13px; line-height: 1.6; color: rgba(255,255,255,0.8);">
+                                        <div style="margin-bottom: 10px;">${alert.message}</div>
+                                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-top: 15px; padding-top: 15px; border-top: 1px solid rgba(255,255,255,0.05);">
+                                            <div>
+                                                <div class="ctrl-label" style="margin-bottom: 5px;">Source Analysis</div>
+                                                <div class="intelligence-tag">${alert.alert_type === 'IoT' ? 'SENSOR-DELTA' : 'OFFICIAL-COMMS'}</div>
+                                            </div>
+                                            <div>
+                                                <div class="ctrl-label" style="margin-bottom: 5px;">Water Level</div>
+                                                <div style="font-weight: 700; color: #fff;">${alert.water_level || '--'} ft</div>
+                                            </div>
+                                        </div>
+                                        <div style="margin-top: 15px;">
+                                            <div class="ctrl-label" style="margin-bottom: 8px;">Protocol Action</div>
+                                            <div style="padding: 10px; background: rgba(255,255,255,0.05); border-radius: 8px; border-left: 3px solid ${getSevColor(sev)}; font-size: 12px;">
+                                                ${getSuggestedAction(sev)}
+                                            </div>
+                                        </div>
+                                        <div style="margin-top: 15px; display: flex; gap: 10px;">
+                                            <button class="btn-terminal" style="width: 100%; border-radius: 8px; padding: 8px;" onclick="event.stopPropagation(); window.showSection('section-map');">
+                                                <i data-lucide="map" style="width:14px;"></i> View Hotspot
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        `;
+                    });
+                }
+            });
+            container.innerHTML = html;
+            lucide.createIcons();
+        }
+
+        function getSevColor(sev) {
+            const map = { 'CRITICAL': '#e74c3c', 'WARNING': '#f1c40f', 'SAFE': '#2ecc71', 'EVACUATION': '#3b82f6', 'SYSTEM': '#a855f7' };
+            return map[sev] || '#fff';
+        }
+
+        function getSuggestedAction(sev) {
+            const map = {
+                'CRITICAL': 'IMMEDIATE EVACUATION. Move to designated high ground or shelter now. Do not delay.',
+                'WARNING': 'INCREASED VIGILANCE. Prepare emergency kits. Monitor local comms channels for updates.',
+                'SAFE': 'CONTINUE MONITORING. No immediate threats detected. Maintain standard preparedness.',
+                'EVACUATION': 'PROCEED TO SHELTER. Official evacuation routes are active. Follow map markers.',
+                'SYSTEM': 'TERMINAL UPDATE. Operational broadcast. No immediate weather action required.'
+            };
+            return map[sev] || 'Standard safety procedures remain in effect.';
+        }
+
+        window.toggleAlertSort = function() {
+            terminalAlertSort = terminalAlertSort === 'desc' ? 'asc' : 'desc';
+            const btn = document.getElementById('alertSortBtn');
+            const icon = btn.querySelector('i');
+            const text = btn.querySelector('span');
+            
+            if(terminalAlertSort === 'desc') {
+                text.textContent = 'Newest First';
+                icon.setAttribute('data-lucide', 'arrow-down-narrow-wide');
+            } else {
+                text.textContent = 'Oldest First';
+                icon.setAttribute('data-lucide', 'arrow-up-narrow-wide');
+            }
+            if(window.lucide) lucide.createIcons();
+            window.renderAlertTerminal();
+        }
+
+        window.filterAlertTerminal = function() {
+            window.renderAlertTerminal();
+        }
+
+        window.toggleAlertDetails = function(el) {
+            const all = document.querySelectorAll('.history-item-prof');
+            all.forEach(item => { if(item !== el) item.classList.remove('expanded'); });
+            el.classList.toggle('expanded');
+        }
+
         function filterEvacuationPoints() {
             const input = document.getElementById('evacSearch');
             const filter = input.value.toUpperCase();
             const statusFilter = document.getElementById('evacFilter').value;
             const container = document.getElementById('evacuation-list-container');
-            const items = container.getElementsByClassName('list-item');
+            const items = container.querySelectorAll('.list-item, .card'); // Broaden to find both old/new styles
 
-            for (let i = 0; i < items.length; i++) {
-                const text = items[i].innerText || items[i].textContent;
-                const statusSpan = items[i].querySelector('span[style*="border-radius"]');
-                const statusText = statusSpan ? statusSpan.innerText : '';
-
+            items.forEach(item => {
+                const text = item.innerText || item.textContent;
                 const matchesSearch = text.toUpperCase().indexOf(filter) > -1;
-                const matchesStatus = statusFilter === 'All' || statusText.includes(statusFilter);
-
-                if (matchesSearch && matchesStatus) {
-                    items[i].style.display = "";
-                } else {
-                    items[i].style.display = "none";
+                let matchesStatus = true;
+                if(statusFilter !== 'All') {
+                   const statusText = item.querySelector('.safety-badge')?.innerText || '';
+                   matchesStatus = statusText.includes(statusFilter);
                 }
-            }
+                item.style.display = (matchesSearch && matchesStatus) ? "" : "none";
+            });
         }
 
         function filterContacts() {
             const input = document.getElementById('contactSearch');
             const filter = input.value.toUpperCase();
             const container = document.getElementById('contacts-list-container');
-            const items = container.getElementsByClassName('list-item');
+            const items = container.querySelectorAll('.contact-card');
 
-            for (let i = 0; i < items.length; i++) {
-                const text = items[i].innerText || items[i].textContent;
-                if (text.toUpperCase().indexOf(filter) > -1) {
-                    items[i].style.display = "";
-                } else {
-                    items[i].style.display = "none";
-                }
-            }
+            items.forEach(item => {
+                const text = item.innerText || item.textContent;
+                item.style.display = (text.toUpperCase().indexOf(filter) > -1) ? "" : "none";
+            });
         }
     </script>
     <!-- Custom Confirmation Modal -->
@@ -1966,5 +2246,365 @@ if (file_exists($help_file)) {
             </form>
         </div>
     </div>
+
+    <!-- Dashboard Sync Engine & Emergency Logic -->
+    <script>
+    (function() {
+        let lastKnownLevel = 0;
+        let audioCtx = null;
+
+        // --- WEB AUDIO SIREN ---
+        function playSiren() {
+            try {
+                if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                if (audioCtx.state === 'suspended') audioCtx.resume();
+                
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                
+                osc.type = 'sawtooth';
+                osc.frequency.setValueAtTime(440, audioCtx.currentTime);
+                osc.frequency.exponentialRampToValueAtTime(880, audioCtx.currentTime + 0.4);
+                osc.frequency.exponentialRampToValueAtTime(440, audioCtx.currentTime + 0.8);
+                
+                gain.gain.setValueAtTime(0.1, audioCtx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.8);
+                
+                osc.connect(gain);
+                gain.connect(audioCtx.destination);
+                
+                osc.start();
+                osc.stop(audioCtx.currentTime + 0.8);
+            } catch(e) { console.warn('Audio failed', e); }
+        }
+
+        // --- GEOLOCATION ---
+        window.shareLocation = function() {
+            if (!navigator.geolocation) {
+                return Swal.fire('Error', 'Geolocation not supported', 'error');
+            }
+            
+            Swal.fire({
+                title: 'Sharing Location...',
+                text: 'Acquiring precise emergency coordinates',
+                allowOutsideClick: false,
+                didOpen: () => Swal.showLoading()
+            });
+
+            navigator.geolocation.getCurrentPosition(async pos => {
+                const { latitude, longitude } = pos.coords;
+                
+                try {
+                    const formData = new FormData();
+                    formData.append('action', 'save');
+                    formData.append('lat', latitude);
+                    formData.append('lng', longitude);
+
+                    const res = await fetch('manage_emergency_signals.php', {
+                        method: 'POST',
+                        body: formData
+                    });
+                    const data = await res.json();
+
+                    if (data.status === 'success') {
+                        Swal.fire({
+                            title: 'Signal Transmitted',
+                            html: `
+                                <div style="text-align:center;">
+                                    <div style="font-size:40px; margin-bottom:15px;">📡</div>
+                                    <div style="font-size:14px; opacity:0.8; line-height:1.6;">
+                                        Coordinates: <code style="color:var(--primary);">${latitude.toFixed(5)}, ${longitude.toFixed(5)}</code><br>
+                                        Your location has been broadcast to the Admin Command Center.
+                                    </div>
+                                </div>
+                            `,
+                            icon: 'success',
+                            background: '#1e2029',
+                            color: '#fff',
+                            confirmButtonColor: 'var(--primary)'
+                        });
+                    } else {
+                        Swal.fire('Broadcast Failed', data.message, 'error');
+                    }
+                } catch (e) {
+                    Swal.fire('Network Error', 'Could not reach emergency servers.', 'error');
+                }
+            }, err => {
+                Swal.fire('Search Failed', 'Please enable location permissions and try again.', 'error');
+            }, { enableHighAccuracy: true });
+        };
+
+        // --- EMERGENCY HELP MODAL ---
+        window.openHelpModal = function() {
+            Swal.fire({
+                title: '🆘 Request Help',
+                html: `
+                    <div style="text-align:left; font-size:14px; margin-bottom:15px; opacity:0.8;">Describe your situation for rescue teams:</div>
+                    <input id="swalHelpTitle" class="swal2-input" style="background:#13141b; border:1px solid #2d2f39; color:#fff; font-size:14px; margin:0 0 10px 0; width:100%; box-sizing:border-box;" placeholder="Problem (e.g. Trapped by Water)">
+                    <textarea id="swalHelpDetails" class="swal2-textarea" style="background:#13141b; border:1px solid #2d2f39; color:#fff; font-size:14px; margin:0; width:100%; box-sizing:border-box; height:100px;" placeholder="Details (Address, People needing help...)"></textarea>
+                `,
+                showCancelButton: true,
+                confirmButtonText: 'Submit Request',
+                confirmButtonColor: '#e74c3c',
+                background: '#1e2029',
+                color: '#fff',
+                focusConfirm: false,
+                preConfirm: () => {
+                    const title = document.getElementById('swalHelpTitle').value;
+                    const details = document.getElementById('swalHelpDetails').value;
+                    if (!title || !details) {
+                        Swal.showValidationMessage('Please fill both fields');
+                    }
+                    return { title, details };
+                }
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    window.submitManualHelp(result.value.title, result.value.details);
+                }
+            });
+        };
+
+        window.submitManualHelp = async function(title, details) {
+            Swal.fire({ title: 'Sending...', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
+            
+            const formData = new FormData();
+            formData.append('action', 'submit');
+            formData.append('title', title);
+            formData.append('details', details);
+            
+            try {
+                const res = await fetch('manage_helpdesk.php', { method: 'POST', body: formData });
+                const data = await res.json();
+                if (data.status === 'success') {
+                    Swal.fire('Request Sent!', 'Your rescue ticket has been logged.', 'success');
+                    if (window.loadMyRequests) window.loadMyRequests();
+                } else {
+                    Swal.fire('Error', data.message, 'error');
+                }
+            } catch (e) {
+                Swal.fire('Failed', 'Network connection issue.', 'error');
+            }
+        };
+
+        const dashboardElements = {
+            hero: {
+                card: 'heroSafetyCard', // Retained as it might be used elsewhere or for future expansion
+                level: 'heroLevel',
+                location: 'heroLocation',
+                trend: 'heroTrend',
+                updated: 'heroUpdated',
+                badge: 'heroBadge',
+                guidance: 'heroGuidance'
+            },
+            alerts: 'adminAlertContent',
+            intelligence: 'intelligenceList',
+            evac: {
+                name: 'evacName',
+                loc: 'evacLoc',
+                status: 'evacStatus',
+                button: 'evacButton'
+            },
+            timeline: 'iqTimeline',
+            health: 'sensorHealth'
+        };
+
+        const guidanceMsgs = {
+            'SAFE': "No immediate flood risk detected. AquaSafe is monitoring real-time IoT sensors in your area. Stay informed and keep your emergency kit ready.",
+            'WARNING': "Water levels are rising at a cautionary rate. Please stay alert, keep your mobile devices charged, and be prepared to move to higher ground if levels continue to increase.",
+            'CRITICAL': "CRITICAL: Severe flood risk detected! Evacuate to the nearest shelter immediately. Higher ground is advised. Reach out for help via the Emergency Action Panel if needed."
+        };
+
+        async function updateSafetyDashboard() {
+            try {
+                const res = await fetch('get_user_safety_data.php?_t=' + Date.now());
+                const data = await res.json();
+                
+                if (data.status !== 'success') return;
+
+                const { iot, adminAlert, nearestEvac, iqHistory } = data;
+
+                // 1. Update Hero Card
+                if (iot) {
+                    const el = document.getElementById(dashboardElements.hero.level);
+                    if(el) el.textContent = iot.level + ' ft';
+                    
+                    const locEl = document.getElementById(dashboardElements.hero.location);
+                    if(locEl) locEl.innerHTML = `<i data-lucide="map-pin" style="width: 14px; vertical-align: middle;"></i> ${iot.location}`;
+
+                    const trendEl = document.getElementById(dashboardElements.hero.trend);
+                    if(trendEl) {
+                        trendEl.textContent = (iot.trend === 'Rising' ? '▲ ' : iot.trend === 'Falling' ? '▼ ' : '● ') + iot.trend;
+                        trendEl.style.color = iot.trend === 'Rising' ? 'var(--danger)' : 'var(--safe)';
+                    }
+
+                    const updEl = document.getElementById(dashboardElements.hero.updated);
+                    if(updEl) updEl.textContent = 'Updated: ' + new Date(iot.timestamp.replace(' ', 'T')).toLocaleTimeString();
+
+                    const badgeEl = document.getElementById(dashboardElements.hero.badge);
+                    const guidEl = document.getElementById(dashboardElements.hero.guidance);
+                    
+                    if (badgeEl && guidEl) {
+                        let status = iot.status ? iot.status.toUpperCase() : 'SAFE';
+                        if (status === 'DANGER') status = 'CRITICAL'; // Safety normalization
+                        
+                        const badgeClass = status === 'SAFE' ? 'badge-safe' : (status === 'WARNING' ? 'badge-warning' : 'badge-danger');
+                        const icon = status === 'SAFE' ? 'shield-check' : 'alert-triangle';
+                        
+                        badgeEl.className = 'safety-badge ' + badgeClass;
+                        badgeEl.innerHTML = `<i data-lucide="${icon}"></i> <span>Status: ${status}</span>`;
+                        guidEl.textContent = guidanceMsgs[status] || guidanceMsgs.SAFE;
+
+                        // --- 🚨 GRANULAR ALARM LOGIC 🚨 ---
+                        if (iot.level > lastKnownLevel && status !== 'SAFE') {
+                            playSiren();
+                        }
+                        lastKnownLevel = iot.level;
+                    }
+                }
+
+                // 2. Update Admin Alert
+                const alertContainer = document.getElementById(dashboardElements.alerts);
+                if (alertContainer) {
+                    if (adminAlert) {
+                        const sev = adminAlert.severity ? adminAlert.severity.toUpperCase() : 'INFO';
+                        const themeClass = sev === 'CRITICAL' ? 'alert-theme-critical' : (sev === 'WARNING' ? 'alert-theme-warning' : 'alert-theme-safe');
+                        const icon = sev === 'CRITICAL' ? 'alert-octagon' : (sev === 'WARNING' ? 'alert-triangle' : 'info');
+                        const pulseClass = sev === 'CRITICAL' ? 'alert-pulse' : '';
+                        
+                        alertContainer.innerHTML = `
+                            <div class="alert-card-professional ${themeClass} animate__animated animate__fadeIn">
+                                <div class="alert-header-prof">
+                                    <div style="display: flex; align-items: center; gap: 8px;">
+                                        <div class="${pulseClass}" style="display: flex; align-items: center; justify-content: center; color: ${sev === 'CRITICAL' ? '#e74c3c' : (sev === 'WARNING' ? '#f1c40f' : '#2ecc71')};">
+                                            <i data-lucide="${icon}" style="width: 18px; height: 18px;"></i>
+                                        </div>
+                                        <span class="severity-pill pill-${sev.toLowerCase()}">${sev}</span>
+                                    </div>
+                                    <span style="font-size: 11px; opacity: 0.5; font-weight: 600;">${new Date(adminAlert.timestamp.replace(' ', 'T')).toLocaleDateString()}</span>
+                                </div>
+                                <div style="font-size: 14px; line-height: 1.5; font-weight: 500; color: #fff;">${adminAlert.message}</div>
+                                <div style="margin-top: 12px; padding-top: 10px; border-top: 1px solid rgba(255,255,255,0.05); display: flex; justify-content: space-between; align-items: center;">
+                                    <span style="font-size: 11px; color: var(--primary); font-weight: 700;">OFFICIAL BROADCAST</span>
+                                    <span style="font-size: 10px; opacity: 0.4;">Source: AquaSafe Admin</span>
+                                </div>
+                            </div>
+                        `;
+                    } else {
+                        alertContainer.innerHTML = `<div style="text-align: center; padding: 30px; opacity: 0.3; font-size: 13px; font-weight: 500; border: 1px dashed rgba(255,255,255,0.1); border-radius: 12px;">No active system broadcasts.</div>`;
+                    }
+                }
+
+                // 3. Update Intelligence (Last 3 Readings)
+                const intelContainer = document.getElementById(dashboardElements.intelligence);
+                if (intelContainer) {
+                    if (data.iot_history && data.iot_history.length > 0) {
+                        intelContainer.innerHTML = data.iot_history.slice(0, 3).map((h, i) => `
+                            <div class="intelligence-reading" style="${i === 0 ? 'border-left: 2px solid var(--primary); padding-left: 10px;' : ''}">
+                                <span style="font-size: 14px; font-weight: 600;">${h.level} ft</span>
+                                <span style="font-size: 11px; opacity: 0.5;">${new Date(h.timestamp.replace(' ', 'T')).toLocaleTimeString()}</span>
+                            </div>
+                        `).join('');
+                        
+                        // Update Sensor Health
+                        const healthEl = document.getElementById(dashboardElements.health);
+                        if(healthEl) {
+                            const lastPulse = new Date(data.iot_history[0].timestamp.replace(' ', 'T'));
+                            const isFresh = (new Date() - lastPulse) < 120000; // 2 mins threshold
+                            healthEl.innerHTML = `<span class="safety-badge ${isFresh ? 'badge-safe' : 'badge-warning'}" style="font-size: 10px; padding: 4px 10px;">${isFresh ? '📡 Online' : '🕒 Delay Detected'}</span>`;
+                        }
+                    } else {
+                        intelContainer.innerHTML = `<div style="text-align: center; padding: 20px; opacity: 0.5; font-size: 13px;">No recent sensor data.</div>`;
+                    }
+                }
+
+                // 4. Update Evacuation
+                const evacNameEl = document.getElementById(dashboardElements.evac.name);
+                if (evacNameEl) {
+                    if (nearestEvac) {
+                        const locEl = document.getElementById(dashboardElements.evac.loc);
+                        const statEl = document.getElementById(dashboardElements.evac.status);
+                        const btnEl = document.getElementById(dashboardElements.evac.button);
+
+                        evacNameEl.textContent = nearestEvac.name;
+                        if(locEl) locEl.textContent = nearestEvac.location + ` (${nearestEvac.distance})`;
+                        if(statEl) {
+                            statEl.textContent = nearestEvac.status;
+                            statEl.className = 'safety-badge ' + (nearestEvac.status === 'Open' ? 'badge-safe' : 'badge-danger');
+                        }
+                        if(btnEl) {
+                            btnEl.href = `https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(nearestEvac.location)}`;
+                            btnEl.style.display = 'inline-block';
+                        }
+                    } else {
+                        evacNameEl.textContent = 'None Nearby';
+                        const locEl = document.getElementById(dashboardElements.evac.loc);
+                        if(locEl) locEl.textContent = 'Stay put unless alert issued.';
+                        const btnEl = document.getElementById(dashboardElements.evac.button);
+                        if(btnEl) btnEl.style.display = 'none';
+                    }
+                }
+
+                // 5. Update Dynamic Charts
+                if (data.iot_history && data.iot_history.length > 0) {
+                    const historyLevels = data.iot_history.map(h => parseFloat(h.level)).reverse();
+                    const historyLabels = data.iot_history.map(h => {
+                        const d = new Date(h.timestamp.replace(' ', 'T'));
+                        return d.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+                    }).reverse();
+                    
+                    if (typeof initMiniChart === 'function') initMiniChart(historyLevels);
+                    
+                    const waterSection = document.getElementById('section-water');
+                    if (waterSection && waterSection.classList.contains('active') && typeof initChart === 'function') {
+                        initChart(historyLevels, historyLabels);
+                    }
+                }
+
+                // 6. Update IQ Timeline
+                const timelineContainer = document.getElementById(dashboardElements.timeline);
+                if (timelineContainer) {
+                    if (iqHistory && iqHistory.length > 0) {
+                        timelineContainer.innerHTML = iqHistory.slice(0, 4).map(h => {
+                            const status = h.severity ? h.severity.toUpperCase() : 'SAFE';
+                            const bgColor = status === 'SAFE' ? 'rgba(46, 204, 113, 0.1)' : (status === 'WARNING' ? 'rgba(241, 196, 15, 0.1)' : 'rgba(231, 76, 60, 0.1)');
+                            const textColor = status === 'SAFE' ? '#2ecc71' : (status === 'WARNING' ? '#f1c40f' : '#e74c3c');
+                            const icon = status === 'SAFE' ? 'check' : 'alert-circle';
+
+                            return `
+                            <div class="timeline-item">
+                                <div class="item-icon" style="background: ${bgColor}; color: ${textColor};">
+                                    <i data-lucide="${icon}"></i>
+                                </div>
+                                <div style="flex: 1;">
+                                    <div style="font-size: 12px; font-weight: 700; display: flex; justify-content: space-between;">
+                                        <span>${status} Event</span>
+                                        <span style="font-size: 10px; opacity: 0.5;">${new Date(h.timestamp.replace(' ', 'T')).toLocaleTimeString()}</span>
+                                    </div>
+                                    <div style="font-size: 11px; opacity: 0.7; margin-top: 2px;">${h.message.split(' at ')[0]}</div>
+                                </div>
+                            </div>
+                        `;}).join('');
+                    } else {
+                        timelineContainer.innerHTML = `<div style="text-align: center; padding: 20px; opacity: 0.5; font-size: 12px;">No recent IQ intelligence.</div>`;
+                    }
+                }
+
+                // Re-render Lucide icons for new content
+                if (typeof lucide !== 'undefined') lucide.createIcons();
+
+            } catch(e) {
+                console.warn('Dashboard sync failed:', e);
+            }
+        }
+
+        // Run sync
+        updateSafetyDashboard();
+        setInterval(updateSafetyDashboard, 10000); // Sync every 10 seconds
+
+        // Global exposing for manual refresh if needed
+        window.refreshSafetyDashboard = updateSafetyDashboard;
+
+    })();
+    </script>
 </body>
 </html>

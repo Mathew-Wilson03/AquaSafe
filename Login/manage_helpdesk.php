@@ -31,6 +31,7 @@ if ($action === 'fetch_all') {
 if ($action === 'submit') {
     $title = $_POST['title'] ?? '';
     $details = $_POST['details'] ?? '';
+    $location = $_POST['location'] ?? ''; // New optional field
 
     if (empty($title) || empty($details)) {
         ob_clean();
@@ -38,8 +39,8 @@ if ($action === 'submit') {
         exit;
     }
 
-    $stmt = mysqli_prepare($link, "INSERT INTO helpdesk_requests (user_name, user_email, title, details, status) VALUES (?, ?, ?, ?, 'Pending')");
-    mysqli_stmt_bind_param($stmt, "ssss", $user_name, $user_email, $title, $details);
+    $stmt = mysqli_prepare($link, "INSERT INTO helpdesk_requests (user_name, user_email, title, details, location, status, priority) VALUES (?, ?, ?, ?, ?, 'Pending', 'Normal')");
+    mysqli_stmt_bind_param($stmt, "sssss", $user_name, $user_email, $title, $details, $location);
     
     ob_clean();
     if (mysqli_stmt_execute($stmt)) {
@@ -92,7 +93,7 @@ elseif ($action === 'reply') {
         exit;
     }
 
-    $stmt = mysqli_prepare($link, "UPDATE helpdesk_requests SET admin_reply = ?, status = 'In Progress' WHERE id = ?");
+    $stmt = mysqli_prepare($link, "UPDATE helpdesk_requests SET admin_reply = ?, status = 'Responded' WHERE id = ?");
     mysqli_stmt_bind_param($stmt, "si", $reply, $id);
     
     ob_clean();
@@ -123,16 +124,45 @@ elseif ($action === 'resolve') {
 } 
 elseif ($action === 'delete') {
     $id = intval($_POST['id'] ?? 0);
-    $stmt = mysqli_prepare($link, "DELETE FROM helpdesk_requests WHERE id = ? AND user_email = ? AND status = 'Pending'");
-    mysqli_stmt_bind_param($stmt, "is", $id, $user_email);
+    
+    // For admins, allow deleting any unresolved request. 
+    // For users, only allow deleting their own unresolved requests.
+    if ($is_admin) {
+        $stmt = mysqli_prepare($link, "DELETE FROM helpdesk_requests WHERE id = ? AND status != 'Resolved'");
+        mysqli_stmt_bind_param($stmt, "i", $id);
+    } else {
+        $stmt = mysqli_prepare($link, "DELETE FROM helpdesk_requests WHERE id = ? AND user_email = ? AND status != 'Resolved'");
+        mysqli_stmt_bind_param($stmt, "is", $id, $user_email);
+    }
     
     ob_clean();
     if (mysqli_stmt_execute($stmt)) {
         if (mysqli_stmt_affected_rows($stmt) > 0) {
             echo json_encode(['status' => 'success', 'message' => 'Request deleted']);
         } else {
-            echo json_encode(['status' => 'error', 'message' => 'Request not found or unauthorized']);
+            // Detailed logging for failure
+            $reason = "Record not found, unauthorized, or already resolved.";
+            error_log("[AquaSafe HelpDesk] Delete FAILED - ID: $id, User: $user_email, IsAdmin: " . ($is_admin?'Yes':'No'));
+            echo json_encode(['status' => 'error', 'message' => $reason]);
         }
+    } else {
+        echo json_encode(['status' => 'error', 'message' => mysqli_error($link)]);
+    }
+    mysqli_stmt_close($stmt);
+}
+elseif ($action === 'escalate') {
+    if (!$is_admin) {
+        ob_clean();
+        echo json_encode(['status' => 'error', 'message' => 'Admin access required']);
+        exit;
+    }
+    $id = intval($_POST['id'] ?? 0);
+    $stmt = mysqli_prepare($link, "UPDATE helpdesk_requests SET priority = 'Emergency' WHERE id = ?");
+    mysqli_stmt_bind_param($stmt, "i", $id);
+    
+    ob_clean();
+    if (mysqli_stmt_execute($stmt)) {
+        echo json_encode(['status' => 'success', 'message' => 'Request escalated to Emergency']);
     } else {
         echo json_encode(['status' => 'error', 'message' => mysqli_error($link)]);
     }

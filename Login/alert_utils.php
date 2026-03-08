@@ -104,13 +104,15 @@ function handleIoTTrigger($link, $sensor_id, $current_status, $current_level) {
     // 1. Ignore SAFE status
     if ($current_status === 'SAFE') return;
 
-    // 2. Lookup Location Name
-    $stmt = mysqli_prepare($link, "SELECT location_name FROM sensor_locations WHERE sensor_id = ?");
-    mysqli_stmt_bind_param($stmt, "i", $sensor_id);
+    // 2. Lookup Location Name from sensor_status
+    // Note: Since one sensor ID might cover multiple locations (Nellimala, etc), 
+    // we just pick one or use a generic area name.
+    $stmt = mysqli_prepare($link, "SELECT location_name FROM sensor_status WHERE sensor_id = ? LIMIT 1");
+    mysqli_stmt_bind_param($stmt, "s", $sensor_id); 
     mysqli_stmt_execute($stmt);
     $res = mysqli_stmt_get_result($stmt);
     $loc_row = mysqli_fetch_assoc($res);
-    $location = $loc_row ? $loc_row['location_name'] : "Unknown Sensor $sensor_id";
+    $location = $loc_row ? $loc_row['location_name'] : "Idukki Cluster ($sensor_id)";
     mysqli_stmt_close($stmt);
     file_put_contents('alert_debug.txt', "[" . date('Y-m-d H:i:s') . "] Resolved Location: $location\n", FILE_APPEND);
 
@@ -139,5 +141,35 @@ function handleIoTTrigger($link, $sensor_id, $current_status, $current_level) {
     $msg = "Water level has reached $current_level ft ($current_status).";
     file_put_contents('alert_debug.txt', "[" . date('Y-m-d H:i:s') . "] Triggering sendBroadcast (IoT) for $location\n", FILE_APPEND);
     sendBroadcast($link, $location, $msg, $current_status, 'IoT');
+
+    // 6. 🚨 Log to Intelligence Feed 🚨
+    $feed_severity = strtolower($current_status);
+    if ($feed_severity === 'critical') $feed_severity = 'danger'; // Map to system_notifications schema
+    logSystemNotification($link, 'flood', $feed_severity, $location, "Water level changed to $current_status ($current_level ft).", $current_level);
+}
+
+/**
+ * Logs an event to the system_notifications table (Intelligence Feed)
+ */
+function logSystemNotification($link, $type, $severity, $location, $message, $water_level = null) {
+    // Basic debounce: Don't log the exact same message for the same location within 5 minutes
+    $check_sql = "SELECT id FROM system_notifications WHERE type=? AND location=? AND message=? AND timestamp > (NOW() - INTERVAL 5 MINUTE) LIMIT 1";
+    $chk_stmt = mysqli_prepare($link, $check_sql);
+    mysqli_stmt_bind_param($chk_stmt, "sss", $type, $location, $message);
+    mysqli_stmt_execute($chk_stmt);
+    mysqli_stmt_store_result($chk_stmt);
+    if (mysqli_stmt_num_rows($chk_stmt) > 0) {
+        mysqli_stmt_close($chk_stmt);
+        return; // Already logged recently
+    }
+    mysqli_stmt_close($chk_stmt);
+
+    $sql = "INSERT INTO system_notifications (type, severity, location, message, water_level) VALUES (?, ?, ?, ?, ?)";
+    $stmt = mysqli_prepare($link, $sql);
+    if($stmt) {
+        mysqli_stmt_bind_param($stmt, "sssss", $type, $severity, $location, $message, $water_level);
+        mysqli_stmt_execute($stmt);
+        mysqli_stmt_close($stmt);
+    }
 }
 ?>

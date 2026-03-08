@@ -46,10 +46,18 @@ while ($row = mysqli_fetch_assoc($history_result)) {
 // Reverse so chart goes oldest → newest
 $history = array_reverse($history);
 
-// -- 3. Return Result --
+// -- 3. Get Active Emergency Signals --
+$emergency_result = mysqli_query($link, "SELECT id, user_email, latitude, longitude, created_at FROM emergency_signals WHERE status = 'Active' ORDER BY id DESC");
+$emergency_signals = [];
+while ($row = mysqli_fetch_assoc($emergency_result)) {
+    $emergency_signals[] = $row;
+}
+
+// -- 4. Return Result --
 echo json_encode([
     'status'  => 'success',
     'latest'  => $latest,
-    'history' => $history
+    'history' => $history,
+    'emergency_signals' => $emergency_signals
 ]);
 ?>

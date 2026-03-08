@@ -58,3 +58,33 @@ Recipients: admin@aquasafe.com, admin1@aquasafe.com, admin2@aquasafe.com, mathew
 Body: Water level has reached 12.59 ft (WARNING).
 --------------------------------------
 
+--- ALERT: 2026-02-26 19:58:58 ---
+Subject: ⚠️ WARNING Alert: Nellimala
+Recipients: admin@aquasafe.com, admin1@aquasafe.com, admin2@aquasafe.com, mathewwilson2028@mca.ajce.in, albinsunny0420@gmail.com, sharonshibupandakasalayil2028@mca.ajce.in, ebanabrahamsaji2028@mca.ajce.in, abin@gmail.com, manoj@gmail.com, agnussabu2028@mca.ajce.in, ardrasnair2028@mca.ajce.in, kevindaniel2028@mca.ajce.in, alice@example.com, bob@example.com, Daily Summary, ebanabrahansaji2028@mca.ajce.in, jane.smith@example.com, jane@example.com, john.doe@example.com, john@example.com
+Body: Water level has reached 15.5 ft (WARNING).
+--------------------------------------
+
+--- ALERT: 2026-02-26 20:04:17 ---
+Subject: ⚠️ CRITICAL Alert: Nellimala
+Recipients: admin@aquasafe.com, admin1@aquasafe.com, admin2@aquasafe.com, mathewwilson2028@mca.ajce.in, albinsunny0420@gmail.com, sharonshibupandakasalayil2028@mca.ajce.in, ebanabrahamsaji2028@mca.ajce.in, abin@gmail.com, manoj@gmail.com, agnussabu2028@mca.ajce.in, ardrasnair2028@mca.ajce.in, kevindaniel2028@mca.ajce.in, alice@example.com, bob@example.com, Daily Summary, ebanabrahansaji2028@mca.ajce.in, jane.smith@example.com, jane@example.com, john.doe@example.com, john@example.com
+Body: Water level has reached 18.75 ft (CRITICAL).
+--------------------------------------
+
+--- ALERT: 2026-02-26 20:44:38 ---
+Subject: ⚠️ SAFE Alert: Nellimala
+Recipients: admin@aquasafe.com, admin1@aquasafe.com, admin2@aquasafe.com, mathewwilson2028@mca.ajce.in, albinsunny0420@gmail.com, sharonshibupandakasalayil2028@mca.ajce.in, ebanabrahamsaji2028@mca.ajce.in, abin@gmail.com, manoj@gmail.com, agnussabu2028@mca.ajce.in, ardrasnair2028@mca.ajce.in, kevindaniel2028@mca.ajce.in, alice@example.com, bob@example.com, Daily Summary, ebanabrahansaji2028@mca.ajce.in, jane.smith@example.com, jane@example.com, john.doe@example.com, john@example.com
+Body: Situation Normalized: Water level returned to 0 ft (Safe).
+--------------------------------------
+
+--- ALERT: 2026-02-26 20:47:25 ---
+Subject: ⚠️ CRITICAL Alert: Nellimala
+Recipients: admin@aquasafe.com, admin1@aquasafe.com, admin2@aquasafe.com, mathewwilson2028@mca.ajce.in, albinsunny0420@gmail.com, sharonshibupandakasalayil2028@mca.ajce.in, ebanabrahamsaji2028@mca.ajce.in, abin@gmail.com, manoj@gmail.com, agnussabu2028@mca.ajce.in, ardrasnair2028@mca.ajce.in, kevindaniel2028@mca.ajce.in, alice@example.com, bob@example.com, Daily Summary, ebanabrahansaji2028@mca.ajce.in, jane.smith@example.com, jane@example.com, john.doe@example.com, john@example.com
+Body: Automated Alert: Water level reached 19.5 ft (CRITICAL).
+--------------------------------------
+
+--- ALERT: 2026-02-26 20:47:25 ---
+Subject: ⚠️ SAFE Alert: Nellimala
+Recipients: admin@aquasafe.com, admin1@aquasafe.com, admin2@aquasafe.com, mathewwilson2028@mca.ajce.in, albinsunny0420@gmail.com, sharonshibupandakasalayil2028@mca.ajce.in, ebanabrahamsaji2028@mca.ajce.in, abin@gmail.com, manoj@gmail.com, agnussabu2028@mca.ajce.in, ardrasnair2028@mca.ajce.in, kevindaniel2028@mca.ajce.in, alice@example.com, bob@example.com, Daily Summary, ebanabrahansaji2028@mca.ajce.in, jane.smith@example.com, jane@example.com, john.doe@example.com, john@example.com
+Body: Situation Normalized: Water level returned to 4.5 ft (Safe).
+--------------------------------------
+

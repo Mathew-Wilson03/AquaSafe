@@ -1,0 +1,74 @@
+[
+    {
+        "Field": "id",
+        "Type": "int(11)",
+        "Null": "NO",
+        "Key": "PRI",
+        "Default": null,
+        "Extra": "auto_increment"
+    },
+    {
+        "Field": "user_name",
+        "Type": "varchar(100)",
+        "Null": "NO",
+        "Key": "",
+        "Default": null,
+        "Extra": ""
+    },
+    {
+        "Field": "user_email",
+        "Type": "varchar(255)",
+        "Null": "NO",
+        "Key": "",
+        "Default": null,
+        "Extra": ""
+    },
+    {
+        "Field": "title",
+        "Type": "varchar(255)",
+        "Null": "NO",
+        "Key": "",
+        "Default": null,
+        "Extra": ""
+    },
+    {
+        "Field": "details",
+        "Type": "text",
+        "Null": "NO",
+        "Key": "",
+        "Default": null,
+        "Extra": ""
+    },
+    {
+        "Field": "admin_reply",
+        "Type": "text",
+        "Null": "YES",
+        "Key": "",
+        "Default": null,
+        "Extra": ""
+    },
+    {
+        "Field": "status",
+        "Type": "enum('Pending','In Progress','Resolved')",
+        "Null": "YES",
+        "Key": "",
+        "Default": "Pending",
+        "Extra": ""
+    },
+    {
+        "Field": "created_at",
+        "Type": "timestamp",
+        "Null": "NO",
+        "Key": "",
+        "Default": "current_timestamp()",
+        "Extra": ""
+    },
+    {
+        "Field": "updated_at",
+        "Type": "timestamp",
+        "Null": "NO",
+        "Key": "",
+        "Default": "current_timestamp()",
+        "Extra": "on update current_timestamp()"
+    }
+]

@@ -15,11 +15,20 @@ $table_check = "CREATE TABLE IF NOT EXISTS `sensor_status` (
     `id` INT AUTO_INCREMENT PRIMARY KEY,
     `sensor_id` VARCHAR(50) UNIQUE NOT NULL,
     `location_name` VARCHAR(100) NOT NULL,
+    `latitude` DECIMAL(10,8) DEFAULT 0.0,
+    `longitude` DECIMAL(11,8) DEFAULT 0.0,
     `status` VARCHAR(20) DEFAULT 'Active',
     `battery_level` INT DEFAULT 100,
-    `last_ping` TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    `last_ping` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    `water_level` DECIMAL(6,2) DEFAULT 0.00
 )";
 mysqli_query($link, $table_check);
+
+// ADD COLUMNS if they don't exist (FOR EXISTING TABLES)
+mysqli_query($link, "ALTER TABLE `sensor_status` ADD COLUMN IF NOT EXISTS `latitude` DECIMAL(10,8) DEFAULT 0.0 AFTER `location_name` ");
+mysqli_query($link, "ALTER TABLE `sensor_status` ADD COLUMN IF NOT EXISTS `longitude` DECIMAL(11,8) DEFAULT 0.0 AFTER `latitude` ");
+mysqli_query($link, "ALTER TABLE `sensor_status` ADD COLUMN IF NOT EXISTS `water_level` DECIMAL(6,2) DEFAULT 0.00 AFTER `last_ping` ");
+
 
 
 if ($action === 'add') {

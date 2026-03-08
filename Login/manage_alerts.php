@@ -7,12 +7,11 @@ $action = $_GET['action'] ?? $_POST['action'] ?? '';
 if ($action === 'fetch_all') {
     $user_location = isset($_GET['user_location']) ? mysqli_real_escape_string($link, $_GET['user_location']) : '';
     
-    // Base SQL
-    $whereClause = "";
+    // Base SQL - Exclude IoT from this legacy feed as it's now in the Notifications IQ Center
+    $whereClause = "WHERE alert_type != 'IoT'";
     if (!empty($user_location)) {
         // Filter: Show matching location OR 'System Wide' OR 'System Broadcast' OR 'All'
-        // Using LIKE to support combined areas like "Churakullam, Kakkikavala, & Nellimala"
-        $whereClause = "WHERE location LIKE '%$user_location%' OR location = 'System Wide' OR location = 'System Broadcast' OR location = 'All'";
+        $whereClause .= " AND (location LIKE '%$user_location%' OR location = 'System Wide' OR location = 'System Broadcast' OR location = 'All')";
     }
 
     $sql = "SELECT * FROM sensor_alerts $whereClause ORDER BY timestamp DESC LIMIT 20";

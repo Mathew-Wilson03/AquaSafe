@@ -476,11 +476,14 @@ if ($users_result) {
             to { opacity: 1; transform: translateY(0); }
         }
         
-        .card, .status-card { animation: fadeIn 0.8s cubic-bezier(0.2, 0.8, 0.2, 1) forwards; opacity: 0; }
-        .status-card:nth-child(1) { animation-delay: 0.1s; }
-        .status-card:nth-child(2) { animation-delay: 0.2s; }
-        .status-card:nth-child(3) { animation-delay: 0.3s; }
-        .status-card:nth-child(4) { animation-delay: 0.4s; }
+        .card, .status-card, .status-widget { animation: fadeIn 0.8s cubic-bezier(0.2, 0.8, 0.2, 1) forwards; opacity: 0; }
+        .status-widget:nth-child(1) { animation-delay: 0.1s; }
+        .status-widget:nth-child(2) { animation-delay: 0.15s; }
+        .status-widget:nth-child(3) { animation-delay: 0.2s; }
+        .status-widget:nth-child(4) { animation-delay: 0.25s; }
+        .status-widget:nth-child(5) { animation-delay: 0.3s; }
+        .status-card:nth-child(1) { animation-delay: 0.4s; }
+        .status-card:nth-child(2) { animation-delay: 0.5s; }
 
         @keyframes pulse-red {
             0% { box-shadow: 0 0 0 0 rgba(231, 76, 60, 0.6); }
@@ -583,6 +586,8 @@ if ($users_result) {
             .header { padding: 15px 20px; flex-wrap: wrap; gap: 10px; }
             .header-left h1 { font-size: 20px; }
             .mobile-toggle { display: block !important; }
+            .status-widgets-grid { grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); }
+            .device-cards-grid { grid-template-columns: 1fr; }
 
             /* Table Responsiveness (Manage Users & Sensors) */
             table, thead, tbody, th, td, tr { 
@@ -652,8 +657,27 @@ if ($users_result) {
             backdrop-filter: blur(5px);
             z-index: 999;
         }
-
         .sidebar-overlay.active { display: block; }
+
+        /* Emergency Marker Pulse Animation (Stabilized) */
+        @keyframes MarkerPulse {
+            0% { 
+                filter: drop-shadow(0 0 5px rgba(255, 0, 0, 0.8));
+            }
+            50% { 
+                filter: drop-shadow(0 0 20px rgba(255, 0, 0, 1));
+            }
+            100% { 
+                filter: drop-shadow(0 0 5px rgba(255, 0, 0, 0.8));
+            }
+        }
+        .emergency-pulse-marker {
+            animation: MarkerPulse 2s infinite ease-in-out;
+            cursor: pointer !important;
+            pointer-events: auto !important;
+            outline: none;
+            transform-origin: center;
+        }
         /* Tab Logic */
         .content-section {
             display: none;
@@ -730,6 +754,66 @@ if ($users_result) {
             50% { transform: translateY(-50%) scale(1.1); }
             100% { transform: translateY(-50%) scale(1); }
         }
+        /* Widgets Grid */
+        .status-widgets-grid {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        .status-widget {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 20px;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+            gap: 10px;
+            transition: all 0.3s ease;
+        }
+        .status-widget i { font-size: 24px; color: #4ab5c4; }
+        .status-widget .widget-value { font-size: 22px; font-weight: 700; color: #fff; }
+        .status-widget .widget-label { font-size: 12px; opacity: 0.6; text-transform: uppercase; letter-spacing: 1px; }
+
+        /* Device Cards */
+        .device-cards-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 25px;
+            margin-bottom: 30px;
+        }
+        .device-card {
+            background: rgba(30, 32, 41, 0.6);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 24px;
+            padding: 25px;
+            position: relative;
+            overflow: hidden;
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+        .device-card:hover { transform: translateY(-10px); border-color: rgba(74, 181, 196, 0.4); box-shadow: 0 20px 40px rgba(0,0,0,0.4); }
+        .device-status-badge {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            padding: 6px 14px;
+            border-radius: 50px;
+            font-size: 11px;
+            font-weight: 700;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+        }
+        .status-active { background: rgba(46, 204, 113, 0.15); color: #2ecc71; border: 1px solid rgba(46, 204, 113, 0.3); }
+        .status-offline { background: rgba(231, 76, 60, 0.15); color: #e74c3c; border: 1px solid rgba(231, 76, 60, 0.3); }
+        .device-header { display: flex; align-items: center; gap: 15px; margin-bottom: 25px; }
+        .device-icon-wrapper { width: 50px; height: 50px; background: rgba(74, 181, 196, 0.1); border-radius: 14px; display: flex; align-items: center; justify-content: center; }
+        .device-stats { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
+        .stat-item { background: rgba(0,0,0,0.2); padding: 15px; border-radius: 16px; border: 1px solid rgba(255,255,255,0.05); }
+        .stat-label { font-size: 11px; opacity: 0.5; margin-bottom: 5px; }
+        .stat-value { font-size: 16px; font-weight: 600; color: #fff; }
     </style>
 </head>
 <body>
@@ -838,113 +922,185 @@ if ($users_result) {
             <!-- Dashboard Content -->
             <div id="dashboard" class="content-section active">
                 <div class="dashboard-content">
-                    <div class="dashboard-grid">
-                        <!-- Chart -->
-                        <div class="card">
-                            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; gap: 15px;">
-                                <h3 id="currentGraphTitle" style="margin-bottom: 0;">📈 Real-time Water Levels - South Reservoir</h3>
-                                <div class="area-selector-wrapper">
-                                    <select id="areaSelector" onchange="window.switchAreaGraph(this.value)">
-                                        <option value="South Reservoir">South Reservoir</option>
-                                    </select>
+                    <!-- Dashboard Informative Widgets -->
+                    <div class="status-widgets-grid">
+                        <div class="status-widget">
+                            <i data-lucide="bell"></i>
+                            <div class="widget-value" id="widget-alerts-today">0</div>
+                            <div class="widget-label">Alerts Today</div>
+                        </div>
+                        <div class="status-widget">
+                            <i data-lucide="alert-triangle"></i>
+                            <div class="widget-value" id="widget-flood-risk">---</div>
+                            <div class="widget-label">Flood Risk</div>
+                        </div>
+                        <div class="status-widget" id="widget-latest-alert-container">
+                            <i data-lucide="message-square"></i>
+                            <div class="widget-value" id="widget-latest-msg" style="font-size: 13px; max-width: 100%; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-weight: 600;">---</div>
+                            <div class="widget-label" id="widget-latest-location">Latest Alert</div>
+                        </div>
+                        <div class="status-widget">
+                            <i data-lucide="map-pin"></i>
+                            <div class="widget-value" id="widget-evac-count">0</div>
+                            <div class="widget-label">Evac Points</div>
+                        </div>
+                        <div class="status-widget">
+                            <i data-lucide="waves"></i>
+                            <div class="widget-value" id="widget-daily-peak">0.00 ft</div>
+                            <div class="widget-label">Daily Peak</div>
+                        </div>
+                    </div>
+
+                    <!-- Device Status Cards -->
+                    <div class="device-cards-grid">
+                        <!-- Sender Card -->
+                        <div class="device-card" id="device-sender">
+                            <div class="device-status-badge status-offline" id="sender-status-badge">Offline</div>
+                            <div class="device-header">
+                                <div class="device-icon-wrapper">
+                                    <i data-lucide="radio" style="color: #4ab5c4;"></i>
+                                </div>
+                                <div>
+                                    <h3 style="margin: 0; font-size: 18px;">Sender Device</h3>
+                                    <div style="font-size: 13px; color: #4ab5c4; font-weight: 600; margin-bottom: 2px;" id="sender-location">---</div>
+                                    <span style="font-size: 12px; opacity: 0.5;" id="sender-id-text">ID: SNS-001</span>
                                 </div>
                             </div>
-                            <div class="chart-container">
-                                <canvas id="waterLevelChart"></canvas>
+                            <div class="device-stats">
+                                <div class="stat-item">
+                                    <div class="stat-label">Water Level</div>
+                                    <div class="stat-value" id="sender-water-level">-- ft</div>
+                                </div>
+                                <div class="stat-item">
+                                    <div class="stat-label">Last Ping</div>
+                                    <div class="stat-value" id="sender-last-ping">Never</div>
+                                </div>
+                                <div class="stat-item">
+                                    <div class="stat-label">Daily Peak</div>
+                                    <div class="stat-value" id="sender-peak">-- ft</div>
+                                </div>
+                                <div class="stat-item" style="grid-column: span 2; border-top: 1px solid rgba(255,255,255,0.05); margin-top: 5px; padding-top: 10px;">
+                                    <div class="stat-label">Last Data Link</div>
+                                    <div class="stat-value" id="sender-timestamp" style="font-size: 13px; color: #4ab5c4;">Waiting for data...</div>
+                                </div>
                             </div>
                         </div>
 
-                        <!-- Map -->
-                        <div class="card">
-                            <h3>📍 Sensor Network</h3>
-                            <div class="map-container">
-                                <div class="map-grid"></div>
-                                
-                                <!-- Pins -->
-                                <div class="map-pin safe" style="top: 30%; left: 40%;">
-                                    <div class="pin-tooltip">Zone A: Stable (85%)</div>
+                        <!-- Receiver Card -->
+                        <div class="device-card" id="device-receiver">
+                            <div class="device-status-badge status-offline" id="receiver-status-badge">Offline</div>
+                            <div class="device-header">
+                                <div class="device-icon-wrapper">
+                                    <i data-lucide="hard-drive" style="color: #4ab5c4;"></i>
                                 </div>
-                                <div class="map-pin danger" style="top: 50%; left: 35%;">
-                                    <div class="pin-tooltip">Zone B: Critical (92%)!</div>
+                                <div>
+                                    <h3 style="margin: 0; font-size: 18px;">Receiver Device</h3>
+                                    <div style="font-size: 13px; color: #4ab5c4; font-weight: 600; margin-bottom: 2px;" id="receiver-location">---</div>
+                                    <span style="font-size: 12px; opacity: 0.5;" id="receiver-id-text">ID: REC-001</span>
                                 </div>
-                                <div class="map-pin warning" style="top: 65%; left: 70%;">
-                                    <div class="pin-tooltip">Zone C: Warning (76%)</div>
+                            </div>
+                            <div class="device-stats">
+                                <div class="stat-item">
+                                    <div class="stat-label">Packet Status</div>
+                                    <div class="stat-value" id="receiver-packet">N/A</div>
+                                </div>
+                                <div class="stat-item">
+                                    <div class="stat-label">Last Ping</div>
+                                    <div class="stat-value" id="receiver-last-ping">Never</div>
+                                </div>
+                                <div class="stat-item">
+                                    <div class="stat-label">Uptime</div>
+                                    <div class="stat-value" id="receiver-uptime">-- hrs</div>
+                                </div>
+                                <div class="stat-item">
+                                    <div class="stat-label">Sync Health</div>
+                                    <div class="stat-value" id="receiver-health">--</div>
+                                </div>
+                                <div class="stat-item" style="grid-column: span 2; border-top: 1px solid rgba(255,255,255,0.05); margin-top: 5px; padding-top: 10px;">
+                                    <div class="stat-label">Last Communication</div>
+                                    <div class="stat-value" id="receiver-timestamp" style="font-size: 13px; color: #4ab5c4;">Waiting for data...</div>
                                 </div>
                             </div>
                         </div>
                     </div>
 
-                    <!-- Status Cards -->
-                    <div class="status-row">
-                        <div class="status-card" onclick="window.switchTab('reports')">
-                            <div class="status-label">Overall Safety</div>
-                            <div class="status-value safe-text" id="overallSafetyValue">98%</div>
-                        </div>
-                        <div class="status-card" onclick="window.switchTab('alerts')">
-                            <div class="status-label">Active Alerts</div>
-                            <div class="status-value warning-text" id="activeAlertCount">0 New</div>
-                        </div>
-                        <div class="status-card" onclick="window.switchTab('map')">
-                            <div class="status-label">Critical Zones</div>
-                            <div class="status-value danger-text" id="criticalZoneCount">0 Zones</div>
-                        </div>
-                        <div class="status-card" onclick="window.switchTab('sensors')">
-                            <div class="status-label">System Health</div>
-                            <div class="status-value info-text" id="systemHealthText">Optimal</div>
-                        </div>
-                        <!-- Live IoT Sensor Card -->
-                        <div class="status-card" style="border:1px solid rgba(74,181,196,0.35); position:relative; overflow:hidden;" title="Live reading from LoRa ESP32 sensor">
-                            <div style="position:absolute; top:8px; right:10px; font-size:9px; color:#4ab5c4; font-weight:700; letter-spacing:1px;">● LIVE</div>
-                            <div class="status-label">Water Level</div>
-                            <div class="status-value" id="adminLiveLevel" style="color:#4ab5c4; font-size:22px;">-- ft</div>
-                            <div id="adminLiveStatus" style="font-size:11px; margin-top:4px; font-weight:600; opacity:0.8;">Connecting...</div>
-                        </div>
-                    </div>
+                    <!-- Recent Alerts Summary moved to Notifications Centre -->
 
-                    <!-- Recent Alerts Summary for Dashboard -->
-                    <div class="card" style="margin-top: 20px;">
-                        <h3>🚨 Recent Critical Alerts</h3>
-                        <div id="dashboardRecentAlerts" style="margin-top: 15px;">
-                            <p style="opacity: 0.5; font-size: 14px;">Loading latest alerts...</p>
-                        </div>
-                        <div class="alert-btn-wrapper" style="margin-top: 25px; text-align: left; position: relative; z-index: 10;">
-                            <button id="mainShowAlertsBtn" 
-                                    onclick="window.switchTab('alerts')" 
-                                    style="background: rgba(74, 181, 196, 0.2); color: #4ab5c4; border: 1px solid rgba(74, 181, 196, 0.5); padding: 12px 24px; border-radius: 12px; font-weight: 700; cursor: pointer; display: flex; align-items: center; gap: 8px; transition: all 0.3s; position: relative; z-index: 11;">
-                                Show All Alerts 
-                                <span style="font-size: 18px; line-height: 1;">→</span>
-                            </button>
-                        </div>
-                 </div>
 
-                    <!-- Live IoT Poller for Admin Dashboard -->
+                    <!-- Dashboard Real-time Poller -->
                     <script>
                     (function() {
-                        const iotColors = { 'SAFE':'#2ecc71', 'WARNING':'#f1c40f', 'CRITICAL':'#e74c3c' };
-                        const iotIcons  = { 'SAFE':'🛡️', 'WARNING':'⚠️', 'CRITICAL':'🚨' };
+                        const riskColors = { 'SAFE': '#2ecc71', 'WARNING': '#f1c40f', 'CRITICAL': '#e74c3c', 'DANGER': '#e74c3c' };
 
-                        async function pollAdminFloodData() {
+                        async function pollDashboardData() {
                             try {
-                                const res  = await fetch('get_flood_data.php?_t=' + Date.now());
-                                const json = await res.json();
-                                if (json.status !== 'success') return;
+                                // 1. Poll Device Status
+                                const devRes = await fetch('get_device_status.php?_t=' + Date.now());
+                                const devJson = await devRes.json();
+                                if (devJson.status === 'success') {
+                                    devJson.devices.forEach(dev => {
+                                        const type = dev.sensor_id === 'SNS-001' ? 'sender' : 'receiver';
+                                        const badge = document.getElementById(type + '-status-badge');
+                                        const ping = document.getElementById(type + '-last-ping');
+                                        
+                                        if (badge) {
+                                            badge.className = 'device-status-badge ' + (dev.is_online ? 'status-active' : 'status-offline');
+                                            badge.textContent = dev.is_online ? 'Active' : 'Offline';
+                                        }
+                                        if (ping) ping.textContent = dev.last_ping ? new Date(dev.last_ping).toLocaleTimeString() : 'Never';
+                                        
+                                        const locEl = document.getElementById(type + '-location');
+                                        if (locEl) locEl.textContent = '📍 ' + (dev.location || 'Unknown');
+                                        
+                                        const tsEl = document.getElementById(type + '-timestamp');
+                                        if (tsEl) tsEl.textContent = dev.last_updated;
 
-                                const { level, status } = json.latest;
-                                const color = iotColors[status] || '#4ab5c4';
+                                        if (type === 'sender') {
+                                            const levelEl = document.getElementById('sender-water-level');
+                                            const peakEl = document.getElementById('sender-peak');
+                                            if (levelEl) levelEl.textContent = parseFloat(dev.water_level).toFixed(2) + ' ft';
+                                            if (peakEl) peakEl.textContent = parseFloat(dev.water_level).toFixed(2) + ' ft'; // Using current as placeholder or local peak
+                                        } else {
+                                            document.getElementById('receiver-packet').textContent = dev.is_online ? 'Decoding' : 'None';
+                                            document.getElementById('receiver-uptime').textContent = dev.is_online ? '12.5 hrs' : '0 hrs';
+                                            document.getElementById('receiver-health').textContent = dev.is_online ? 'Excellent' : 'Offline';
+                                        }
+                                    });
+                                }
 
-                                const levelEl  = document.getElementById('adminLiveLevel');
-                                const statusEl = document.getElementById('adminLiveStatus');
+                                // 2. Poll Widgets Stats
+                                const statsRes = await fetch('get_dashboard_stats.php?_t=' + Date.now());
+                                const statsJson = await statsRes.json();
+                                if (statsJson.status === 'success') {
+                                    const d = statsJson.data;
+                                    document.getElementById('widget-alerts-today').textContent = d.total_alerts_today;
+                                    
+                                    const riskEl = document.getElementById('widget-flood-risk');
+                                    riskEl.textContent = d.flood_risk_level;
+                                    riskEl.style.color = riskColors[d.flood_risk_level] || '#fff';
+                                    
+                                    const latest = d.latest_alert;
+                                    document.getElementById('widget-latest-msg').textContent = latest.message;
+                                    document.getElementById('widget-latest-location').textContent = '📍 ' + (latest.location || 'System');
+                                    document.getElementById('widget-latest-alert-container').title = 'Location: ' + (latest.location || 'General');
+                                    
+                                    document.getElementById('widget-evac-count').textContent = d.evacuation_points_count;
+                                    document.getElementById('widget-daily-peak').textContent = parseFloat(d.daily_peak).toFixed(2) + ' ft';
+                                    if (document.getElementById('sender-peak')) {
+                                        document.getElementById('sender-peak').textContent = parseFloat(d.daily_peak).toFixed(2) + ' ft';
+                                    }
+                                }
 
-                                if (levelEl)  { levelEl.textContent  = parseFloat(level).toFixed(2) + ' ft'; levelEl.style.color  = color; }
-                                if (statusEl) { statusEl.textContent = (iotIcons[status] || '') + ' ' + status; statusEl.style.color = color; }
+                                // Refresh icons if Lucide is present
+                                if (window.lucide) lucide.createIcons();
+                                
                             } catch(e) {
-                                const el = document.getElementById('adminLiveStatus');
-                                if (el) el.textContent = '⚡ Offline';
+                                console.error("[AquaSafe] Poller Error:", e);
                             }
                         }
 
-                        pollAdminFloodData();
-                        setInterval(pollAdminFloodData, 5000);
+                        pollDashboardData();
+                        setInterval(pollDashboardData, 7000); // 7 seconds sync
                     })();
                     </script>
 
@@ -956,107 +1112,284 @@ if ($users_result) {
             <div id="sensors" class="content-section">
                 <div class="card">
                     <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:15px; margin-bottom:20px;">
-                        <h3>📡 Sensor Status</h3>
-                        <button onclick="window.openSensorModal()" style="padding: 8px 15px; background: rgba(74, 181, 196, 0.15); border: 1px solid #4ab5c4; color: #4ab5c4; border-radius: 8px; font-size: 13px; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 6px;">
-                            <i data-lucide="plus-circle" style="width: 14px;"></i> Add Sensor
-                        </button>
-                        <div style="display:flex; gap:10px;">
-                            <input type="text" id="sensorSearch" onkeyup="filterSensors()" placeholder="Search ID or Location..." 
-                                style="padding:10px 15px; border-radius:8px; border:1px solid rgba(255,255,255,0.1); background:rgba(0,0,0,0.2); color:white; outline:none; font-family:inherit;">
+                        <div>
+                            <h3 style="margin: 0;">📡 Sensor Management</h3>
+                            <p style="font-size: 12px; opacity: 0.5; margin-top: 5px;">Linked to real-time IoT network</p>
+                        </div>
+                        <div style="display:flex; gap:12px; align-items: center;">
+                            <div style="position: relative;">
+                                <i data-lucide="search" style="position: absolute; left: 12px; top: 50%; transform: translateY(-50%); width: 14px; opacity: 0.4;"></i>
+                                <input type="text" id="sensorSearch" onkeyup="filterSensors()" placeholder="Search ID, Location or Role..." 
+                                    style="padding:10px 15px 10px 35px; border-radius:10px; border:1px solid rgba(255,255,255,0.1); background:rgba(0,0,0,0.2); color:white; outline:none; font-family:inherit; min-width: 250px;">
+                            </div>
                             
+                            <select id="roleFilter" onchange="filterSensors()" 
+                                style="padding:10px 15px; border-radius:10px; border:1px solid rgba(255,255,255,0.1); background:rgba(0,0,0,0.2); color:white; outline:none; font-family:inherit; cursor:pointer;">
+                                <option value="All">All Roles</option>
+                                <option value="Sender ESP">Sender ESP</option>
+                                <option value="Receiver ESP">Receiver ESP</option>
+                            </select>
+
                             <select id="sensorFilter" onchange="filterSensors()" 
-                                style="padding:10px 15px; border-radius:8px; border:1px solid rgba(255,255,255,0.1); background:rgba(0,0,0,0.2); color:white; outline:none; font-family:inherit; cursor:pointer;">
+                                style="padding:10px 15px; border-radius:10px; border:1px solid rgba(255,255,255,0.1); background:rgba(0,0,0,0.2); color:white; outline:none; font-family:inherit; cursor:pointer;">
                                 <option value="All">All Status</option>
                                 <option value="Active">Active</option>
                                 <option value="Offline">Offline</option>
                                 <option value="Maintenance">Maintenance</option>
                             </select>
+
+                            <button onclick="window.openSensorModal()" style="padding: 10px 18px; background: #4ab5c4; border: none; color: #032023; border-radius: 10px; font-size: 13px; font-weight: 700; cursor: pointer; display: flex; align-items: center; gap: 8px; transition: all 0.3s;">
+                                <i data-lucide="plus" style="width: 16px;"></i> Add
+                            </button>
                         </div>
                     </div>
 
                     <script>
                         function filterSensors() {
-                            const input = document.getElementById("sensorSearch");
-                            const filter = input.value.toUpperCase();
+                            const filter = document.getElementById("sensorSearch").value.toUpperCase();
                             const statusFilter = document.getElementById("sensorFilter").value;
+                            const roleFilter = document.getElementById("roleFilter").value;
                             const table = document.getElementById("sensorTable");
                             const tr = table.getElementsByTagName("tr");
 
                             for (let i = 1; i < tr.length; i++) {
-                                let tdID = tr[i].getElementsByTagName("td")[0];
-                                let tdLoc = tr[i].getElementsByTagName("td")[1];
-                                let tdStatus = tr[i].getElementsByTagName("td")[2];
-                                
-                                if (tdID && tdLoc && tdStatus) {
-                                    const txtID = tdID.textContent || tdID.innerText;
-                                    const txtLoc = tdLoc.textContent || tdLoc.innerText;
-                                    const txtStatus = tdStatus.textContent || tdStatus.innerText;
-                                    
-                                    const matchesSearch = txtID.toUpperCase().indexOf(filter) > -1 || txtLoc.toUpperCase().indexOf(filter) > -1;
-                                    const matchesStatus = statusFilter === 'All' || txtStatus.trim() === statusFilter;
+                                const cells = tr[i].getElementsByTagName("td");
+                                if (cells.length < 5) continue; // Now expect at least 6 cols
 
-                                    if (matchesSearch && matchesStatus) {
-                                        tr[i].style.display = "";
-                                    } else {
-                                        tr[i].style.display = "none";
-                                    }
-                                }       
+                                const textID = cells[0].textContent || "";
+                                const textLoc = cells[1].textContent || "";
+                                const textRole = cells[2].textContent || "";
+                                const textSignal = cells[3].textContent || "";
+
+                                const matchesSearch = (textID + textLoc + textRole).toUpperCase().includes(filter);
+                                
+                                // Role filtering
+                                const matchesRole = (roleFilter === 'All' || textRole.includes(roleFilter));
+
+                                // Signal/Status filtering
+                                let matchesStatus = (statusFilter === 'All');
+                                if (statusFilter === 'Active') matchesStatus = textSignal.includes('Good');
+                                if (statusFilter === 'Offline') matchesStatus = textSignal.includes('Lost');
+                                if (statusFilter === 'Maintenance') matchesStatus = textRole.includes('Maintenance') || textSignal.includes('Maintenance') || textSignal.includes('Implementing Soon');
+
+                                tr[i].style.display = (matchesSearch && matchesRole && matchesStatus) ? "" : "none";
                             }
                         }
                     </script>
-                    <table id="sensorTable" style="width: 100%; border-collapse: collapse; margin-top: 20px; color: rgba(255,255,255,0.8);">
-                        <thead>
-                            <tr style="border-bottom: 1px solid rgba(255,255,255,0.1); text-align: left;">
-                                <th style="padding: 15px;">ID</th>
-                                <th style="padding: 15px;">Location</th>
-                                <th style="padding: 15px;">Status</th>
-                                <th style="padding: 15px;">Battery</th>
-                                <th style="padding: 15px;">Last Ping</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <tr style="border-bottom: 1px solid rgba(255,255,255,0.05);">
-                                <td style="padding: 15px;">SNS-001</td>
-                                <td style="padding: 15px;">Nellimala</td>
-                                <td style="padding: 15px;"><span class="safe-text">Active</span></td>
-                                <td style="padding: 15px;">98%</td>
-                                <td style="padding: 15px;">Just now</td>
-                            </tr>
-                            <tr style="border-bottom: 1px solid rgba(255,255,255,0.05);">
-                                <td style="padding: 15px;">SNS-002</td>
-                                <td style="padding: 15px;">Churakullam</td>
-                                <td style="padding: 15px;"><span class="danger-text">Offline</span></td>
-                                <td style="padding: 15px;">0%</td>
-                                <td style="padding: 15px;">2 hrs ago</td>
-                            </tr>
-                             <tr style="border-bottom: 1px solid rgba(255,255,255,0.05);">
-                                <td style="padding: 15px;">SNS-003</td>
-                                <td style="padding: 15px;">Kakkikavala</td>
-                                <td style="padding: 15px;"><span class="warning-text">Maintenance</span></td>
-                                <td style="padding: 15px;">45%</td>
-                                <td style="padding: 15px;">5 mins ago</td>
-                            </tr>
-                        </tbody>
-                    </table>
+                    <div style="overflow-x:auto;">
+                        <table id="sensorTable" style="width: 100%; border-collapse: collapse; margin-top: 10px; color: rgba(255,255,255,0.8);">
+                            <thead>
+                                <tr style="border-bottom: 1px solid rgba(255,255,255,0.1); text-align: left;">
+                                    <th style="padding: 18px 15px; font-size: 13px; text-transform: uppercase; letter-spacing: 1px; opacity: 0.6;">Sensor ID</th>
+                                    <th style="padding: 18px 15px; font-size: 13px; text-transform: uppercase; letter-spacing: 1px; opacity: 0.6;">Location</th>
+                                    <th style="padding: 18px 15px; font-size: 13px; text-transform: uppercase; letter-spacing: 1px; opacity: 0.6;">Role</th>
+                                    <th style="padding: 18px 15px; font-size: 13px; text-transform: uppercase; letter-spacing: 1px; opacity: 0.6;">Signal Status</th>
+                                    <th style="padding: 18px 15px; font-size: 13px; text-transform: uppercase; letter-spacing: 1px; opacity: 0.6;">Water Level</th>
+                                    <th style="padding: 18px 15px; font-size: 13px; text-transform: uppercase; letter-spacing: 1px; opacity: 0.6;">Last Ping</th>
+                                </tr>
+                            </thead>
+                            <tbody id="sensorTableBody">
+                                <tr>
+                                    <td colspan="6" style="padding: 30px; text-align: center; opacity: 0.5;">📡 Synchronizing sensor network...</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <script>
+                    (function() {
+                        const signalColors = { 'Good': '#2ecc71', 'Weak': '#f1c40f', 'Lost': '#e74c3c' };
+
+                        window.fetchSensorStatus = async function() {
+                            try {
+                                const res = await fetch('get_sensors_list.php?_t=' + Date.now());
+                                const json = await res.json();
+                                if (json.status !== 'success') return;
+
+                                const tbody = document.getElementById("sensorTableBody");
+                                const zoneEl = document.getElementById('criticalZoneCount');
+                                if (!tbody && !zoneEl) return;
+
+                                let html = "";
+                                let criticalCount = 0;
+                                
+                                json.sensors.forEach(s => {
+                                    const sigColor = signalColors[s.signal] || (s.signal === 'Implementing Soon' ? '#95a5a6' : '#fff');
+                                    const isPlaceholder = (s.signal === 'Implementing Soon');
+                                    
+                                    // Health logic (match old fetchSensorStatus)
+                                    if (s.signal === 'Lost' || s.signal.includes('Maintenance')) criticalCount++;
+
+                                    html += `
+                                        <tr style="border-bottom: 1px solid rgba(255,255,255,0.05); transition: background 0.3s; ${isPlaceholder ? 'opacity: 0.7;' : ''}" onmouseover="this.style.background='rgba(255,255,255,0.02)'" onmouseout="this.style.background='transparent'">
+                                            <td style="padding: 15px; font-weight: 600; color: #4ab5c4;">${s.id}</td>
+                                            <td style="padding: 15px; font-size: 14px;">${s.location}</td>
+                                            <td style="padding: 15px;"><span style="background: rgba(255,255,255,0.1); padding: 4px 10px; border-radius: 6px; font-size: 12px;">${s.role}</span></td>
+                                            <td style="padding: 15px;">
+                                                <div style="display:flex; align-items:center; gap:8px;">
+                                                    <div style="width: 8px; height: 8px; border-radius: 50%; background: ${sigColor}; box-shadow: 0 0 10px ${sigColor}44;"></div>
+                                                    <span style="font-size: 13px; ${isPlaceholder ? 'background: rgba(149, 165, 166, 0.15); color: #95a5a6; padding: 2px 8px; border-radius: 4px; font-weight: 600;' : ''}">${s.signal}</span>
+                                                </div>
+                                            </td>
+                                            <td style="padding: 15px; font-weight: 700; color: #fff;">${s.water_level}</td>
+                                            <td style="padding: 15px; font-size: 13px; opacity: 0.7;">${s.last_ping}</td>
+                                        </tr>
+                                    `;
+                                });
+
+                                if (tbody) {
+                                    tbody.innerHTML = html;
+                                    if (typeof filterSensors === 'function') filterSensors();
+                                }
+
+                                // Update Dynamic Graph Area Selector
+                                const areaDropdown = document.getElementById('areaSelector');
+                                if(areaDropdown && json.sensors.length > 0) {
+                                    const currentVal = areaDropdown.value;
+                                    const uniqueAreas = [...new Set(['South Reservoir', ...json.sensors.map(s => s.location)])].sort();
+                                    
+                                    const existingOptions = Array.from(areaDropdown.options).map(o => o.value).sort();
+                                    if(uniqueAreas.join('|') !== existingOptions.join('|')) {
+                                        let optionsHtml = '';
+                                        uniqueAreas.forEach(area => {
+                                            optionsHtml += `<option value="${area}">${area}</option>`;
+                                        });
+                                        areaDropdown.innerHTML = optionsHtml;
+                                        if (uniqueAreas.includes(currentVal)) areaDropdown.value = currentVal;
+                                        else areaDropdown.value = 'South Reservoir';
+                                    }
+
+                                    // Init data for new areas in chartDataStore
+                                    uniqueAreas.forEach(area => {
+                                        if(!window.chartDataStore) window.chartDataStore = {};
+                                        if(!chartDataStore[area]) {
+                                            chartDataStore[area] = {
+                                                labels: Array.from({length:6}, (_,i) => new Date(Date.now() - (5-i)*300000).toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'})),
+                                                data: Array.from({length:6}, () => 40 + Math.random() * 20)
+                                            };
+                                        }
+                                    });
+                                }
+
+                                // Update widgets (match old fetchSensorStatus)
+                                if (zoneEl) {
+                                    zoneEl.innerText = criticalCount + (criticalCount === 1 ? " Zone" : " Zones");
+                                    
+                                    const safetyPercent = json.sensors.length > 0 ? Math.round(((json.sensors.length - criticalCount) / json.sensors.length) * 100) : 100;
+                                    const safetyEl = document.getElementById('overallSafetyValue');
+                                    if (safetyEl) {
+                                        safetyEl.innerText = safetyPercent + "%";
+                                        safetyEl.className = 'status-value ' + (safetyPercent > 90 ? 'safe-text' : (safetyPercent > 70 ? 'warning-text' : 'danger-text'));
+                                    }
+
+                                    const healthEl = document.getElementById('systemHealthText');
+                                    if (healthEl) {
+                                        if (criticalCount === 0) {
+                                            healthEl.innerText = "Optimal";
+                                            healthEl.className = 'status-value safe-text';
+                                        } else if (criticalCount < json.sensors.length / 2) {
+                                            healthEl.innerText = "Degraded";
+                                            healthEl.className = 'status-value warning-text';
+                                        } else {
+                                            healthEl.innerText = "Critical";
+                                            healthEl.className = 'status-value danger-text';
+                                        }
+                                    }
+                                }
+                            } catch(e) {
+                                console.error("[AquaSafe] Sensor Table Poller Error:", e);
+                            }
+                        }
+
+                        // Initial pull
+                        window.fetchSensorStatus();
+                    })();
+                    </script>
                 </div>
             </div>
 
              <!-- Alerts Section -->
             <div id="alerts" class="content-section">
+                <!-- Emergency Broadcast System (Relocated from Notifications) -->
+                <div class="card" style="margin-bottom: 25px; border-left: 5px solid #e74c3c;">
+                    <h4 style="color: #e74c3c; margin-bottom: 20px; display: flex; align-items: center; gap: 10px;">
+                        <span>📢</span> Emergency Broadcast System
+                    </h4>
+                    
+                    <div style="margin-bottom: 15px;">
+                        <label style="display: block; font-size: 13px; margin-bottom: 5px; font-weight: 600;">Broadcast Message</label>
+                        <textarea id="alertMessage" placeholder="Enter emergency instructions to be sent immediately..." style="width: 100%; padding: 15px; background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.1); color: white; border-radius: 12px; min-height: 120px; font-family: inherit; font-size: 14px; outline: none; transition: border-color 0.3s;" onfocus="this.style.borderColor='#e74c3c'"></textarea>
+                    </div>
+
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 15px;">
+                        <div>
+                            <label style="display: block; font-size: 13px; margin-bottom: 5px;">Target Area</label>
+                            <select id="alertArea" style="width: 100%; padding: 10px; background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.1); color: white; border-radius: 8px;">
+                                <option value="All" style="background: #1e2029; color: white;">🌍 Entire System</option>
+                                <option value="South Reservoir" style="background: #1e2029; color: white;">🌊 South Reservoir</option>
+                                <option value="East Valley" style="background: #1e2029; color: white;">⛰️ East Valley</option>
+                                <option value="North District" style="background: #1e2029; color: white;">🏗️ North District</option>
+                                <option value="Central City" style="background: #1e2029; color: white;">🏙️ Central City</option>
+                                <option value="Churakullam" style="background: #1e2029; color: white;">📍 Churakullam</option>
+                                <option value="Kakkikavala" style="background: #1e2029; color: white;">📍 Kakkikavala</option>
+                                <option value="Nellimala" style="background: #1e2029; color: white;">📍 Nellimala</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label style="display: block; font-size: 13px; margin-bottom: 5px;">Severity Level</label>
+                            <select id="alertSeverity" style="width: 100%; padding: 10px; background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.1); color: white; border-radius: 8px;">
+                                <option value="Warning" style="background: #1e2029; color: white;">⚠️ Warning</option>
+                                <option value="Critical" style="background: #1e2029; color: white;">🚨 Critical</option>
+                                <option value="Evacuation" style="background: #1e2029; color: white;">🏃 Evacuation</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div style="display: flex; gap: 10px; margin-top: 15px;">
+                        <button onclick="sendBroadcast()" id="btnBroadcast" style="flex: 2; padding: 12px; background: #e74c3c; border: none; border-radius: 8px; color: white; font-weight: 700; cursor: pointer; transition: background 0.3s; display: flex; align-items: center; justify-content: center; gap: 8px;">
+                            <i data-lucide="send"></i> Send Broadcast
+                        </button>
+                        <button onclick="quickAlert('Warning')" style="flex: 1; padding: 12px; background: rgba(241, 196, 15, 0.2); border: 1px solid #f1c40f; border-radius: 8px; color: #f1c40f; font-weight: 600; cursor: pointer; transition: background 0.3s; display: flex; align-items: center; justify-content: center; gap: 5px;" title="Quick Warning">
+                            ⚠️ Warning
+                        </button>
+                        <button onclick="quickAlert('Critical')" style="flex: 1; padding: 12px; background: rgba(231, 76, 60, 0.2); border: 1px solid #e74c3c; border-radius: 8px; color: #e74c3c; font-weight: 600; cursor: pointer; transition: background 0.3s; display: flex; align-items: center; justify-content: center; gap: 5px;" title="Quick Critical">
+                            🚨 Critical
+                        </button>
+                    </div>
+
+                    <script>
+                        function quickAlert(severity) {
+                            document.getElementById('alertSeverity').value = severity;
+                            const msg = severity === 'Warning' ? 'Attention: Water levels are rising. Please stay alert.' : 'CRITICAL DANGER: Evacuate immediately!';
+                            document.getElementById('alertMessage').value = msg;
+                        }
+                    </script>
+                    
+                    <p style="font-size: 12px; opacity: 0.5; margin-top: 15px; text-align: center;">
+                        <span>ℹ️</span> This will email all registered users and offline community contacts in the selected area via PHPMailer.
+                    </p>
+                </div>
+
                 <div class="card">
-                    <h3>🚨 System Alerts</h3>
-                     <div style="margin-top: 20px;">
-                        <div style="background: rgba(231, 76, 60, 0.1); border-left: 4px solid #e74c3c; padding: 15px; margin-bottom: 15px; border-radius: 0 8px 8px 0;">
-                            <strong style="color: #e74c3c;">Critical Water Level</strong>
-                            <p style="font-size: 14px; margin-top: 5px; opacity: 0.8;">South Reservoir exceeded 95% capacity. Automated drainage sequence initiated.</p>
-                            <div style="font-size: 12px; opacity: 0.5; margin-top: 5px;">10:42 AM</div>
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                        <h3>🚨 Action History</h3>
+                        <div style="display: flex; gap: 10px;">
+                            <select id="alertsLocationFilter" onchange="fetchSystemAlerts()" style="padding: 8px 15px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); color: white; border-radius: 6px; font-family: inherit; outline: none; cursor: pointer;">
+                                <option value="">All Locations</option>
+                                <option value="South Reservoir">South Reservoir</option>
+                                <option value="East Valley">East Valley</option>
+                                <option value="North District">North District</option>
+                                <option value="Central City">Central City</option>
+                                <option value="Churakullam">Churakullam</option>
+                                <option value="Kakkikavala">Kakkikavala</option>
+                                <option value="Nellimala">Nellimala</option>
+                            </select>
+                            <button onclick="fetchSystemAlerts()" style="padding: 8px 15px; background: rgba(74, 181, 196, 0.1); border: 1px solid rgba(74, 181, 196, 0.3); color: #4ab5c4; border-radius: 6px; cursor: pointer;">Refresh</button>
                         </div>
-                        <div style="background: rgba(241, 196, 15, 0.1); border-left: 4px solid #f1c40f; padding: 15px; margin-bottom: 15px; border-radius: 0 8px 8px 0;">
-                            <strong style="color: #f1c40f;">Connection Unstable</strong>
-                            <p style="font-size: 14px; margin-top: 5px; opacity: 0.8;">Sensor SNS-003 reporting intermittent signal loss.</p>
-                             <div style="font-size: 12px; opacity: 0.5; margin-top: 5px;">09:15 AM</div>
-                        </div>
-                     </div>
+                    </div>
+                    <div id="alertsHistoryList" style="margin-top: 20px; max-height: 400px; overflow-y: auto; padding-right: 5px;">
+                        <p style="opacity: 0.5; font-size: 14px; text-align: center; padding: 20px;">Loading alert history...</p>
+                    </div>
                 </div>
             </div>
 
@@ -1066,7 +1399,7 @@ if ($users_result) {
                     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
                         <h3>🗺️ Live Sensor Network</h3>
                         <div style="display: flex; gap: 10px;">
-                            <button onclick="mapSetView(10.8505, 76.2711)" style="padding: 5px 10px; background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); color: white; border-radius: 4px; cursor: pointer;">Kerala</button>
+                            <button onclick="mapSetView(9.5700, 77.0800, 11)" style="padding: 5px 10px; background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); color: white; border-radius: 4px; cursor: pointer;">Idukki</button>
                             <button onclick="mapSetView(0,0,2)" style="padding: 5px 10px; background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); color: white; border-radius: 4px; cursor: pointer;">World</button>
                         </div>
                     </div>
@@ -1220,6 +1553,21 @@ if ($users_result) {
                                 <option value="30d">Last 30 Days</option>
                             </select>
                         </div>
+
+                        <div style="width: 1px; height: 25px; background: rgba(255,255,255,0.1);"></div>
+
+                        <!-- Export Button -->
+                        <button onclick="exportReportData()" style="padding: 8px 16px; border: 1px solid #4ab5c4; background: rgba(74, 181, 196, 0.1); color: #4ab5c4; border-radius: 8px; font-size: 13px; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 8px; transition: all 0.2s;">
+                            <span>📥</span> Export CSV
+                        </button>
+
+                        <script>
+                            window.exportReportData = function() {
+                                const range = document.getElementById('reportTimeRange')?.value || '24h';
+                                const area = document.getElementById('reportAreaSelector')?.value || 'All';
+                                window.location.href = `export_report_csv.php?range=${range}&area=${area}`;
+                            };
+                        </script>
                     </div>
                 </div>
 
@@ -1397,19 +1745,72 @@ if ($users_result) {
                 </div>
             </div>
 
-            <!-- Help Desk Section -->
+            <!-- Help Desk Section (Rescue Management) -->
             <div id="helpdesk" class="content-section">
                 <div class="card">
-                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
-                        <h3>🆘 User Requests / Help Desk</h3>
-                        <div id="helpdesk-stats">
-                             <span style="background: rgba(255,255,255,0.1); padding: 5px 10px; border-radius: 12px; font-size: 13px; margin-right: 10px;" id="pendingCount">Pending: 0</span>
-                             <span style="background: rgba(46, 204, 113, 0.1); color: #2ecc71; padding: 5px 10px; border-radius: 12px; font-size: 13px;" id="resolvedCount">Resolved: 0</span>
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 15px;">
+                        <h3>🆘 Rescue Request Management</h3>
+                        <div id="helpdesk-stats" style="display: flex; gap: 10px; flex-wrap: wrap;">
+                            <span style="background: rgba(241, 196, 15, 0.1); color: #f1c40f; border: 1px solid rgba(241, 196, 15, 0.3); padding: 5px 12px; border-radius: 20px; font-size: 13px; font-weight: 600;" id="pendingCount">Pending: 0</span>
+                            <span style="background: rgba(52, 152, 219, 0.1); color: #3498db; border: 1px solid rgba(52, 152, 219, 0.3); padding: 5px 12px; border-radius: 20px; font-size: 13px; font-weight: 600;" id="respondedCount">Responded: 0</span>
+                            <span style="background: rgba(46, 204, 113, 0.1); color: #2ecc71; border: 1px solid rgba(46, 204, 113, 0.3); padding: 5px 12px; border-radius: 20px; font-size: 13px; font-weight: 600;" id="resolvedCount">Resolved: 0</span>
+                            <span style="background: rgba(231, 76, 60, 0.1); color: #e74c3c; border: 1px solid rgba(231, 76, 60, 0.3); padding: 5px 12px; border-radius: 20px; font-size: 13px; font-weight: 600;" id="emergencyCount">Emergency: 0</span>
                         </div>
+                    </div>
+
+                    <!-- Search and Filters -->
+                    <div style="display: flex; gap: 15px; margin-bottom: 25px; flex-wrap: wrap; align-items: center; background: rgba(255,255,255,0.03); padding: 15px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.05);">
+                        <div style="flex: 1; min-width: 250px; position: relative;">
+                            <span style="position: absolute; left: 12px; top: 12px; opacity: 0.5;">🔍</span>
+                            <input type="text" id="helpdeskSearch" onkeyup="filterHelpdesk()" placeholder="Search by name, email, location..." 
+                                style="width: 100%; padding: 12px 15px 12px 40px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.1); background: rgba(0,0,0,0.2); color: white; outline: none; font-family: inherit;">
+                        </div>
+                        
+                        <select id="helpdeskStatusFilter" onchange="filterHelpdesk()" style="padding: 12px 15px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.1); background: rgba(0,0,0,0.2); color: white; outline: none; font-family: inherit; cursor: pointer; min-width: 140px;">
+                            <option value="All">All Statuses</option>
+                            <option value="Pending">Pending</option>
+                            <option value="Responded">Responded</option>
+                            <option value="Resolved">Resolved</option>
+                        </select>
+
+                        <select id="helpdeskPriorityFilter" onchange="filterHelpdesk()" style="padding: 12px 15px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.1); background: rgba(0,0,0,0.2); color: white; outline: none; font-family: inherit; cursor: pointer; min-width: 140px;">
+                            <option value="All">All Priorities</option>
+                            <option value="Normal">Normal</option>
+                            <option value="Emergency">Emergency🚨</option>
+                        </select>
                     </div>
                     
                     <div style="display: flex; flex-direction: column; gap: 15px;" id="adminHelpdeskList">
-                        <div style="text-align:center; padding:30px; opacity:0.5;">Loading user requests...</div>
+                        <div style="text-align:center; padding:30px; opacity:0.5;">Loading rescue requests...</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Help Desk Reply Modal -->
+            <div class="modal-overlay" id="helpdeskReplyModal">
+                <div class="modal" style="max-width: 600px;">
+                    <h2 style="margin-bottom: 5px;">Respond to Request</h2>
+                    <p style="opacity: 0.7; font-size: 14px; margin-bottom: 20px;" id="replyModalSubtitle">Sending response to User...</p>
+                    
+                    <input type="hidden" id="replyRequestId">
+                    
+                    <div class="form-group" style="margin-bottom: 15px;">
+                        <label>Quick Templates</label>
+                        <div style="display: flex; gap: 10px; flex-wrap: wrap; margin-top: 5px;">
+                            <button type="button" onclick="insertReplyTemplate('Help is on the way. Please remain at your location or proceed to the nearest evacuation point if instructed.')" style="padding: 6px 12px; background: rgba(74, 181, 196, 0.1); border: 1px solid rgba(74, 181, 196, 0.3); color: #4ab5c4; border-radius: 20px; font-size: 12px; cursor: pointer; transition: all 0.2s;">Help is on the way</button>
+                            <button type="button" onclick="insertReplyTemplate('We have received your request. Could you please provide your exact coordinates or a nearby landmark?')" style="padding: 6px 12px; background: rgba(74, 181, 196, 0.1); border: 1px solid rgba(74, 181, 196, 0.3); color: #4ab5c4; border-radius: 20px; font-size: 12px; cursor: pointer; transition: all 0.2s;">Request Coordinates</button>
+                            <button type="button" onclick="insertReplyTemplate('Medical teams have been dispatched to your designated area. Please prepare your emergency kit.')" style="padding: 6px 12px; background: rgba(74, 181, 196, 0.1); border: 1px solid rgba(74, 181, 196, 0.3); color: #4ab5c4; border-radius: 20px; font-size: 12px; cursor: pointer; transition: all 0.2s;">Medical Dispatch</button>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Your Message</label>
+                        <textarea id="replyMessageText" rows="5" style="width: 100%; padding: 12px; background: rgba(0,0,0,0.2); border: 1px solid rgba(255,255,255,0.1); border-radius: 8px; color: white; outline: none; font-family: inherit; resize: vertical;" placeholder="Type your response here..."></textarea>
+                    </div>
+
+                    <div class="modal-actions" style="margin-top: 25px;">
+                        <button type="button" class="btn-cancel" onclick="document.getElementById('helpdeskReplyModal').classList.remove('active')">Cancel</button>
+                        <button type="button" class="btn-submit" onclick="submitHelpdeskReply()">Send Response</button>
                     </div>
                 </div>
             </div>
@@ -1488,152 +1889,140 @@ if ($users_result) {
                 </div>
             </div>
 
-            <!-- Notification Control Section -->
+            <!-- IQ Intelligence - Notifications Section -->
             <div id="notifications" class="content-section">
-                <div class="card" style="max-width: 800px; margin: 0 auto;">
-                    <h3>🔔 Notification Control</h3>
-                    <p style="opacity: 0.7; margin-bottom: 30px;">Admins can control how and when alerts are triggered.</p>
+                <div style="display: grid; grid-template-columns: 350px 1fr; gap: 25px;">
+                    
+                    <!-- Left Column: Settings and Controls -->
+                    <div style="display: flex; flex-direction: column; gap: 20px;">
+                        <div class="card" style="padding: 25px;">
+                            <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 10px;">
+                                <div style="width: 32px; height: 32px; background: rgba(192, 84, 255, 0.1); border-radius: 8px; display: flex; align-items: center; justify-content: center;">
+                                    <i data-lucide="settings-2" style="width: 18px; color: #c054ff;"></i>
+                                </div>
+                                <h3 style="margin: 0; font-size: 18px;">Alert Settings</h3>
+                            </div>
+                            <p style="opacity: 0.6; font-size: 13px; margin-bottom: 25px;">Configure IoT severity thresholds and delivery channels.</p>
 
-                    <!-- Broadcast Alert System -->
-                    <div style="padding: 25px; background: rgba(231, 76, 60, 0.1); border: 1px solid rgba(231, 76, 60, 0.3); border-radius: 16px; margin-bottom: 25px;">
-                        <h4 style="color: #e74c3c; margin-bottom: 15px; display: flex; align-items: center; gap: 10px;">
-                            <span>📢</span> Emergency Broadcast System
-                        </h4>
-                        <p style="font-size: 14px; opacity: 0.8; margin-bottom: 20px;">
-                            Send an immediate alert to all residents (App Users + Offline Contacts) in a specific area. 
-                            <br><span style="font-size: 12px; opacity: 0.6;">(Emails will be sent via PHPMailer)</span>
-                        </p>
-                        
-                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 15px;">
+                            <!-- Severity Thresholds -->
+                            <div style="margin-bottom: 30px;">
+                                <h4 style="font-size: 14px; margin-bottom: 20px; color: rgba(255,255,255,0.9); display: flex; align-items: center; gap: 8px;">
+                                    <i data-lucide="bar-chart-3" style="width: 14px;"></i>
+                                    Severity Thresholds (ft)
+                                </h4>
+                                
+                                <div style="margin-bottom: 25px;">
+                                    <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+                                        <label style="font-size: 13px; opacity: 0.8;">Safe Max / Warning Min</label>
+                                        <span style="color: #2ecc71; font-weight: 700; font-size: 14px;" id="thresholdSafeVal">10.00 ft</span>
+                                    </div>
+                                    <input type="range" id="thresholdSafeSlider" min="0" max="25" step="0.1" value="10" 
+                                        style="width: 100%; cursor: pointer;" 
+                                        oninput="document.getElementById('thresholdSafeVal').innerText = parseFloat(this.value).toFixed(2) + ' ft'" 
+                                        onchange="saveIQSettings()">
+                                    <div style="display: flex; justify-content: space-between; font-size: 10px; opacity: 0.4; margin-top: 5px;">
+                                        <span>0.00 ft</span>
+                                        <span>25.00 ft</span>
+                                    </div>
+                                </div>
+
+                                <div style="margin-bottom: 10px;">
+                                    <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+                                        <label style="font-size: 13px; opacity: 0.8;">Warning Max / Critical Min</label>
+                                        <span style="color: #e74c3c; font-weight: 700; font-size: 14px;" id="thresholdWarningVal">18.00 ft</span>
+                                    </div>
+                                    <input type="range" id="thresholdWarningSlider" min="0" max="25" step="0.1" value="18" 
+                                        style="width: 100%; cursor: pointer;" 
+                                        oninput="document.getElementById('thresholdWarningVal').innerText = parseFloat(this.value).toFixed(2) + ' ft'" 
+                                        onchange="saveIQSettings()">
+                                </div>
+                            </div>
+
+                            <hr style="border: none; border-top: 1px solid rgba(255,255,255,0.05); margin: 25px 0;">
+
+                            <!-- Delivery Channels -->
                             <div>
-                                <label style="display: block; font-size: 13px; margin-bottom: 5px;">Target Area</label>
-                                <select id="alertArea" style="width: 100%; padding: 10px; background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.1); color: white; border-radius: 8px;">
-                                    <option value="All" style="background: #1e2029; color: white;">🌍 Entire System</option>
-                                    <option value="South Reservoir" style="background: #1e2029; color: white;">🌊 South Reservoir</option>
-                                    <option value="East Valley" style="background: #1e2029; color: white;">⛰️ East Valley</option>
-                                    <option value="North District" style="background: #1e2029; color: white;">🏗️ North District</option>
-                                    <option value="Central City" style="background: #1e2029; color: white;">🏙️ Central City</option>
-                                    <option value="Churakullam" style="background: #1e2029; color: white;">📍 Churakullam</option>
-                                    <option value="Kakkikavala" style="background: #1e2029; color: white;">📍 Kakkikavala</option>
-                                    <option value="Nellimala" style="background: #1e2029; color: white;">📍 Nellimala</option>
-                                </select>
-                            </div>
-                            <div>
-                                <label style="display: block; font-size: 13px; margin-bottom: 5px;">Severity Level</label>
-                                <select id="alertSeverity" style="width: 100%; padding: 10px; background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.1); color: white; border-radius: 8px;">
-                                    <option value="Warning" style="background: #1e2029; color: white;">⚠️ Warning</option>
-                                    <option value="Critical" style="background: #1e2029; color: white;">🚨 Critical</option>
-                                    <option value="Evacuation" style="background: #1e2029; color: white;">🏃 Evacuation</option>
-                                </select>
-                            </div>
-                        </div>
-                        
-                        <div style="margin-bottom: 15px;">
-                            <label style="display: block; font-size: 13px; margin-bottom: 5px;">Alert Message</label>
-                            <textarea id="alertMessage" placeholder="Enter emergency instructions..." style="width: 100%; padding: 10px; background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.1); color: white; border-radius: 8px; min-height: 80px; font-family: inherit;"></textarea>
-                        </div>
+                                <h4 style="font-size: 14px; margin-bottom: 20px; color: rgba(255,255,255,0.9); display: flex; align-items: center; gap: 8px;">
+                                    <i data-lucide="megaphone" style="width: 14px;"></i>
+                                    Delivery Channels
+                                </h4>
+                                
+                                <div style="display: flex; flex-direction: column; gap: 18px;">
+                                    <div style="display: flex; justify-content: space-between; align-items: center;">
+                                        <div style="display: flex; align-items: center; gap: 10px;">
+                                            <i data-lucide="message-square" style="width: 16px; opacity: 0.6;"></i>
+                                            <label style="font-size: 14px; cursor: pointer;" for="chan_sms">SMS Alerts</label>
+                                        </div>
+                                        <label class="switch small">
+                                            <input type="checkbox" id="chan_sms" onchange="saveIQSettings()" checked>
+                                            <span class="slider"></span>
+                                        </label>
+                                    </div>
 
-                        <button onclick="sendBroadcast()" id="btnBroadcast" style="width: 100%; padding: 12px; background: #e74c3c; border: none; border-radius: 8px; color: white; font-weight: 700; cursor: pointer; transition: background 0.3s;">
-                            🚀 Send Broadcast Alert
-                        </button>
-                    </div>
+                                    <div style="display: flex; justify-content: space-between; align-items: center;">
+                                        <div style="display: flex; align-items: center; gap: 10px;">
+                                            <i data-lucide="mail" style="width: 16px; opacity: 0.6;"></i>
+                                            <label style="font-size: 14px; cursor: pointer;" for="chan_email">Email Updates</label>
+                                        </div>
+                                        <label class="switch small">
+                                            <input type="checkbox" id="chan_email" onchange="saveIQSettings()" checked>
+                                            <span class="slider"></span>
+                                        </label>
+                                    </div>
 
-                    <script>
-                        async function sendBroadcast() {
-                            const area = document.getElementById('alertArea').value;
-                            const severity = document.getElementById('alertSeverity').value;
-                            const message = document.getElementById('alertMessage').value;
-                            
-                            if(!message) { alert("Please enter a message!"); return; }
-                            
-                            if(!confirm(`⚠️ CONFIRM BROADCAST\nAre you sure you want to send a ${severity} alert to ${area}? This will email all registered users AND offline community contacts.`)) return;
+                                    <div style="display: flex; justify-content: space-between; align-items: center;">
+                                        <div style="display: flex; align-items: center; gap: 10px;">
+                                            <i data-lucide="smartphone" style="width: 16px; opacity: 0.6;"></i>
+                                            <label style="font-size: 14px; cursor: pointer;" for="chan_push">Push Notifications</label>
+                                        </div>
+                                        <label class="switch small">
+                                            <input type="checkbox" id="chan_push" onchange="saveIQSettings()" checked>
+                                            <span class="slider"></span>
+                                        </label>
+                                    </div>
 
-                            const btn = document.getElementById('btnBroadcast');
-                            const originalText = btn.innerText;
-                            btn.innerText = "Sending Emails...";
-                            btn.disabled = true;
-
-                            const formData = new FormData();
-                            formData.append('action', 'broadcast_alert');
-                            formData.append('area', area);
-                            formData.append('severity', severity);
-                            formData.append('message', message);
-
-                            try {
-                                const res = await fetch('manage_community.php', { method: 'POST', body: formData });
-                                const json = await res.json();
-                                alert(json.message);
-                            } catch(e) {
-                                alert("Failed to send broadcast.");
-                                console.error(e);
-                            }
-                            
-                            btn.innerText = originalText;
-                            btn.disabled = false;
-                        }
-                    </script>
-                        <!-- Thresholds -->
-                        <div style="padding: 20px; background: rgba(255,255,255,0.05); border-radius: 12px;">
-                            <h4 style="margin-bottom: 15px; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 10px;">Severity Thresholds</h4>
-                            
-                            <div style="margin-bottom: 20px;">
-                                <div style="display: flex; justify-content: space-between; margin-bottom: 5px;">
-                                    <label>Warning Level</label>
-                                    <span style="color: #f1c40f;" id="warningVal">75%</span>
-                                </div>
-                                <input type="range" id="warningSlider" min="0" max="100" value="75" style="width: 100%; height: 6px; background: #ddd; border-radius: 5px; outline: none; opacity: 0.7;" oninput="document.getElementById('warningVal').innerText = this.value + '%'" onchange="updateThresholds()">
-                            </div>
-                             <div style="margin-bottom: 10px;">
-                                <div style="display: flex; justify-content: space-between; margin-bottom: 5px;">
-                                    <label>Critical Level</label>
-                                    <span style="color: #e74c3c;" id="criticalVal">90%</span>
-                                </div>
-                                <input type="range" id="criticalSlider" min="0" max="100" value="90" style="width: 100%; height: 6px; background: #ddd; border-radius: 5px; outline: none; opacity: 0.7;" oninput="document.getElementById('criticalVal').innerText = this.value + '%'" onchange="updateThresholds()">
-                            </div>
-                        </div>
-
-                        <!-- Channels -->
-                        <div style="padding: 20px; background: rgba(255,255,255,0.05); border-radius: 12px;">
-                            <h4 style="margin-bottom: 20px; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 10px;">Delivery Channels</h4>
-                            
-                            <div style="display: flex; flex-direction: column; gap: 15px;">
-                                <div style="display: flex; justify-content: space-between; align-items: center;">
-                                    <label for="sms_ch" style="cursor: pointer;">SMS Alerts</label>
-                                    <label class="switch small">
-                                        <input type="checkbox" id="sms_ch" onchange="updateChannels()">
-                                        <span class="slider"></span>
-                                    </label>
-                                </div>
-
-                                <div style="display: flex; justify-content: space-between; align-items: center;">
-                                    <label for="email_ch" style="cursor: pointer;">Email Notifications</label>
-                                    <label class="switch small">
-                                        <input type="checkbox" id="email_ch" onchange="updateChannels()">
-                                        <span class="slider"></span>
-                                    </label>
-                                </div>
-
-                                <div style="display: flex; justify-content: space-between; align-items: center;">
-                                    <label for="app_ch" style="cursor: pointer;">In-App Push</label>
-                                    <label class="switch small">
-                                        <input type="checkbox" id="app_ch" onchange="updateChannels()">
-                                        <span class="slider"></span>
-                                    </label>
-                                </div>
-
-                                <div style="display: flex; justify-content: space-between; align-items: center;">
-                                    <label for="public_ch" style="cursor: pointer;">Public Sirens</label>
-                                    <label class="switch small">
-                                        <input type="checkbox" id="public_ch" onchange="updateChannels()">
-                                        <span class="slider"></span>
-                                    </label>
+                                    <div style="display: flex; justify-content: space-between; align-items: center;">
+                                        <div style="display: flex; align-items: center; gap: 10px;">
+                                            <i data-lucide="volume-2" style="width: 16px; opacity: 0.6;"></i>
+                                            <label style="font-size: 14px; cursor: pointer;" for="chan_siren">External Siren</label>
+                                        </div>
+                                        <label class="switch small">
+                                            <input type="checkbox" id="chan_siren" onchange="saveIQSettings()">
+                                            <span class="slider"></span>
+                                        </label>
+                                    </div>
                                 </div>
                             </div>
                         </div>
-                    </div>
+                    </div> <!-- End Settings Column -->
 
+                    <!-- Right Column: IoT Intelligence Feed -->
+                    <div class="card" style="display: flex; flex-direction: column; overflow: hidden; height: 100%;">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px;">
+                            <div style="display: flex; align-items: center; gap: 12px;">
+                                <div style="width: 32px; height: 32px; background: rgba(0, 229, 255, 0.1); border-radius: 8px; display: flex; align-items: center; justify-content: center;">
+                                    <i data-lucide="activity" style="width: 18px; color: #00e5ff;"></i>
+                                </div>
+                                <h3 style="margin: 0; font-size: 18px;">IoT Intelligence Feed</h3>
+                            </div>
+                            <div style="display: flex; gap: 10px;">
+                                <button onclick="fetchIQFeed()" class="btn-refresh" style="padding: 8px 16px; background: rgba(74, 181, 196, 0.1); border: 1px solid rgba(74, 181, 196, 0.2); color: #4ab5c4; border-radius: 8px; font-size: 13px; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 6px; transition: all 0.3s;">
+                                    <i data-lucide="refresh-cw" style="width: 14px;"></i> Refresh
+                                </button>
+                            </div>
+                        </div>
+                        <p style="opacity: 0.6; font-size: 13px; margin-bottom: 25px;">Live timeline of auto-detected water level events and severity changes.</p>
 
-                </div>
+                        <div id="iqFeedTimeline" style="flex: 1; overflow-y: auto; padding-right: 10px; display: flex; flex-direction: column; gap: 12px; min-height: 400px;">
+                            <div style="text-align: center; padding: 40px; opacity: 0.5;">
+                                <div class="loading-spinner" style="width: 20px; height: 20px; border: 2px solid rgba(255,255,255,0.1); border-top-color: #4ab5c4; border-radius: 50%; animation: spin 1s linear infinite; margin: 0 auto 10px;"></div>
+                                Loading intelligence feed...
+                            </div>
+                        </div>
+                    </div> <!-- End Feed Card -->
+
+                </div> <!-- End Grid -->
+            </div> <!-- End Notifications Section -->
 
 
                 <!-- Standardized Settings Section -->
@@ -2093,6 +2482,54 @@ if ($users_result) {
         // Support for local switchTab() calls
         var switchTab = window.switchTab;
 
+        // --- EMERGENCY BROADCAST SYSTEM ---
+        window.sendBroadcast = async function() {
+            const area = document.getElementById('alertArea').value;
+            const severity = document.getElementById('alertSeverity').value;
+            const message = document.getElementById('alertMessage').value;
+            
+            if(!message) { 
+                if(window.showNotification) window.showNotification("Please enter a message!", "warning");
+                else alert("Please enter a message!"); 
+                return; 
+            }
+            
+            const confirmMsg = `⚠️ CONFIRM BROADCAST\nAre you sure you want to send a ${severity} alert to ${area}? This will email all registered users AND offline community contacts.`;
+            
+            const triggerBroadcast = async () => {
+                const btn = document.getElementById('btnBroadcast');
+                const originalText = btn.innerText;
+                btn.innerText = "Sending Emails...";
+                btn.disabled = true;
+
+                const formData = new FormData();
+                formData.append('action', 'broadcast_alert');
+                formData.append('area', area);
+                formData.append('severity', severity);
+                formData.append('message', message);
+
+                try {
+                    const res = await fetch('manage_community.php', { method: 'POST', body: formData });
+                    const json = await res.json();
+                    if(window.showNotification) window.showNotification(json.message, json.status === 'success' ? 'success' : 'error');
+                    else alert(json.message);
+                } catch(e) {
+                    if(window.showNotification) window.showNotification("Failed to send broadcast.", "error");
+                    else alert("Failed to send broadcast.");
+                    console.error(e);
+                }
+                
+                btn.innerText = originalText;
+                btn.disabled = false;
+            };
+
+            if(window.showConfirm) {
+                window.showConfirm(confirmMsg, triggerBroadcast);
+            } else {
+                if(confirm(confirmMsg)) triggerBroadcast();
+            }
+        };
+
         // 1. GLOBAL STORE & DIAGNOSTICS
         var allEvacPoints = {}; 
         var waterChart; 
@@ -2198,6 +2635,21 @@ if ($users_result) {
             }
         };
 
+        window.getDirections = function(id) {
+            const pt = allEvacPoints[id];
+            if(!pt) return;
+
+            let destination = "";
+            if(parseFloat(pt.latitude) !== 0 && parseFloat(pt.longitude) !== 0) {
+                destination = pt.latitude + "," + pt.longitude;
+            } else {
+                destination = encodeURIComponent(pt.name + ", " + pt.location + ", Idukki, Kerala");
+            }
+
+            const url = `https://www.google.com/maps/dir/?api=1&destination=${destination}`;
+            window.open(url, '_blank');
+        };
+
         window.deletePoint = async function(id) {
             if(!confirm("Permanently remove this location?")) return;
             log("Delete triggered for ID:", id);
@@ -2254,9 +2706,14 @@ if ($users_result) {
                                 <div>Capacity: <strong>${pt.capacity}</strong></div>
                                 <div>Assigned Sensor: <strong>${pt.assigned_sensor || 'N/A'}</strong></div>
                             </div>
-                            <div style="display: flex; gap: 10px; margin-top: 15px;">
-                                <button onclick="window.openEditModal('${pt.id}')" style="flex: 1; padding: 10px; background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); color: white; border-radius: 8px; cursor: pointer; font-weight: 500; position: relative; z-index: 11;">Edit</button>
-                                <button onclick="window.deletePoint('${pt.id}')" style="flex: 1; padding: 10px; background: rgba(231, 76, 60, 0.1); border: 1px solid rgba(231, 76, 60, 0.3); color: #e74c3c; border-radius: 8px; cursor: pointer; font-weight: 500; position: relative; z-index: 11;">Remove</button>
+                            <div style="margin-top: 15px;">
+                                <button onclick="window.getDirections('${pt.id}')" style="width: 100%; padding: 12px; background: rgba(74, 181, 196, 0.1); border: 1px solid rgba(74, 181, 196, 0.3); color: #4ab5c4; border-radius: 8px; cursor: pointer; font-weight: 600; margin-bottom: 10px; display: flex; align-items: center; justify-content: center; gap: 8px; position: relative; z-index: 11;">
+                                    <span>📍</span> Get Directions
+                                </button>
+                                <div style="display: flex; gap: 10px;">
+                                    <button onclick="window.openEditModal('${pt.id}')" style="flex: 1; padding: 10px; background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); color: white; border-radius: 8px; cursor: pointer; font-weight: 500; position: relative; z-index: 11;">Edit</button>
+                                    <button onclick="window.deletePoint('${pt.id}')" style="flex: 1; padding: 10px; background: rgba(231, 76, 60, 0.1); border: 1px solid rgba(231, 76, 60, 0.3); color: #e74c3c; border-radius: 8px; cursor: pointer; font-weight: 500; position: relative; z-index: 11;">Remove</button>
+                                </div>
                             </div>
                         `;
                         listEl.appendChild(card);
@@ -2519,14 +2976,16 @@ if ($users_result) {
         }
 
         window.fetchSystemAlerts = async function() {
-            const container = document.querySelector('#alerts .card > div');
+            const container = document.getElementById('alertsHistoryList');
             const dashboardContainer = document.getElementById('dashboardRecentAlerts');
             const countEl = document.getElementById('activeAlertCount');
             const badgeEl = document.getElementById('alertBadge');
+            const filterEl = document.getElementById('alertsLocationFilter');
             if(!container && !dashboardContainer) return;
 
             try {
-                const res = await fetch('manage_alerts.php?action=fetch_all');
+                const locQuery = filterEl && filterEl.value ? `&user_location=${encodeURIComponent(filterEl.value)}` : '';
+                const res = await fetch('manage_alerts.php?action=fetch_all' + locQuery);
                 const json = await res.json();
                 
                 if(json.status === 'success') {
@@ -2639,109 +3098,90 @@ if ($users_result) {
             }
         };
 
-        window.fetchSensorStatus = async function() {
-            const tbody = document.querySelector('#sensors tbody');
-            const zoneEl = document.getElementById('criticalZoneCount');
-            if(!tbody && !zoneEl) return;
+        // 🚨 IoT INTELLIGENCE FEED LOGIC 🚨
+        window.fetchIoTFeed = async function() {
+            const container = document.getElementById('iotFeedTimeline');
+            if (!container) return;
+
+            const filterEl = document.getElementById('feedTypeFilter');
+            const type = filterEl ? filterEl.value : 'all';
 
             try {
-                const res = await fetch('manage_alerts.php?action=fetch_sensors');
+                const res = await fetch(`get_notifications.php?type=${encodeURIComponent(type)}&limit=50`);
                 const json = await res.json();
                 
-                if(json.status === 'success') {
-                    const sensors = json.data || [];
-                    let criticalCount = 0;
-
-                    if(tbody) tbody.innerHTML = '';
+                if (json.status === 'success') {
+                    const notifications = json.data || [];
                     
-                    sensors.forEach(s => {
-                        const isCritical = (s.status === 'Offline' || s.status === 'Maintenance');
-                        if(isCritical) criticalCount++;
+                    if (notifications.length === 0) {
+                        container.innerHTML = `<p style="text-align: center; color: rgba(255,255,255,0.5); padding: 30px;">No events found in the intelligence feed.</p>`;
+                        return;
+                    }
 
-                        if(tbody) {
-                            const statusClass = s.status === 'Active' ? 'safe-text' : (s.status === 'Offline' ? 'danger-text' : 'warning-text');
-                            const tr = document.createElement('tr');
-                            tr.style.cssText = "border-bottom: 1px solid rgba(255,255,255,0.05);";
-                            tr.innerHTML = `
-                                <td style="padding: 15px;" data-label="ID">${s.sensor_id}</td>
-                                <td style="padding: 15px;" data-label="Location">${s.location_name}</td>
-                                <td style="padding: 15px;" data-label="Status"><span class="${statusClass}">${s.status}</span></td>
-                                <td style="padding: 15px;" data-label="Battery">${s.battery_level}%</td>
-                                <td style="padding: 15px;" data-label="Last Ping">${new Date(s.last_ping).toLocaleTimeString()}</td>
-                            `;
-                            tbody.appendChild(tr);
+                    let feedHtml = '';
+                    notifications.forEach(notif => {
+                        // Determine Icon & Color
+                        let icon = 'ℹ️';
+                        let colorClass = 'info';
+                        let bgAlpha = '0.05';
+
+                        if (notif.type === 'flood') icon = '🌊';
+                        if (notif.type === 'device') icon = '🔌';
+                        if (notif.type === 'emergency') {
+                            icon = '🆘';
+                            colorClass = '#e74c3c';
+                            bgAlpha = '0.2';
+                        } else {
+                            switch (notif.severity) {
+                                case 'safe': colorClass = '#2ecc71'; bgAlpha = '0.1'; break;
+                                case 'warning': colorClass = '#f1c40f'; bgAlpha = '0.1'; break;
+                                case 'danger': 
+                                case 'critical': colorClass = '#e74c3c'; bgAlpha = '0.15'; break;
+                                case 'info': colorClass = '#3498db'; bgAlpha = '0.1'; break;
+                            }
                         }
+
+                        let levelBadge = notif.water_level !== null ? 
+                            `<span style="background: rgba(0,0,0,0.3); padding: 3px 8px; border-radius: 4px; font-size: 11px; margin-left: auto;">${notif.water_level} ft</span>` : '';
+
+                        feedHtml += `
+                            <div style="background: rgba(${hexToRgb(colorClass)}, ${bgAlpha}); border-left: 4px solid ${colorClass}; margin-bottom: 12px; padding: 15px; border-radius: 8px; display: flex; align-items: flex-start; gap: 12px; animation: slideInRight 0.3s ease-out;">
+                                <div style="font-size: 24px;">${icon}</div>
+                                <div style="flex: 1;">
+                                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px;">
+                                        <div style="font-weight: 600; font-size: 14px; text-transform: uppercase; color: ${colorClass}; letter-spacing: 0.5px;">${notif.location}</div>
+                                        <div style="font-size: 12px; opacity: 0.6;">${notif.formatted_time}</div>
+                                    </div>
+                                    <div style="font-size: 14px; color: rgba(255,255,255,0.9); line-height: 1.4; display: flex; align-items: center;">
+                                        ${notif.message}
+                                        ${levelBadge}
+                                    </div>
+                                </div>
+                            </div>
+                        `;
                     });
 
-                    if(tbody) {
-                        zoneEl.innerText = criticalCount + (criticalCount === 1 ? " Zone" : " Zones");
-                        
-                        // Calculate Overall Safety % (Ratio of Active sensors)
-                        const safetyPercent = sensors.length > 0 ? Math.round(((sensors.length - criticalCount) / sensors.length) * 100) : 100;
-                        const safetyEl = document.getElementById('overallSafetyValue');
-                        if (safetyEl) {
-                            safetyEl.innerText = safetyPercent + "%";
-                            safetyEl.className = 'status-value ' + (safetyPercent > 90 ? 'safe-text' : (safetyPercent > 70 ? 'warning-text' : 'danger-text'));
-                        }
-
-                        // Update System Health Text
-                        const healthEl = document.getElementById('systemHealthText');
-                        if (healthEl) {
-                            if (criticalCount === 0) {
-                                healthEl.innerText = "Optimal";
-                                healthEl.className = 'status-value safe-text';
-                            } else if (criticalCount < sensors.length / 2) {
-                                healthEl.innerText = "Degraded";
-                                healthEl.className = 'status-value warning-text';
-                            } else {
-                                healthEl.innerText = "Critical";
-                                healthEl.className = 'status-value danger-text';
-                            }
-                        }
-                    }
-
-                    // Dynamic Graph Area Support: Populate dropdown
-                    const areaDropdown = document.getElementById('areaSelector');
-                    if(areaDropdown && sensors.length > 0) {
-                        const currentVal = areaDropdown.value;
-                        const uniqueAreas = [...new Set(['South Reservoir', ...sensors.map(s => s.location_name)])].sort();
-                        
-                        // Only update DOM if the set of areas has changed to prevent flickering/focus loss
-                        const existingOptions = Array.from(areaDropdown.options).map(o => o.value).sort();
-                        const areasString = uniqueAreas.join('|');
-                        const existingString = existingOptions.join('|');
-
-                        if(areasString !== existingString) {
-                            log("Updating Area Selector Options...");
-                            let optionsHtml = '';
-                            uniqueAreas.forEach(area => {
-                                optionsHtml += `<option value="${area}">${area}</option>`;
-                            });
-                            areaDropdown.innerHTML = optionsHtml;
-                            
-                            // Restore value if it still exists, else default to South Reservoir
-                            if (uniqueAreas.includes(currentVal)) {
-                                areaDropdown.value = currentVal;
-                            } else {
-                                areaDropdown.value = 'South Reservoir';
-                            }
-                        }
-
-                        // Init data for new areas if not exists
-                        uniqueAreas.forEach(area => {
-                            if(!chartDataStore[area]) {
-                                chartDataStore[area] = {
-                                    labels: Array.from({length:6}, (_,i) => new Date(Date.now() - (5-i)*300000).toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'})),
-                                    data: Array.from({length:6}, () => 40 + Math.random() * 20)
-                                };
-                            }
-                        });
-                    }
+                    container.innerHTML = feedHtml;
+                } else {
+                    container.innerHTML = `<p style="text-align: center; color: #e74c3c; padding: 30px;">Failed to load feed: ${json.message}</p>`;
                 }
             } catch (err) {
-                log("Sensor Fetch Error:", err);
+                console.error("Failed to fetch IoT feed:", err);
             }
         };
+
+        // Helper to convert hex to RGB for rgba styling
+        function hexToRgb(hex) {
+            var shorthandRegex = /^#?([a-f\d])([a-f\d])([a-f\d])$/i;
+            hex = hex.replace(shorthandRegex, function(m, r, g, b) {
+                return r + r + g + g + b + b;
+            });
+            var result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+            return result ? 
+                parseInt(result[1], 16) + ', ' + parseInt(result[2], 16) + ', ' + parseInt(result[3], 16) : '255, 255, 255';
+        }
+
+        // window.fetchSensorStatus consolidated into sensors section definition above
 
         window.switchAreaGraph = function(area) {
             if(!waterChart || !chartDataStore[area]) return;
@@ -2836,7 +3276,7 @@ if ($users_result) {
                 const mapEl = document.getElementById('leaflet-map');
                 if(!mapEl) return;
                 
-                map = L.map('leaflet-map').setView([10.8505, 76.2711], 7);
+                map = L.map('leaflet-map').setView([9.5700, 77.0800], 11);
                 L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
                     attribution: '&copy; OpenStreetMap contributors'
                 }).addTo(map);
@@ -2851,93 +3291,141 @@ if ($users_result) {
             if(!map) return;
             
             try {
-                // 1. Fetch Evacuation Points
-                const evacPromise = fetch(`manage_evacuation.php?action=fetch_all&t=${Date.now()}`);
-                // 2. Fetch Sensor Statuses (to overlay critical zone info)
-                const sensorPromise = fetch(`manage_alerts.php?action=fetch_sensors&t=${Date.now()}`);
+                const res = await fetch(`get_map_data.php?t=${Date.now()}`);
+                const json = await res.json();
 
-                const [evacRes, sensorRes] = await Promise.all([evacPromise, sensorPromise]);
-                const evacJson = await evacRes.json();
-                const sensorJson = await sensorRes.json();
-
-                // Create Sensor Lookup Map
-                const sensorMap = {};
-                if(sensorJson.status === 'success' && sensorJson.data) {
-                    sensorJson.data.forEach(s => {
-                        sensorMap[s.sensor_id] = s.status; // e.g. "Active", "Offline", "Maintenance"
-                    });
-                }
-
-                if(evacJson.data) {
-                    // Clear existing markers
-                    for(let id in markersObj) {
-                        map.removeLayer(markersObj[id]);
-                    }
-                    markersObj = {};
-
+                if(json.status === 'success') {
                     const markerGroup = [];
+                    const riskColors = { 'Safe': '#2ecc71', 'Warning': '#f1c40f', 'Danger': '#e74c3c' };
+                    
+                    // Track IDs present in this update to remove dead markers later
+                    const currentIds = new Set();
 
-                    evacJson.data.forEach(p => {
-                        let lat = parseFloat(p.latitude);
-                        let lng = parseFloat(p.longitude);
-
-                        // Fallback & Randomization for overlapping points
-                        if(isNaN(lat) || isNaN(lng) || (lat === 0 && lng === 0)) {
-                            lat = 10.8505 + (Math.random() - 0.5) * 0.1; 
-                            lng = 76.2711 + (Math.random() - 0.5) * 0.1;
-                        }
-
-                        // Determine Status & Color
-                        const assignedSensor = p.assigned_sensor;
-                        const sensorStatus = assignedSensor ? (sensorMap[assignedSensor] || 'Unknown') : 'N/A';
-                        
-                        // Priority: Critical Sensor > Evacuation Status
-                        let color = '#2ecc71'; // Default Safe (Green)
-                        let statusText = `Evac Status: ${p.status}`;
-                        let isCritical = false;
-
-                        // Check Sensor Health (Critical Zone Logic)
-                        // If sensor is Offline or Maintenance -> It's a Critical Zone
-                        const isSensorCritical = (sensorStatus === 'Offline' || sensorStatus === 'Maintenance');
-                        
-                        if (isSensorCritical) {
-                            color = '#e74c3c'; // Red for Critical
-                            statusText += `<br><strong style="color:#e74c3c">⚠️ Critical Zone: Sensor ${sensorStatus}</strong>`;
-                            isCritical = true;
-                        } else {
-                            // Normal Evacuation Status Logic
-                            if (p.status === 'Full') color = '#f1c40f'; // Yellow
-                            else if (p.status === 'Closed') color = '#95a5a6'; // Grey
+                    // 1. Render Sensors
+                    if(json.sensors) {
+                        json.sensors.forEach(s => {
+                            const color = riskColors[s.status] || '#2ecc71';
+                            currentIds.add(s.id);
                             
-                            statusText += `<br>Sensor: ${sensorStatus}`;
-                        }
-
-                        const marker = L.circleMarker([lat, lng], {
-                            color: color,
-                            fillColor: color,
-                            fillOpacity: 0.8,
-                            radius: isCritical ? 14 : 10 // Larger radius for critical zones
-                        }).addTo(map).bindPopup(`
-                            <div style="font-family: 'Outfit', sans-serif;">
-                                <strong style="font-size:14px; color:#4ab5c4;">${p.name}</strong><br>
-                                <div style="margin-top:5px; font-size:12px;">
-                                    ${statusText}<br>
-                                    Cap: ${p.capacity}
+                            const popupContent = `
+                                <div style="font-family: 'Outfit', sans-serif; min-width: 160px; color: white;">
+                                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+                                        <strong style="font-size:14px; color:#4ab5c4;">${s.id}</strong>
+                                        <span style="background:${color}22; color:${color}; padding:2px 8px; border-radius:4px; font-size:11px; font-weight:700; border: 1px solid ${color}44;">${s.status}</span>
+                                    </div>
+                                    <div style="font-size:13px; opacity:0.8; margin-bottom:10px;">
+                                        📍 ${s.location}
+                                    </div>
+                                    <div style="font-size:18px; font-weight:700; color:#fff; margin-bottom:8px;">
+                                        ${s.level} <span style="font-size:12px; font-weight:400; opacity:0.6;">ft depth</span>
+                                    </div>
+                                    <div style="font-size:11px; opacity:0.4; border-top:1px solid rgba(255,255,255,0.1); padding-top:6px; margin-top:4px;">
+                                        Updated: ${s.updated}
+                                    </div>
                                 </div>
-                            </div>
-                        `);
-                        
-                        markersObj[p.id] = marker;
-                        markerGroup.push([lat, lng]);
-                    });
+                            `;
 
-                    // Auto-fit bounds if we have markers
-                    if (markerGroup.length > 0) {
-                        map.fitBounds(L.latLngBounds(markerGroup), { padding: [50, 50] });
+                            if (markersObj[s.id]) {
+                                // Update existing
+                                markersObj[s.id].setLatLng([s.lat, s.lng]);
+                                markersObj[s.id].setStyle({ color: color, fillColor: color, radius: s.status !== 'Safe' ? 14 : 10 });
+                                markersObj[s.id].getPopup().setContent(popupContent);
+                            } else {
+                                // Create new
+                                markersObj[s.id] = L.circleMarker([s.lat, s.lng], {
+                                    color: color,
+                                    fillColor: color,
+                                    fillOpacity: 0.8,
+                                    radius: s.status !== 'Safe' ? 14 : 10,
+                                    weight: 2
+                                }).addTo(map).bindPopup(popupContent);
+                            }
+                            markerGroup.push([s.lat, s.lng]);
+                        });
                     }
+
+                    if(json.emergency_signals) {
+                        json.emergency_signals.forEach(sig => {
+                            const isAck = sig.status === 'Acknowledged';
+                            const sigId = 'emergency_' + sig.email;
+                            currentIds.add(sigId);
+
+                            const popupContent = `
+                                <div style="font-family: 'Outfit', sans-serif; min-width: 200px; color: white; text-align:center;">
+                                    <div style="font-size:30px; margin-bottom:10px;">${isAck ? '✅' : '🆘'}</div>
+                                    <strong style="color:${isAck ? '#2ecc71' : '#ff4d4d'}; font-size:16px;">${isAck ? 'SOS ACKNOWLEDGED' : 'EMERGENCY SIGNAL'}</strong>
+                                    <div style="font-size:13px; margin: 10px 0; opacity:0.8;">
+                                        User: ${sig.email}<br>
+                                        Sent: ${sig.time}
+                                    </div>
+                                    <div style="background:${isAck ? 'rgba(46, 204, 113, 0.1)' : 'rgba(255,77,77,0.1)'}; padding:10px; border-radius:8px; border:1px solid ${isAck ? 'rgba(46, 204, 113, 0.3)' : 'rgba(255,77,77,0.3)'}; font-size:11px; color:${isAck ? '#2ecc71' : '#ff4d4d'}; font-weight:700;">
+                                        ${isAck ? 'HELP IS ON THE WAY' : 'DISPATCH RESCUE TEAM IMMEDIATELY'}
+                                    </div>
+                                    <div style="margin-top:10px; display:flex; gap:5px;">
+                                        <a href="https://www.google.com/maps/dir/?api=1&destination=${sig.lat},${sig.lng}" target="_blank" style="flex:1; background:#4ab5c4; color:white; padding:8px; border-radius:6px; text-decoration:none; font-size:11px; font-weight:700;">Navigate</a>
+                                        ${!isAck ? `<button onclick="window.acknowledgeSOS('${sig.email}')" style="flex:1; background:#ff4d4d; color:white; padding:8px; border:none; border-radius:6px; font-size:11px; font-weight:700; cursor:pointer;">Acknowledge</button>` : ''}
+                                    </div>
+                                </div>
+                            `;
+
+                            if (markersObj[sigId]) {
+                                markersObj[sigId].setLatLng([sig.lat, sig.lng]);
+                                markersObj[sigId].setStyle({ color: isAck ? '#2ecc71' : '#ff0000', fillColor: isAck ? '#2ecc71' : '#ff0000' });
+                                markersObj[sigId].getPopup().setContent(popupContent);
+                            } else {
+                                markersObj[sigId] = L.circleMarker([sig.lat, sig.lng], {
+                                    color: isAck ? '#2ecc71' : '#ff0000',
+                                    fillColor: isAck ? '#2ecc71' : '#ff0000',
+                                    fillOpacity: 0.9,
+                                    radius: 16,
+                                    weight: 3,
+                                    className: isAck ? '' : 'emergency-pulse-marker',
+                                    interactive: true
+                                }).addTo(map).bindPopup(popupContent, {
+                                    closeButton: true,
+                                    autoPan: true
+                                });
+                            }
+                            markerGroup.push([sig.lat, sig.lng]);
+                        });
+                    }
+
+                    // 3. Remove markers that are no longer in the response
+                    for (let id in markersObj) {
+                        if (!currentIds.has(id)) {
+                            map.removeLayer(markersObj[id]);
+                            delete markersObj[id];
+                        }
+                    }
+
+                    // Only fit bounds if markers exist and it's the first load or map wasn't visible
+                    // if (markerGroup.length > 0) map.fitBounds(L.latLngBounds(markerGroup), { padding: [50, 50] });
                 }
             } catch (e) {
                 console.log("Map Marker Refresh Error:", e);
+            }
+        };
+
+        window.acknowledgeSOS = async function(email) {
+            if(!confirm(`Acknowledge SOS from ${email} and notify user?`)) return;
+
+            const formData = new FormData();
+            formData.append('action', 'acknowledge');
+            formData.append('email', email);
+
+            try {
+                const res = await fetch('manage_emergency_signals.php', { method: 'POST', body: formData });
+                const json = await res.json();
+                
+                if(json.status === 'success') {
+                    window.showNotification("SOS Acknowledged!", 'success');
+                    if(typeof refreshMapMarkers === 'function') refreshMapMarkers();
+                } else {
+                    alert("Error: " + json.message);
+                }
+            } catch(err) {
+                console.error(err);
+                alert("Failed to acknowledge emergency.");
             }
         };
 
@@ -3035,159 +3523,119 @@ if ($users_result) {
                 }
             });
         };
-        window.renderReportCharts = function() {
+        window.renderReportCharts = async function() {
             const ctx1 = document.getElementById('floodTrendChart');
             const ctx2 = document.getElementById('alertFreqChart');
             if (!ctx1 || !ctx2) return;
 
-            if (floodChart) floodChart.destroy();
-            if (alertChart) alertChart.destroy();
-
-            const range = document.getElementById('reportTimeRange') ? document.getElementById('reportTimeRange').value : '24h';
-            const area = document.getElementById('reportAreaSelector') ? document.getElementById('reportAreaSelector').value : 'All';
+            const range = document.getElementById('reportTimeRange')?.value || '24h';
+            const area = document.getElementById('reportAreaSelector')?.value || 'All';
             
-            let labels, dataPoints, alertData;
-            
-            // --- UPDATED STATS LOGIC ---
-            // Base values
-            let baseAlerts = 14, baseFloods = 3, baseRec = 98;
-            
-            // Time Multipliers
-            if(range === '7d') { baseAlerts = 45; baseFloods = 8; baseRec = 95; }
-            if(range === '30d') { baseAlerts = 128; baseFloods = 21; baseRec = 92; }
-
-            // Area Multipliers (Simulation)
-            if(area === 'South Reservoir') { baseAlerts = Math.round(baseAlerts * 0.6); baseFloods = Math.max(1, Math.round(baseFloods * 0.8)); baseRec -= 5; } // Critical area
-            else if(area === 'Central City') { baseAlerts = Math.round(baseAlerts * 0.2); baseFloods = 0; baseRec = 100; } // Safe area
-            else if(area !== 'All') { baseAlerts = Math.round(baseAlerts * 0.3); baseFloods = Math.round(baseFloods * 0.3); baseRec -= 2; } // Other areas
-
-            if(document.getElementById('statTotalAlerts')) {
-                document.getElementById('statTotalAlerts').innerText = baseAlerts;
-                document.getElementById('statFloodEvents').innerText = baseFloods;
-                document.getElementById('statSafeRecoveries').innerText = baseRec + "%";
-            }
-            // ---------------------------
-            
-            // Chart Title Update
-            const chartTitle = document.querySelector('#reports h3');
-            if(chartTitle) chartTitle.innerText = `📊 Water Level Trends (${area === 'All' ? 'System Average' : area})`;
-            
-            if (range === '24h') {
-                labels = ['00:00', '04:00', '08:00', '12:00', '16:00', '20:00', '23:59'];
-                dataPoints = [35, 38, 45, 50, 48, 42, 40];
-                alertData = [2, 1, 4, 3, 2, 1, 1];
-            } else if (range === '7d') {
-                labels = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
-                dataPoints = [40, 55, 45, 60, 65, 50, 55];
-                alertData = [12, 18, 15, 22, 25, 14, 16];
-            } else { // 30d
-                labels = ['Week 1', 'Week 2', 'Week 3', 'Week 4'];
-                dataPoints = [45, 62, 58, 52];
-                alertData = [85, 120, 95, 110];
-            }
-
-            // --- AREA SCALING LOGIC FOR CHARTS ---
-            if(area !== 'All') {
-                const multiplier = (area === 'South Reservoir' || area === 'North District') ? 1.5 : 0.3; // Critical vs Safe
+            try {
+                // 1. Fetch Summary Stats & Event Logs
+                const statsRes = await fetch(`get_report_stats.php?range=${range}&area=${area}`);
+                const statsJson = await statsRes.json();
                 
-                dataPoints = dataPoints.map(v => Math.min(100, Math.round(v * multiplier)));
-                alertData = alertData.map(v => Math.round(v * multiplier));
-            }
+                if (statsJson.status === 'success') {
+                    const s = statsJson.stats;
+                    if(document.getElementById('statTotalAlerts')) {
+                        document.getElementById('statTotalAlerts').innerText = s.total_alerts;
+                        document.getElementById('statFloodEvents').innerText = s.flood_events;
+                        document.getElementById('statSafeRecoveries').innerText = s.safe_recovery;
+                    }
 
-            // Update Event Log Table
-            const eventBody = document.getElementById('eventLogBody');
-            if (eventBody) {
-                eventBody.innerHTML = ''; // Clear previous
-                let events = [];
-                
-                if (range === '24h') {
-                    events = [
-                        { time: '20:15', event: 'Water Level Critical', location: 'South Reservoir', severity: 'Critical', status: 'Active' },
-                        { time: '18:30', event: 'Sensor Malfunction', location: 'River A-2', severity: 'Warning', status: 'Resolved' },
-                        { time: '14:45', event: 'Water Level High', location: 'North Dam', severity: 'Warning', status: 'Monitoring' },
-                        { time: '09:20', event: 'Flow Rate Spike', location: 'Canal Zone', severity: 'Warning', status: 'Resolved' },
-                        { time: '04:10', event: 'Water Level Critical', location: 'South Reservoir', severity: 'Critical', status: 'Resolved' }
-                    ];
-                } else if (range === '7d') {
-                    events = [
-                        { time: 'Mon 14:20', event: 'Flash Flood Warning', location: 'East Valley', severity: 'Critical', status: 'Resolved' },
-                        { time: 'Sun 09:15', event: 'Water Level Critical', location: 'South Reservoir', severity: 'Critical', status: 'Active' },
-                        { time: 'Sat 22:10', event: 'Dam Gate #3 Error', location: 'Main Dam', severity: 'Warning', status: 'In Progress' },
-                        { time: 'Fri 18:45', event: 'High Rainfall Alert', location: 'All Zones', severity: 'Warning', status: 'Resolved' },
-                        { time: 'Thu 11:30', event: 'Communication Loss', location: 'Sensor Node 4', severity: 'Critical', status: 'Fixed' }
-                    ];
-                } else {
-                    events = [
-                        { time: 'Dec 28', event: 'System Wide Test', location: 'All Sites', severity: 'Info', status: 'Completed' },
-                        { time: 'Dec 25', event: 'Rapid Water Rise', location: 'West Bank', severity: 'Critical', status: 'Evacuated' },
-                        { time: 'Dec 20', event: 'Sensor Battery Low', location: 'Node 12', severity: 'Warning', status: 'Replaced' },
-                        { time: 'Dec 15', event: 'Flood Gate Opened', location: 'North Dam', severity: 'Info', status: 'Logged' },
-                        { time: 'Dec 10', event: 'Preliminary Flood Alert', location: 'South Zone', severity: 'Warning', status: 'Dismissed' }
-                    ];
-                }
-
-                events.forEach(ev => {
-                    const sevColor = ev.severity === 'Critical' ? '#e74c3c' : (ev.severity === 'Warning' ? '#f1c40f' : '#3498db');
-                    const row = `
-                        <tr style="border-bottom: 1px solid rgba(255,255,255,0.05);">
-                            <td style="padding: 15px;">${ev.time}</td>
-                            <td style="padding: 15px;">${ev.event}</td>
-                            <td style="padding: 15px;">${ev.location}</td>
-                            <td style="padding: 15px;"><span style="color: ${sevColor}; font-weight: 600;">${ev.severity}</span></td>
-                            <td style="padding: 15px;">${ev.status}</td>
-                        </tr>
-                    `;
-                    eventBody.innerHTML += row;
-                });
-            }
-
-            floodChart = new Chart(ctx1, {
-                type: 'line',
-                data: {
-                    labels: labels,
-                    datasets: [{
-                        label: 'Avg Water Level (%)',
-                        data: dataPoints,
-                        borderColor: '#4ab5c4',
-                        backgroundColor: 'rgba(74, 181, 196, 0.1)',
-                        borderWidth: 3,
-                        tension: 0.4,
-                        fill: true
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: { legend: { display: false } },
-                    scales: {
-                        y: { beginAtZero: true, max: 100, grid: { color: 'rgba(255,255,255,0.1)' }, ticks: { color: 'rgba(255,255,255,0.7)' } },
-                        x: { grid: { display: false }, ticks: { color: 'rgba(255,255,255,0.7)' } }
+                    // Update Event Log Table
+                    const eventBody = document.getElementById('eventLogBody');
+                    if (eventBody) {
+                        eventBody.innerHTML = statsJson.logs.length > 0 ? 
+                            statsJson.logs.map(e => `
+                                <tr style="border-bottom: 1px solid rgba(255,255,255,0.05); transition: all 0.2s;" onmouseover="this.style.background='rgba(255,255,255,0.02)'" onmouseout="this.style.background='transparent'">
+                                    <td style="padding: 12px; font-size: 13px; opacity: 0.8;">${e.time}</td>
+                                    <td style="padding: 12px; font-weight: 500;">${e.event}</td>
+                                    <td style="padding: 12px; font-size: 13px;">📍 ${e.location}</td>
+                                    <td style="padding: 12px;"><span class="${e.severity === 'CRITICAL' ? 'danger-text' : (e.severity === 'WARNING' ? 'warning-text' : 'safe-text')}" style="padding: 4px 8px; background: rgba(255,255,255,0.05); border-radius: 4px; font-size: 11px; font-weight: 600;">${e.severity}</span></td>
+                                    <td style="padding: 12px;"><span style="color: #4ab5c4; font-size: 12px;">● ${e.status}</span></td>
+                                </tr>
+                            `).join('') : 
+                            '<tr><td colspan="5" style="padding: 40px; text-align: center; opacity: 0.5;">No events found for this period.</td></tr>';
                     }
                 }
-            });
 
-            alertChart = new Chart(ctx2, {
-                type: 'bar',
-                data: {
-                    labels: labels,
-                    datasets: [{
-                        label: 'Alert Counts',
-                        data: alertData,
-                        backgroundColor: '#e74c3c',
-                        borderRadius: 5
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: { legend: { display: false } },
-                    scales: {
-                        y: { beginAtZero: true, grid: { color: 'rgba(255,255,255,0.1)' }, ticks: { color: 'rgba(255,255,255,0.7)' } },
-                        x: { grid: { display: false }, ticks: { color: 'rgba(255,255,255,0.7)' } }
-                    }
+                // 2. Fetch Historical Trends (Charts)
+                const trendRes = await fetch(`get_historical_data.php?range=${range}&area=${area}`);
+                const trendJson = await trendRes.json();
+
+                if (trendJson.status === 'success') {
+                    if (floodChart) floodChart.destroy();
+                    if (alertChart) alertChart.destroy();
+
+                    const labels = trendJson.labels;
+                    const waterLevels = trendJson.waterLevels;
+                    const alertCounts = trendJson.alertCounts;
+
+                    // Chart Title Update
+                    const chartTitle = document.querySelector('#reports h3');
+                    if(chartTitle) chartTitle.innerText = `📊 Water Level Trends (${area === 'All' ? 'System Average' : area})`;
+
+                    floodChart = new Chart(ctx1, {
+                        type: 'line',
+                        data: {
+                            labels: labels,
+                            datasets: [{
+                                label: 'Water Level (ft)',
+                                data: waterLevels,
+                                borderColor: '#4ab5c4',
+                                backgroundGradient: true,
+                                backgroundColor: 'rgba(74, 181, 196, 0.1)',
+                                fill: true,
+                                tension: 0.4,
+                                borderWidth: 3,
+                                pointRadius: 4,
+                                pointBackgroundColor: '#4ab5c4'
+                            }]
+                        },
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: false,
+                            plugins: { legend: { display: false } },
+                            scales: {
+                                y: { grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: '#aaa' }, beginAtZero: true },
+                                x: { grid: { display: false }, ticks: { color: '#aaa' } }
+                            }
+                        }
+                    });
+
+                    alertChart = new Chart(ctx2, {
+                        type: 'bar',
+                        data: {
+                            labels: labels,
+                            datasets: [{
+                                label: 'System Alerts',
+                                data: alertCounts,
+                                backgroundColor: 'rgba(231, 76, 60, 0.4)',
+                                borderColor: '#e74c3c',
+                                borderWidth: 1,
+                                borderRadius: 5
+                            }]
+                        },
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: false,
+                            plugins: { legend: { display: false } },
+                            scales: {
+                                y: { grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: '#aaa', stepSize: 1 }, beginAtZero: true },
+                                x: { grid: { display: false }, ticks: { color: '#aaa' } }
+                            }
+                        }
+                    });
                 }
-            });
+            } catch (err) {
+                console.error("Report Fetch Error:", err);
+            }
         };
+
+        // REMOVED DUPLICATE/DEAD LOGIC
+
 
         // REMOVED LOGIC - MOVED TO TOP OF SCRIPT (Global Definition)
 
@@ -3408,93 +3856,91 @@ if ($users_result) {
         window.addEventListener('hashchange', handleHash);
 
 
-        // --- NOTIFICATION CONTROL LOGIC ---
-        window.fetchNotificationSettings = async function() {
+        // --- IQ INTELLIGENCE CENTER LOGIC (Refactored) ---
+        window.fetchIQSettings = async function() {
             try {
-                const res = await fetch('manage_notifications.php?action=fetch');
+                const res = await fetch('get_notification_settings.php');
                 const json = await res.json();
-                
                 if (json.status === 'success') {
                     const data = json.data;
-                    
-                    // Master Toggle
-                    const master = document.getElementById('masterToggle');
-                    if(master) master.checked = data.master_enabled;
-                    
-                    // Thresholds
-                    const warmSlider = document.getElementById('warningSlider');
-                    const critSlider = document.getElementById('criticalSlider');
-                    if(warmSlider) { warmSlider.value = data.warning_threshold; document.getElementById('warningVal').innerText = data.warning_threshold + '%'; }
-                    if(critSlider) { critSlider.value = data.critical_threshold; document.getElementById('criticalVal').innerText = data.critical_threshold + '%'; }
-                    
-                    // Channels
-                    if(document.getElementById('sms_ch')) document.getElementById('sms_ch').checked = data.sms_enabled;
-                    if(document.getElementById('email_ch')) document.getElementById('email_ch').checked = data.email_enabled;
-                    if(document.getElementById('app_ch')) document.getElementById('app_ch').checked = data.push_enabled;
-                    if(document.getElementById('public_ch')) document.getElementById('public_ch').checked = data.siren_enabled;
+                    // Update Sliders
+                    const safeSlider = document.getElementById('thresholdSafeSlider');
+                    const warnSlider = document.getElementById('thresholdWarningSlider');
+                    if (safeSlider) {
+                        safeSlider.value = data.threshold_safe_max;
+                        document.getElementById('thresholdSafeVal').innerText = parseFloat(data.threshold_safe_max).toFixed(2) + ' ft';
+                    }
+                    if (warnSlider) {
+                        warnSlider.value = data.threshold_warning_max;
+                        document.getElementById('thresholdWarningVal').innerText = parseFloat(data.threshold_warning_max).toFixed(2) + ' ft';
+                    }
+                    // Update Channels
+                    if (document.getElementById('chan_sms')) document.getElementById('chan_sms').checked = data.channel_sms == '1';
+                    if (document.getElementById('chan_email')) document.getElementById('chan_email').checked = data.channel_email == '1';
+                    if (document.getElementById('chan_push')) document.getElementById('chan_push').checked = data.channel_push == '1';
+                    if (document.getElementById('chan_siren')) document.getElementById('chan_siren').checked = data.channel_siren == '1';
                 }
-            } catch (err) {
-                log("Fetch Notifications Error: " + err);
-            }
+            } catch (err) { console.error("IQ Settings Fetch Error:", err); }
         };
 
-        window.updateMasterToggle = async function() {
-            const enabled = document.getElementById('masterToggle').checked ? 1 : 0;
+        window.saveIQSettings = async function() {
             const formData = new FormData();
-            formData.append('action', 'update_master');
-            formData.append('enabled', enabled);
-            
+            formData.append('threshold_safe_max', document.getElementById('thresholdSafeSlider').value);
+            formData.append('threshold_warning_max', document.getElementById('thresholdWarningSlider').value);
+            formData.append('channel_sms', document.getElementById('chan_sms').checked ? '1' : '0');
+            formData.append('channel_email', document.getElementById('chan_email').checked ? '1' : '0');
+            formData.append('channel_push', document.getElementById('chan_push').checked ? '1' : '0');
+            formData.append('channel_siren', document.getElementById('chan_siren').checked ? '1' : '0');
+
             try {
-                const res = await fetch('manage_notifications.php', { method: 'POST', body: formData });
+                const res = await fetch('save_settings.php', { method: 'POST', body: formData });
                 const json = await res.json();
-                if(json.status === 'success') {
-                    window.showNotification(json.message, enabled ? 'success' : 'warning');
-                } else {
-                    window.showNotification(json.message, 'error');
+                if (json.status === 'success') {
+                    console.log("[IQ Center] Settings persisted.");
+                    // Optional: show a small toast if it was a manual change
                 }
-            } catch(e) { window.showNotification("Connection failed", 'error'); }
+            } catch (err) { console.error("IQ Settings Save Error:", err); }
         };
 
-        window.updateThresholds = async function() {
-            const warning = document.getElementById('warningSlider').value;
-            const critical = document.getElementById('criticalSlider').value;
-            
-            const formData = new FormData();
-            formData.append('action', 'update_thresholds');
-            formData.append('warning', warning);
-            formData.append('critical', critical);
-            
+        window.fetchIQFeed = async function() {
             try {
-                const res = await fetch('manage_notifications.php', { method: 'POST', body: formData });
+                const res = await fetch('get_notification_feed.php?limit=20');
                 const json = await res.json();
-                if(json.status === 'success') {
-                    log("Thresholds saved");
-                } else {
-                    window.showNotification(json.message, 'error');
-                }
-            } catch(e) { log("Threshold Save Error: " + e); }
-        };
+                const container = document.getElementById('iqFeedTimeline');
+                if (!container) return;
 
-        window.updateChannels = async function() {
-            const sms = document.getElementById('sms_ch').checked ? 1 : 0;
-            const email = document.getElementById('email_ch').checked ? 1 : 0;
-            const push = document.getElementById('app_ch').checked ? 1 : 0;
-            const siren = document.getElementById('public_ch').checked ? 1 : 0;
-            
-            const formData = new FormData();
-            formData.append('action', 'update_channels');
-            formData.append('sms', sms);
-            formData.append('email', email);
-            formData.append('push', push);
-            formData.append('siren', siren);
-            
-            try {
-                const res = await fetch('manage_notifications.php', { method: 'POST', body: formData });
-                const json = await res.json();
-                if(json.status === 'success') {
-                    log("Channels updated");
+                if (json.status === 'success' && json.data.length > 0) {
+                    let html = '';
+                    json.data.forEach(item => {
+                        const sevClass = item.severity.toLowerCase();
+                        const icon = sevClass === 'critical' ? 'alert-triangle' : (sevClass === 'warning' ? 'bell' : 'shield-check');
+                        const color = sevClass === 'critical' ? '#e74c3c' : (sevClass === 'warning' ? '#f1c40f' : '#2ecc71');
+                        
+                        html += `
+                            <div class="iq-event-card" style="background: rgba(255,255,255,0.03); border-left: 4px solid ${color}; padding: 15px; border-radius: 0 12px 12px 0; display: flex; gap: 15px; align-items: start; transition: transform 0.2s;">
+                                <div style="margin-top: 3px; color: ${color};">
+                                    <i data-lucide="${icon}" style="width: 18px;"></i>
+                                </div>
+                                <div style="flex: 1;">
+                                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
+                                        <span style="font-size: 11px; font-weight: 700; color: ${color}; text-transform: uppercase; letter-spacing: 0.5px;">${item.severity}</span>
+                                        <span style="font-size: 11px; opacity: 0.4;">${item.formatted_time}</span>
+                                    </div>
+                                    <h4 style="font-size: 14px; margin-bottom: 2px; color: #fff;">📍 ${item.location}</h4>
+                                    <p style="font-size: 13px; opacity: 0.7; line-height: 1.4;">${item.message}</p>
+                                    <div style="margin-top: 8px; font-size: 12px; font-weight: 600; color: #4ab5c4;">
+                                        🌊 Level: ${parseFloat(item.water_level).toFixed(2)} ft
+                                    </div>
+                                </div>
+                            </div>
+                        `;
+                    });
+                    container.innerHTML = html;
+                    if (window.lucide) lucide.createIcons();
+                } else if (json.status === 'success') {
+                    container.innerHTML = `<div style="text-align:center; padding:40px; opacity:0.3;">No recent intelligence events.</div>`;
                 }
-            } catch(e) { log("Channel Update Error"); }
+            } catch (err) { console.error("IQ Feed Fetch Error:", err); }
         };
 
         window.broadcastAlert = function() {
@@ -3547,8 +3993,9 @@ if ($users_result) {
             );
         };
 
-        // Initialize Notifications
-        fetchNotificationSettings();
+        // Initialize IQ Center
+        fetchIQSettings();
+        fetchIQFeed();
         
         // Initialize
         updateTime();
@@ -3564,7 +4011,7 @@ if ($users_result) {
         window.startPolling = function(seconds) {
             if(pollInterval) clearInterval(pollInterval);
             
-            const ms = (seconds && seconds > 5) ? seconds * 1000 : 30000;
+            const ms = (seconds && seconds >= 5) ? seconds * 1000 : 10000; // Default to 10s for IoT reqs
             console.log("[AquaSafe] Starting dashboard polling every", ms/1000, "seconds");
             
             pollInterval = setInterval(() => {
@@ -3575,6 +4022,8 @@ if ($users_result) {
                     fetchSystemAlerts();
                 } else if (document.getElementById('sensors').classList.contains('active')) {
                     fetchSensorStatus();
+                } else if (document.getElementById('notifications').classList.contains('active')) {
+                    fetchIQFeed();
                 }
             }, ms);
         };
@@ -3682,6 +4131,7 @@ if ($users_result) {
 
         // --- IOT FLOOD MONITOR — Live Chart Update ---
         let lastIoTAlertId = 0;
+        let lastSeenEmergencyId = 0;
 
         async function monitorFloodAlerts() {
             try {
@@ -3748,6 +4198,26 @@ if ($users_result) {
                         );
                     }
                     lastIoTAlertId = latestId;
+                }
+
+                // ── 2.5 Handle Emergency Location signals ──
+                if (json.emergency_signals && json.emergency_signals.length > 0) {
+                    const latestEmergency = json.emergency_signals[0];
+                    const emId = parseInt(latestEmergency.id);
+                    if (emId > lastSeenEmergencyId) {
+                        if (lastSeenEmergencyId !== 0) {
+                            // Trigger the sirens and visual alarm for new location shares
+                            if (typeof playEmergencyAlarm === 'function') {
+                                playEmergencyAlarm("SOS: User shared location at " + latestEmergency.latitude.toFixed(4) + ", " + latestEmergency.longitude.toFixed(4), 'SOS_' + emId, true);
+                            }
+                        }
+                        lastSeenEmergencyId = emId;
+                    }
+                }
+
+                // ── 3. Update the Live Map markers ──
+                if (typeof refreshMapMarkers === 'function' && document.getElementById('map').classList.contains('active')) {
+                    refreshMapMarkers();
                 }
 
             } catch(e) {
