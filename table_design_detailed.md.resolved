@@ -1,0 +1,140 @@
+# 4.5 TABLE DESIGN
+
+This section details the structure of all tables within the **AquaSafe** database.
+
+### 1. alert_history
+Primary key: [id](file:///c:/xampp/mysql/data/mysql.pid)
+
+| No: | Field name | Datatype (Size) | Key Constraints | Description of the field |
+|---|---|---|---|---|
+| 1 | id | int(11) | Primary Key | Unique identifier for alerting history record. |
+| 2 | sensor_id | int(11) | | ID of the sensor that triggered the alert. |
+| 3 | message | text | | Content of the alert message sent. |
+| 4 | created_at | timestamp | | Time identifying when the alert was logged. |
+
+---
+
+### 2. community_alerts
+Primary key: [id](file:///c:/xampp/mysql/data/mysql.pid)
+
+| No: | Field name | Datatype (Size) | Key Constraints | Description of the field |
+|---|---|---|---|---|
+| 1 | id | int(11) | Primary Key | Unique identifier for community-submitted alerts. |
+| 2 | user_email | varchar(255) | | Email of the user who submitted the alert. |
+| 3 | message | text | | Description of the local flood situation. |
+| 4 | location | varchar(255) | | Geographic area or coordinates of the alert. |
+| 5 | status | varchar(50) | | Current status (e.g., Pending, Verified, Resolved). |
+| 6 | created_at | timestamp | | Timestamp of submission. |
+
+---
+
+### 3. emergency_signals
+Primary key: [id](file:///c:/xampp/mysql/data/mysql.pid)
+Foreign key: `user_email` references table `users`
+
+| No: | Field name | Datatype (Size) | Key Constraints | Description of the field |
+|---|---|---|---|---|
+| 1 | id | int(11) | Primary Key | Unique identifier for the emergency signal (SOS). |
+| 2 | user_email | varchar(255) | Foreign Key | Email of the user in distress. |
+| 3 | latitude | decimal(10,8) | | Precise GPS latitude of the emergency. |
+| 4 | longitude | decimal(11,8) | | Precise GPS longitude of the emergency. |
+| 5 | status | varchar(50) | | Status of rescue (Active, Acknowledged, Cleared). |
+| 6 | created_at | timestamp | | Time identifying when SOS was shared. |
+| 7 | updated_at | timestamp | | Last update time (e.g., when acknowledged). |
+
+---
+
+### 4. evacuation_points
+Primary key: [id](file:///c:/xampp/mysql/data/mysql.pid)
+
+| No: | Field name | Datatype (Size) | Key Constraints | Description of the field |
+|---|---|---|---|---|
+| 1 | id | int(11) | Primary Key | Unique identifier for the evacuation center. |
+| 2 | name | varchar(255) | | Name of the facility (e.g., Church Hall). |
+| 3 | location | varchar(255) | | Address or landmarks for the point. |
+| 4 | status | varchar(50) | | Operational status (Open, Full, Closed). |
+| 5 | capacity | int(11) | | Maximum number of people supported. |
+
+---
+
+### 5. flood_alerts
+Primary key: [id](file:///c:/xampp/mysql/data/mysql.pid)
+
+| No: | Field name | Datatype (Size) | Key Constraints | Description of the field |
+|---|---|---|---|---|
+| 1 | id | int(11) | Primary Key | ID for system-generated threshold alerts. |
+| 2 | level | decimal(5,2) | | Water level at the time of alert. |
+| 3 | severity | varchar(50) | | Alert level (Warning, Critical). |
+| 4 | created_at | timestamp | | Time of alert generation. |
+
+---
+
+### 6. flood_data
+Primary key: [id](file:///c:/xampp/mysql/data/mysql.pid)
+Foreign key: `sensor_id` references table `sensor_status`
+
+| No: | Field name | Datatype (Size) | Key Constraints | Description of the field |
+|---|---|---|---|---|
+| 1 | id | int(11) | Primary Key | Unique ID for telemetry reading. |
+| 2 | sensor_id | int(11) | Foreign Key | ID of the source IoT sensor. |
+| 3 | level | decimal(5,2) | | Water level measured in feet. |
+| 4 | status | varchar(50) | | Normalized status calculated by server. |
+| 5 | created_at | timestamp | | Timestamp of the IoT transmission. |
+
+---
+
+### 7. helpdesk_requests
+Primary key: [id](file:///c:/xampp/mysql/data/mysql.pid)
+
+| No: | Field name | Datatype (Size) | Key Constraints | Description of the field |
+|---|---|---|---|---|
+| 1 | id | int(11) | Primary Key | Unique ID for user support tickets. |
+| 2 | user_email | varchar(255) | | Email of the requesting resident. |
+| 3 | subject | varchar(255) | | Brief title of the request. |
+| 4 | message | text | | Detailed content of the support request. |
+| 5 | status | varchar(50) | | Ticket status (Open, In Progress, Resolved). |
+
+---
+
+### 8. notification_history
+Primary key: [id](file:///c:/xampp/mysql/data/mysql.pid)
+
+| No: | Field name | Datatype (Size) | Key Constraints | Description of the field |
+|---|---|---|---|---|
+| 1 | id | int(11) | Primary Key | ID for system-wide notification log. |
+| 2 | location | varchar(255) | | Target area for the notification. |
+| 3 | severity | varchar(50) | | Urgency level of the broadcast. |
+| 4 | message | text | | Content of the push/feed message. |
+| 5 | sensor_id | varchar(50) | | Originating sensor or system code. |
+| 6 | created_at | timestamp | | Time identifying when the broadcast occurred. |
+
+---
+
+### 9. sensor_status
+Primary key: `sensor_id`
+
+| No: | Field name | Datatype (Size) | Key Constraints | Description of the field |
+|---|---|---|---|---|
+| 1 | sensor_id | varchar(50) | Primary Key | Hardware ID of the IoT device. |
+| 2 | location_name | varchar(255) | | Human-readable name (e.g., Zone A). |
+| 3 | role | varchar(50) | | Device role (Sensor Node, Receiver Hub). |
+| 4 | status | varchar(50) | | Current health (Online, Offline, Alert). |
+| 5 | water_level | decimal(5,2) | | Last known water level reading. |
+| 6 | last_ping | timestamp | | Last successful heartbeat from hardware. |
+
+---
+
+### 10. users
+Primary key: `email`
+
+| No: | Field name | Datatype (Size) | Key Constraints | Description of the field |
+|---|---|---|---|---|
+| 1 | email | varchar(255) | Primary Key | Unique email used for login and identification. |
+| 2 | password | varchar(255) | | Hashed login credentials. |
+| 3 | full_name | varchar(255) | | Full name of the resident or admin. |
+| 4 | role | varchar(50) | | Access level (Admin, Resident). |
+| 5 | location | varchar(255) | | Registered residential area for alerts. |
+| 6 | status | varchar(50) | | Account status (Active, Suspended). |
+| 7 | reset_token | varchar(255) | | Security token for password recovery. |
+| 8 | reset_expiry | datetime | | Expiration for the password reset token. |
+| 9 | created_at | timestamp | | Registration date. |
