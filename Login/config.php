@@ -81,9 +81,8 @@ if($link === false){
     die("ERROR: Could not connect. " . mysqli_connect_error());
 }
 
-// Google OAuth client ID for your web app (set this to your OAuth 2.0 Client ID)
-// Example: '12345-abcde.apps.googleusercontent.com'
-define('GOOGLE_CLIENT_ID', '420461254572-1s58305detpq2n08ukpgf5sl4c44jb1f.apps.googleusercontent.com');
+// Google OAuth client ID for your web app
+define('GOOGLE_CLIENT_ID', get_env_var('GOOGLE_CLIENT_ID', '420461254572-1s58305detpq2n08ukpgf5sl4c44jb1f.apps.googleusercontent.com'));
 // Database table name for users. Change to 'user' if your table is named that.
 define('DB_TABLE', 'user');
 

@@ -19,7 +19,7 @@ if (isset($_POST['id_token']) && !empty($_POST['id_token'])) {
     if (!$tokenData || !isset($tokenData['email'])) die('Authentication Error: Invalid token data.');
     
     // Verify Audience
-    if (defined('GOOGLE_CLIENT_ID') && GOOGLE_CLIENT_ID !== '420461254572-1s58305detpq2n08ukpgf5sl4c44jb1f.apps.googleusercontent.com') {
+    if (defined('GOOGLE_CLIENT_ID') && !empty(GOOGLE_CLIENT_ID)) {
         if (isset($tokenData['aud']) && $tokenData['aud'] !== GOOGLE_CLIENT_ID) {
             die('Authentication Error: Token audience does not match.');
         }
