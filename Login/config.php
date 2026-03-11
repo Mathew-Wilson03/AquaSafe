@@ -4,6 +4,19 @@ if (session_status() === PHP_SESSION_NONE && !headers_sent()) {
     session_start();
 }
 
+// 2. Load Environment Variables (for local development using .env)
+if (file_exists(__DIR__ . '/vendor/autoload.php')) {
+    require_once __DIR__ . '/vendor/autoload.php';
+    if (class_exists('Dotenv\Dotenv')) {
+        try {
+            $dotenv = Dotenv\Dotenv::createImmutable(__DIR__);
+            $dotenv->safeLoad(); // Uses safeLoad to avoid crashing if .env is missing
+        } catch (\Exception $e) {
+            // Silently fail if .env has issues
+        }
+    }
+}
+
 /**
  * Robust environment variable fetcher
  * Prioritizes Railway, then Azure, then defaults
@@ -55,10 +68,11 @@ try {
     mysqli_options($link, MYSQLI_OPT_CONNECT_TIMEOUT, 5);
     
     // Connect to database
-    // We only use SSL if we are clearly on Azure (host contains .azure.com)
+    // We use SSL for Azure and Railway public connections
     $is_azure = strpos(DB_SERVER, '.azure.com') !== false;
+    $is_railway = strpos(DB_SERVER, '.up.railway.app') !== false;
     
-    if ($is_azure) {
+    if ($is_azure || $is_railway) {
         mysqli_options($link, MYSQLI_OPT_SSL_VERIFY_SERVER_CERT, false);
         mysqli_real_connect($link, DB_SERVER, DB_USERNAME, DB_PASSWORD, DB_NAME, DB_PORT, null, MYSQLI_CLIENT_SSL);
     } else {

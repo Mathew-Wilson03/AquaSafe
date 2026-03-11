@@ -1286,9 +1286,9 @@ if (file_exists($help_file)) {
                 if(s.id === id) {
                     // Trigger specific initializations logic with tiny delay to allow CSS transitions
                     setTimeout(() => {
-                        if(id === 'section-water') initChart();
-                        if(id === 'section-flood') initMiniChart();
-                        if(id === 'section-map') initMap();
+                        if(id === 'section-water' && typeof initChart === 'function') initChart();
+                        if(id === 'section-flood' && typeof initMiniChart === 'function') initMiniChart();
+                        if(id === 'section-map' && typeof initMap === 'function') initMap();
                         if(id === 'section-help') {
                             loadMyRequests();
                             markHelpdeskAsRead(); 
@@ -2388,7 +2388,6 @@ if (file_exists($help_file)) {
 
         const dashboardElements = {
             hero: {
-                card: 'heroSafetyCard', // Retained as it might be used elsewhere or for future expansion
                 level: 'heroLevel',
                 location: 'heroLocation',
                 trend: 'heroTrend',
@@ -2415,161 +2414,133 @@ if (file_exists($help_file)) {
         };
 
         async function updateSafetyDashboard() {
+            const updEl = document.getElementById(dashboardElements.hero.updated);
+            const guidanceEl = document.getElementById(dashboardElements.hero.guidance);
+            
             try {
+                if(updEl) updEl.textContent = 'Syncing...';
+                
                 const res = await fetch('get_user_safety_data.php?_t=' + Date.now());
+                if (!res.ok) throw new Error(`API returned ${res.status}`);
+                
                 const data = await res.json();
                 
-                if (data.status !== 'success') return;
+                if (data.status !== 'success') {
+                    if (data.message === 'Unauthorized') {
+                        window.location.href = 'login.php';
+                        return;
+                    }
+                    throw new Error(data.message || 'API error');
+                }
 
-                const { iot, adminAlert, nearestEvac, iqHistory } = data;
+                const { iot, adminAlert, nearestEvac, iqHistory, location, iot_history } = data;
+
+                // Update Hero Location
+                const heroLocEl = document.getElementById(dashboardElements.hero.location);
+                if (heroLocEl) {
+                   heroLocEl.innerHTML = `<i data-lucide="map-pin" style="width: 14px; vertical-align: middle;"></i> ${location || window.userLocation || 'System Wide'}`;
+                }
 
                 // 1. Update Hero Card
-                if (iot) {
+                if (iot && iot.level !== undefined) {
                     const el = document.getElementById(dashboardElements.hero.level);
                     if(el) el.textContent = iot.level + ' ft';
                     
                     const locEl = document.getElementById(dashboardElements.hero.location);
-                    if(locEl) locEl.innerHTML = `<i data-lucide="map-pin" style="width: 14px; vertical-align: middle;"></i> ${iot.location}`;
+                    if(locEl) locEl.innerHTML = `<i data-lucide="map-pin" style="width: 14px; vertical-align: middle;"></i> ${iot.location || location}`;
 
                     const trendEl = document.getElementById(dashboardElements.hero.trend);
                     if(trendEl) {
-                        trendEl.textContent = (iot.trend === 'Rising' ? '▲ ' : iot.trend === 'Falling' ? '▼ ' : '● ') + iot.trend;
+                        trendEl.textContent = (iot.trend === 'Rising' ? '▲ ' : iot.trend === 'Falling' ? '▼ ' : '● ') + (iot.trend || 'Stable');
                         trendEl.style.color = iot.trend === 'Rising' ? 'var(--danger)' : 'var(--safe)';
                     }
 
-                    const updEl = document.getElementById(dashboardElements.hero.updated);
-                    if(updEl) updEl.textContent = 'Updated: ' + new Date(iot.timestamp.replace(' ', 'T')).toLocaleTimeString();
+                    if(updEl && iot.timestamp) {
+                        const timeStr = iot.timestamp.replace(' ', 'T');
+                        updEl.textContent = 'Updated: ' + new Date(timeStr).toLocaleTimeString();
+                    }
 
                     const badgeEl = document.getElementById(dashboardElements.hero.badge);
-                    const guidEl = document.getElementById(dashboardElements.hero.guidance);
-                    
-                    if (badgeEl && guidEl) {
-                        let status = iot.status ? iot.status.toUpperCase() : 'SAFE';
-                        if (status === 'DANGER') status = 'CRITICAL'; // Safety normalization
-                        
-                        const badgeClass = status === 'SAFE' ? 'badge-safe' : (status === 'WARNING' ? 'badge-warning' : 'badge-danger');
-                        const icon = status === 'SAFE' ? 'shield-check' : 'alert-triangle';
-                        
-                        badgeEl.className = 'safety-badge ' + badgeClass;
-                        badgeEl.innerHTML = `<i data-lucide="${icon}"></i> <span>Status: ${status}</span>`;
-                        guidEl.textContent = guidanceMsgs[status] || guidanceMsgs.SAFE;
-
-                        // --- 🚨 GRANULAR ALARM LOGIC 🚨 ---
-                        if (iot.level > lastKnownLevel && status !== 'SAFE') {
-                            playSiren();
-                        }
-                        lastKnownLevel = iot.level;
+                    const status = (iot.status || 'SAFE').toUpperCase();
+                    if(badgeEl) {
+                        badgeEl.className = 'safety-badge ' + (status === 'SAFE' ? 'badge-safe' : (status === 'WARNING' ? 'badge-warning' : 'badge-danger'));
+                        badgeEl.innerHTML = `<i data-lucide="${status === 'SAFE' ? 'shield-check' : 'alert-triangle'}"></i> <span>Safety Status: ${status}</span>`;
                     }
+
+                    if(guidanceEl) {
+                        guidanceEl.textContent = guidanceMsgs[status] || guidanceMsgs['SAFE'];
+                    }
+
+                    lastKnownLevel = iot.level;
                 } else {
-                    // 1b. Fallback for NO DATA
+                    // Fallback for NO DATA
                     const el = document.getElementById(dashboardElements.hero.level);
                     if(el) el.textContent = '0 ft';
-                    
-                    const locEl = document.getElementById(dashboardElements.hero.location);
-                    if(locEl) locEl.innerHTML = `<i data-lucide="map-pin" style="width: 14px; vertical-align: middle;"></i> No Data for ${window.userLocation || 'System'}`;
-
-                    const trendEl = document.getElementById(dashboardElements.hero.trend);
-                    if(trendEl) {
-                        trendEl.textContent = '● Stable';
-                        trendEl.style.color = 'var(--safe)';
-                    }
-
-                    const guidEl = document.getElementById(dashboardElements.hero.guidance);
-                    if(guidEl) guidEl.textContent = "No recent sensor data detected in your area. Everything appears to be offline or at base zero.";
-
-                    const badgeEl = document.getElementById(dashboardElements.hero.badge);
-                    if (badgeEl) {
-                        badgeEl.className = 'safety-badge badge-safe';
-                        badgeEl.innerHTML = `<i data-lucide="shield-check"></i> <span>Status: SAFE</span>`;
-                    }
+                    if(updEl) updEl.textContent = 'Updated: ' + new Date().toLocaleTimeString();
+                    if(guidanceEl) guidanceEl.textContent = "No recent IoT data found for your area. The system is standing by.";
                 }
 
-                // 2. Update Admin Alert
+                // 2. Update Alerts Sidebar
                 const alertContainer = document.getElementById(dashboardElements.alerts);
                 if (alertContainer) {
                     if (adminAlert) {
-                        const sev = adminAlert.severity ? adminAlert.severity.toUpperCase() : 'INFO';
-                        const themeClass = sev === 'CRITICAL' ? 'alert-theme-critical' : (sev === 'WARNING' ? 'alert-theme-warning' : 'alert-theme-safe');
-                        const icon = sev === 'CRITICAL' ? 'alert-octagon' : (sev === 'WARNING' ? 'alert-triangle' : 'info');
-                        const pulseClass = sev === 'CRITICAL' ? 'alert-pulse' : '';
-                        
                         alertContainer.innerHTML = `
-                            <div class="alert-card-professional ${themeClass} animate__animated animate__fadeIn">
-                                <div class="alert-header-prof">
-                                    <div style="display: flex; align-items: center; gap: 8px;">
-                                        <div class="${pulseClass}" style="display: flex; align-items: center; justify-content: center; color: ${sev === 'CRITICAL' ? '#e74c3c' : (sev === 'WARNING' ? '#f1c40f' : '#2ecc71')};">
-                                            <i data-lucide="${icon}" style="width: 18px; height: 18px;"></i>
-                                        </div>
-                                        <span class="severity-pill pill-${sev.toLowerCase()}">${sev}</span>
-                                    </div>
-                                    <span style="font-size: 11px; opacity: 0.5; font-weight: 600;">${new Date(adminAlert.timestamp.replace(' ', 'T')).toLocaleDateString()}</span>
+                            <div class="alert-item" style="border-left: 4px solid var(--danger); background: rgba(231,76,60,0.05); padding: 15px; border-radius: 12px;">
+                                <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+                                    <span class="safety-badge badge-danger" style="font-size: 10px;">SYSTEM BROADCAST</span>
+                                    <span style="font-size: 11px; opacity: 0.5; font-weight: 600;">${adminAlert.timestamp ? new Date(adminAlert.timestamp.replace(' ', 'T')).toLocaleDateString() : ''}</span>
                                 </div>
-                                <div style="font-size: 14px; line-height: 1.5; font-weight: 500; color: #fff;">${adminAlert.message}</div>
-                                <div style="margin-top: 12px; padding-top: 10px; border-top: 1px solid rgba(255,255,255,0.05); display: flex; justify-content: space-between; align-items: center;">
-                                    <span style="font-size: 11px; color: var(--primary); font-weight: 700;">OFFICIAL BROADCAST</span>
-                                    <span style="font-size: 10px; opacity: 0.4;">Source: AquaSafe Admin</span>
-                                </div>
+                                <div style="font-size: 14px; font-weight: 700; color: #fff; margin-bottom: 5px;">${adminAlert.severity} Alert</div>
+                                <div style="font-size: 13px; opacity: 0.8; line-height: 1.5;">${adminAlert.message}</div>
                             </div>
                         `;
                     } else {
-                        alertContainer.innerHTML = `<div style="text-align: center; padding: 30px; opacity: 0.3; font-size: 13px; font-weight: 500; border: 1px dashed rgba(255,255,255,0.1); border-radius: 12px;">No active system broadcasts.</div>`;
+                        alertContainer.innerHTML = `<div style="text-align: center; padding: 30px; opacity: 0.3; font-size: 13px; font-weight: 500;">No active system broadcasts.</div>`;
                     }
                 }
 
-                // 3. Update Intelligence (Last 3 Readings)
+                // 3. Update Intelligence Feed
                 const intelContainer = document.getElementById(dashboardElements.intelligence);
                 if (intelContainer) {
-                    if (data.iot_history && data.iot_history.length > 0) {
-                        intelContainer.innerHTML = data.iot_history.slice(0, 3).map((h, i) => `
-                            <div class="intelligence-reading" style="${i === 0 ? 'border-left: 2px solid var(--primary); padding-left: 10px;' : ''}">
-                                <span style="font-size: 14px; font-weight: 600;">${h.level} ft</span>
-                                <span style="font-size: 11px; opacity: 0.5;">${new Date(h.timestamp.replace(' ', 'T')).toLocaleTimeString()}</span>
+                    const currentHistory = iot_history || data.iot_history || [];
+                    if (currentHistory.length > 0) {
+                        intelContainer.innerHTML = currentHistory.slice(0, 3).map(h => `
+                            <div class="intel-item" style="display: flex; justify-content: space-between; align-items: center; padding: 12px 0; border-bottom: 1px solid rgba(255,255,255,0.05);">
+                                <div>
+                                    <div style="font-size: 13px; font-weight: 600;">${h.level} ft - ${h.location}</div>
+                                    <div style="font-size: 11px; opacity: 0.5;">${new Date(h.timestamp.replace(' ', 'T')).toLocaleTimeString()}</div>
+                                </div>
+                                <span class="safety-badge ${h.status === 'SAFE' ? 'badge-safe' : 'badge-danger'}" style="font-size: 9px; padding: 2px 8px;">${h.status}</span>
                             </div>
                         `).join('');
-                        
-                        // Update Sensor Health
-                        const healthEl = document.getElementById(dashboardElements.health);
-                        if(healthEl) {
-                            const lastPulse = new Date(data.iot_history[0].timestamp.replace(' ', 'T'));
-                            const isFresh = (new Date() - lastPulse) < 120000; // 2 mins threshold
-                            healthEl.innerHTML = `<span class="safety-badge ${isFresh ? 'badge-safe' : 'badge-warning'}" style="font-size: 10px; padding: 4px 10px;">${isFresh ? '📡 Online' : '🕒 Delay Detected'}</span>`;
-                        }
                     } else {
-                        intelContainer.innerHTML = `<div style="text-align: center; padding: 20px; opacity: 0.5; font-size: 13px;">No recent sensor data.</div>`;
+                        intelContainer.innerHTML = `<div style="text-align: center; padding: 20px; opacity: 0.5; font-size: 12px;">Waiting for IoT stream...</div>`;
                     }
                 }
 
                 // 4. Update Evacuation
                 const evacNameEl = document.getElementById(dashboardElements.evac.name);
-                if (evacNameEl) {
-                    if (nearestEvac) {
-                        const locEl = document.getElementById(dashboardElements.evac.loc);
-                        const statEl = document.getElementById(dashboardElements.evac.status);
-                        const btnEl = document.getElementById(dashboardElements.evac.button);
+                if (evacNameEl && nearestEvac) {
+                    const locEl = document.getElementById(dashboardElements.evac.loc);
+                    const statEl = document.getElementById(dashboardElements.evac.status);
+                    const btnEl = document.getElementById(dashboardElements.evac.button);
 
-                        evacNameEl.textContent = nearestEvac.name;
-                        if(locEl) locEl.textContent = nearestEvac.location + ` (${nearestEvac.distance})`;
-                        if(statEl) {
-                            statEl.textContent = nearestEvac.status;
-                            statEl.className = 'safety-badge ' + (nearestEvac.status === 'Open' ? 'badge-safe' : 'badge-danger');
-                        }
-                        if(btnEl) {
-                            btnEl.href = `https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(nearestEvac.location)}`;
-                            btnEl.style.display = 'inline-block';
-                        }
-                    } else {
-                        evacNameEl.textContent = 'None Nearby';
-                        const locEl = document.getElementById(dashboardElements.evac.loc);
-                        if(locEl) locEl.textContent = 'Stay put unless alert issued.';
-                        const btnEl = document.getElementById(dashboardElements.evac.button);
-                        if(btnEl) btnEl.style.display = 'none';
+                    evacNameEl.textContent = nearestEvac.name;
+                    if(locEl) locEl.textContent = nearestEvac.location + (nearestEvac.distance ? ` (${nearestEvac.distance})` : '');
+                    if(statEl) {
+                        statEl.textContent = nearestEvac.status;
+                        statEl.className = 'safety-badge ' + (nearestEvac.status === 'Open' ? 'badge-safe' : 'badge-danger');
+                    }
+                    if(btnEl) {
+                        btnEl.href = `https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(nearestEvac.location)}`;
                     }
                 }
 
                 // 5. Update Dynamic Charts
-                if (data.iot_history && data.iot_history.length > 0) {
-                    const historyLevels = data.iot_history.map(h => parseFloat(h.level)).reverse();
-                    const historyLabels = data.iot_history.map(h => {
+                const historyData = iot_history || data.iot_history || [];
+                if (historyData.length > 0) {
+                    const historyLevels = historyData.map(h => parseFloat(h.level)).reverse();
+                    const historyLabels = historyData.map(h => {
                         const d = new Date(h.timestamp.replace(' ', 'T'));
                         return d.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
                     }).reverse();
@@ -2584,17 +2555,14 @@ if (file_exists($help_file)) {
 
                 // 6. Update IQ Timeline
                 const timelineContainer = document.getElementById(dashboardElements.timeline);
-                if (timelineContainer) {
-                    if (iqHistory && iqHistory.length > 0) {
+                if (timelineContainer && iqHistory) {
+                    if (iqHistory.length > 0) {
                         timelineContainer.innerHTML = iqHistory.slice(0, 4).map(h => {
-                            const status = h.severity ? h.severity.toUpperCase() : 'SAFE';
-                            const bgColor = status === 'SAFE' ? 'rgba(46, 204, 113, 0.1)' : (status === 'WARNING' ? 'rgba(241, 196, 15, 0.1)' : 'rgba(231, 76, 60, 0.1)');
-                            const textColor = status === 'SAFE' ? '#2ecc71' : (status === 'WARNING' ? '#f1c40f' : '#e74c3c');
+                            const status = (h.severity || 'SAFE').toUpperCase();
                             const icon = status === 'SAFE' ? 'check' : 'alert-circle';
-
                             return `
                             <div class="timeline-item">
-                                <div class="item-icon" style="background: ${bgColor}; color: ${textColor};">
+                                <div class="item-icon">
                                     <i data-lucide="${icon}"></i>
                                 </div>
                                 <div style="flex: 1;">
@@ -2602,22 +2570,30 @@ if (file_exists($help_file)) {
                                         <span>${status} Event</span>
                                         <span style="font-size: 10px; opacity: 0.5;">${new Date(h.timestamp.replace(' ', 'T')).toLocaleTimeString()}</span>
                                     </div>
-                                    <div style="font-size: 11px; opacity: 0.7; margin-top: 2px;">${h.message.split(' at ')[0]}</div>
+                                    <div style="font-size: 11px; opacity: 0.7; margin-top: 2px;">${h.message}</div>
                                 </div>
                             </div>
                         `;}).join('');
                     } else {
-                        timelineContainer.innerHTML = `<div style="text-align: center; padding: 20px; opacity: 0.5; font-size: 12px;">No recent IQ intelligence.</div>`;
+                        timelineContainer.innerHTML = `<div style="text-align: center; padding: 20px; opacity: 0.5; font-size: 12px;">No recent events.</div>`;
                     }
                 }
 
-                // Re-render Lucide icons for new content
                 if (typeof lucide !== 'undefined') lucide.createIcons();
 
             } catch(e) {
                 console.warn('Dashboard sync failed:', e);
+                if(updEl) updEl.textContent = 'Sync Failed';
+                if(guidanceEl && guidanceEl.textContent.includes('Loading')) {
+                    guidanceEl.innerHTML = `<span style="color:var(--danger)">📡 Data sync error: ${e.message}</span>`;
+                }
             }
         }
+
+        // Dummy functions to prevent ReferenceErrors if chart scripts are missing
+        if (typeof window.initChart === 'undefined') window.initChart = function() { console.log("Main Chart standby."); };
+        if (typeof window.initMiniChart === 'undefined') window.initMiniChart = function() { console.log("Mini Chart standby."); };
+        if (typeof window.initMap === 'undefined') window.initMap = function() { console.log("Map standby."); };
 
         // Run sync
         updateSafetyDashboard();
@@ -2625,6 +2601,9 @@ if (file_exists($help_file)) {
 
         // Global exposing for manual refresh if needed
         window.refreshSafetyDashboard = updateSafetyDashboard;
+
+        // Initial rendering of icons on page load
+        if (typeof lucide !== 'undefined') lucide.createIcons();
 
     })();
     </script>

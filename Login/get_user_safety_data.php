@@ -1,34 +1,40 @@
 <?php
-/**
- * get_user_safety_data.php
- * AquaSafe - Unified Safety Data Endpoint for User Dashboard
- */
-
+ob_start();
 header('Content-Type: application/json');
 require_once 'config.php';
 
-session_start();
+// config.php already handles session_start() safely
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
+
 if (!isset($_SESSION['email'])) {
+    ob_end_clean();
     echo json_encode(['status' => 'error', 'message' => 'Unauthorized']);
     exit;
 }
 
+try {
+
 $user_id = $_SESSION['id'] ?? 0;
 $user_location = 'System Wide';
 
-// 1. Get user location
+// 1. Get user location and role
 if ($user_id) {
-    $stmt = mysqli_prepare($link, "SELECT location FROM users WHERE id = ?");
+    $stmt = mysqli_prepare($link, "SELECT location, user_role FROM users WHERE id = ?");
     if ($stmt) {
         mysqli_stmt_bind_param($stmt, "i", $user_id);
         mysqli_stmt_execute($stmt);
-        mysqli_stmt_bind_result($stmt, $loc);
-        if (mysqli_stmt_fetch($stmt) && !empty($loc)) {
-            $user_location = $loc;
+        mysqli_stmt_bind_result($stmt, $loc, $role);
+        if (mysqli_stmt_fetch($stmt)) {
+            if (!empty($loc)) $user_location = $loc;
+            $_SESSION['user_role'] = $role; // Cache in session
         }
         mysqli_stmt_close($stmt);
     }
 }
+
+$user_role = $_SESSION['user_role'] ?? 'user';
 
 $response = [
     'status' => 'success',
@@ -42,9 +48,11 @@ $response = [
 
 // Get last 4 readings to detect trend and populate intelligence widget
 $loc_esc = mysqli_real_escape_string($link, $user_location);
+$is_admin = (stripos($user_role, 'admin') !== false);
+
 $where_cond = "1=1"; // Default for System Wide and unassigned
-if ($user_location !== 'System Wide' && !empty($user_location)) {
-    // If user has a specific location, show their location + system-wide alerts
+if (!$is_admin && $user_location !== 'System Wide' && !empty($user_location)) {
+    // If user has a specific location AND is NOT an admin, show their location + system-wide alerts
     $where_cond = "(location = '$loc_esc' OR location = 'System Wide' OR location = 'Unknown Cluster')";
 }
 
@@ -58,6 +66,7 @@ while ($row = mysqli_fetch_assoc($iot_res)) {
     $row['timestamp'] = $row['created_at']; 
     $readings[] = $row;
 }
+error_log("[get_user_safety_data] Found " . count($readings) . " readings for location: " . $user_location);
 
 if (!empty($readings)) {
     $current = $readings[0];
@@ -115,5 +124,13 @@ while ($row = mysqli_fetch_assoc($iq_res)) {
     $response['iqHistory'][] = $row;
 }
 
-echo json_encode($response);
-?>
+    ob_end_clean();
+    echo json_encode($response);
+
+} catch (Exception $e) {
+    ob_end_clean();
+    echo json_encode(['status' => 'error', 'message' => 'System error: ' . $e->getMessage()]);
+} catch (Throwable $e) {
+    ob_end_clean();
+    echo json_encode(['status' => 'error', 'message' => 'Fatal error: ' . $e->getMessage()]);
+}
