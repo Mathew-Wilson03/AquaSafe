@@ -49,17 +49,14 @@ if($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['send_otp_btn'])){
                     try {
                         $mail = new PHPMailer\PHPMailer\PHPMailer(true);
 
-                        // Load Secrets
-                        if(!defined('SMTP_HOST')) require_once 'config_secrets.php';
-
                         // Server settings
                         $mail->isSMTP();
-                        $mail->Host       = 'smtp.gmail.com';
+                        $mail->Host       = SMTP_HOST;
                         $mail->SMTPAuth   = true;
                         $mail->Username   = SMTP_USER;
                         $mail->Password   = SMTP_PASS;
-                        $mail->SMTPSecure = PHPMailer\PHPMailer\PHPMailer::ENCRYPTION_SMTPS;
-                        $mail->Port       = 465;
+                        $mail->SMTPSecure = (SMTP_PORT == 465) ? PHPMailer\PHPMailer\PHPMailer::ENCRYPTION_SMTPS : PHPMailer\PHPMailer\PHPMailer::ENCRYPTION_STARTTLS;
+                        $mail->Port       = SMTP_PORT;
                         $mail->Timeout    = 20;
 
                         // Bypass SSL certificate verification (fixes many Azure/hosted issues)

@@ -88,3 +88,11 @@ define('DB_TABLE', 'user');
 
 // Super Admin Configuration
 define('SUPER_ADMIN_EMAIL', 'mathewwilson2028@mca.ajce.in');
+
+// SMTP configuration (Uses get_env_var)
+if (!defined('SMTP_HOST')) define('SMTP_HOST', get_env_var('SMTP_HOST', 'smtp.gmail.com'));
+if (!defined('SMTP_PORT')) define('SMTP_PORT', get_env_var('SMTP_PORT', '587'));
+if (!defined('SMTP_USER')) define('SMTP_USER', get_env_var('SMTP_USER', ''));
+if (!defined('SMTP_PASS')) define('SMTP_PASS', get_env_var('SMTP_PASS', ''));
+if (!defined('SMTP_FROM_EMAIL')) define('SMTP_FROM_EMAIL', get_env_var('SMTP_FROM_EMAIL', ''));
+if (!defined('SMTP_FROM_NAME')) define('SMTP_FROM_NAME', get_env_var('SMTP_FROM_NAME', 'AquaSafe Alerts'));

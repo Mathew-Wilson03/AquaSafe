@@ -55,15 +55,12 @@ if($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['send_link_btn'])){
                         $mail = new PHPMailer\PHPMailer\PHPMailer(true);
 
                         // Server settings
-                        // Load Secrets
-                        if(!defined('SMTP_HOST')) require_once 'config_secrets.php';
-
                         $mail->isSMTP();
                         $mail->Host       = SMTP_HOST;
                         $mail->SMTPAuth   = true;
                         $mail->Username   = SMTP_USER;
                         $mail->Password   = SMTP_PASS;
-                        $mail->SMTPSecure = PHPMailer\PHPMailer\PHPMailer::ENCRYPTION_STARTTLS;
+                        $mail->SMTPSecure = (SMTP_PORT == 465) ? PHPMailer\PHPMailer\PHPMailer::ENCRYPTION_SMTPS : PHPMailer\PHPMailer\PHPMailer::ENCRYPTION_STARTTLS;
                         $mail->Port       = SMTP_PORT;
 
                         // Recipients
