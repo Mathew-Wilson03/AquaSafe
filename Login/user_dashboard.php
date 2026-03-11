@@ -2594,6 +2594,13 @@ if (file_exists($help_file)) {
                 if(guidanceEl && guidanceEl.textContent.includes('Loading')) {
                     guidanceEl.innerHTML = `<span style="color:var(--danger)">📡 Data sync error: ${e.message}</span>`;
                 }
+            }
+        }
+
+        // Run sync
+        updateSafetyDashboard();
+        setInterval(updateSafetyDashboard, 10000); // Sync every 10 seconds
+
         // Global exposing for manual refresh if needed
         window.refreshSafetyDashboard = updateSafetyDashboard;
 
