@@ -631,9 +631,9 @@ if (file_exists($help_file)) {
                                     <div class="safety-badge badge-safe" id="heroBadge">
                                         <i data-lucide="shield-check"></i> <span>Safety Status: Safe</span>
                                     </div>
-                                    <h2 style="font-size: 42px; margin: 15px 0 5px; font-weight: 800; color: #fff;" id="heroLevel">-- ft</h2>
+                                    <h2 style="font-size: 42px; margin: 15px 0 5px; font-weight: 800; color: #fff;" id="heroLevel">0 ft</h2>
                                     <div style="color: var(--teal-accent); font-size: 14px; font-weight: 600;" id="heroLocation">
-                                        <i data-lucide="map-pin" style="width: 14px; vertical-align: middle; display: inline-block;"></i> --
+                                        <i data-lucide="map-pin" style="width: 14px; vertical-align: middle; display: inline-block;"></i> Initializing...
                                     </div>
                                 </div>
                                 <div style="text-align: right; min-width: 120px; display:flex; flex-direction:column; align-items:flex-end;">
@@ -2459,6 +2459,28 @@ if (file_exists($help_file)) {
                             playSiren();
                         }
                         lastKnownLevel = iot.level;
+                    }
+                } else {
+                    // 1b. Fallback for NO DATA
+                    const el = document.getElementById(dashboardElements.hero.level);
+                    if(el) el.textContent = '0 ft';
+                    
+                    const locEl = document.getElementById(dashboardElements.hero.location);
+                    if(locEl) locEl.innerHTML = `<i data-lucide="map-pin" style="width: 14px; vertical-align: middle;"></i> No Data for ${window.userLocation || 'System'}`;
+
+                    const trendEl = document.getElementById(dashboardElements.hero.trend);
+                    if(trendEl) {
+                        trendEl.textContent = '● Stable';
+                        trendEl.style.color = 'var(--safe)';
+                    }
+
+                    const guidEl = document.getElementById(dashboardElements.hero.guidance);
+                    if(guidEl) guidEl.textContent = "No recent sensor data detected in your area. Everything appears to be offline or at base zero.";
+
+                    const badgeEl = document.getElementById(dashboardElements.hero.badge);
+                    if (badgeEl) {
+                        badgeEl.className = 'safety-badge badge-safe';
+                        badgeEl.innerHTML = `<i data-lucide="shield-check"></i> <span>Status: SAFE</span>`;
                     }
                 }
 
