@@ -1,5 +1,36 @@
+# Secrets - never commit these
 Login/firebase_credentials.json
 Login/firebase_init.php
 Login/.env
 Login/config_secrets.php
 .env
+
+# Composer vendor (Railway runs composer install automatically)
+Login/vendor/
+
+# Log and debug files
+Login/*.log
+Login/*.txt
+Login/debug_*.php
+Login/check_*.php
+Login/dump_*.php
+Login/test_*.php
+Login/fix_*.php
+Login/create_*.php
+Login/setup_*.php
+Login/patch_*.php
+Login/repair_*.php
+Login/diag_*.php
+Login/full_*.php
+Login/perf_*.php
+
+# Zip archives
+*.zip
+
+# XAMPP local data
+Login/data_dump.json
+Login/helpdesk_data.json
+Login/helpdesk_sharon.json
+Login/schema.json
+Login/ids_*.txt
+Login/session_audit.log
