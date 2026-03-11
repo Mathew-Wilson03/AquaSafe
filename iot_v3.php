@@ -43,8 +43,9 @@ if ($raw_data) {
         processIoTNotification($link, $sensor_id, $location_name, $level);
 
         // Update Real-time
+        $activeStatus = 'Active';
         $updateStatus = mysqli_prepare($link, "UPDATE sensor_status SET water_level = ?, status = ?, last_ping = NOW() WHERE sensor_id = ?");
-        mysqli_stmt_bind_param($updateStatus, "dss", $level, $status, $sensor_id);
+        mysqli_stmt_bind_param($updateStatus, "dss", $level, $activeStatus, $sensor_id);
         mysqli_stmt_execute($updateStatus);
         mysqli_stmt_close($updateStatus);
 
