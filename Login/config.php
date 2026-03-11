@@ -1,5 +1,7 @@
 <?php
-session_start();
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
 // Robust environment variable fetcher for Azure
 function get_env_var($key, $default) {
     if (isset($_SERVER[$key]) && $_SERVER[$key] !== '') return $_SERVER[$key];
