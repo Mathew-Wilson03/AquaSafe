@@ -4,6 +4,9 @@
 require_once 'config.php';
 // require_once 'config_secrets.php'; // Removed: secrets now handled via environment variables
 
+// Force UTC for system-wide consistency
+date_default_timezone_set('UTC');
+
 require_once 'vendor/autoload.php';
 
 use PHPMailer\PHPMailer\PHPMailer;
