@@ -7,6 +7,19 @@ function get_env_var($key, $default) {
     if (isset($_SERVER[$key]) && $_SERVER[$key] !== '') return $_SERVER[$key];
     if (getenv($key) !== false && getenv($key) !== '') return getenv($key);
     
+    // Railway specific mapping
+    $railway_map = [
+        'DB_HOST' => 'MYSQLHOST',
+        'DB_USERNAME' => 'MYSQLUSER',
+        'DB_PASSWORD' => 'MYSQLPASSWORD',
+        'DB_NAME' => 'MYSQLDATABASE'
+    ];
+    if (isset($railway_map[$key])) {
+        $rk = $railway_map[$key];
+        if (isset($_SERVER[$rk]) && $_SERVER[$rk] !== '') return $_SERVER[$rk];
+        if (getenv($rk) !== false && getenv($rk) !== '') return getenv($rk);
+    }
+
     $azure_key = 'APPSETTING_' . $key;
     if (isset($_SERVER[$azure_key]) && $_SERVER[$azure_key] !== '') return $_SERVER[$azure_key];
     if (getenv($azure_key) !== false && getenv($azure_key) !== '') return getenv($azure_key);
