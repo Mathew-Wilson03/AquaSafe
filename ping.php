@@ -45,9 +45,9 @@ if ($p) {
         $status_char= strtoupper(trim($parts[2]));
 
         $level      = $level_cm / 100.0;
-        $status     = "SAFE";
-        if ($status_char === 'W' || $status_char === 'WARNING')  $status = "WARNING";
-        if ($status_char === 'C' || $status_char === 'CRITICAL') $status = "CRITICAL";
+        $status     = "Safe";
+        if ($status_char === 'W' || $status_char === 'WARNING')  $status = "Warning";
+        if ($status_char === 'C' || $status_char === 'CRITICAL') $status = "Critical";
 
         $sensor_id  = ($raw_id == 1) ? "SNS-001" : "SNS-" . str_pad($raw_id, 3, '0', STR_PAD_LEFT);
 
