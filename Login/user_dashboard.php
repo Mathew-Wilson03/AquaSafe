@@ -1025,9 +1025,16 @@ if (file_exists($help_file)) {
         // --- ULTIMATE DIAGNOSTICS ---
         window.onerror = function(msg, url, lineNo, columnNo, error) {
             console.error("Global Error:", msg, "at", url, ":", lineNo);
-            // alert("❌ SYSTEM ERROR: " + msg + "\nLine: " + lineNo);
             return false;
         };
+
+        // --- CHART/MAP STANDBYS (Prevent ReferenceErrors) ---
+        if (typeof window.initChart === 'undefined') window.initChart = function() { console.log("Main Chart standby."); };
+        if (typeof window.initMiniChart === 'undefined') window.initMiniChart = function() { console.log("Mini Chart standby."); };
+        if (typeof window.initMap === 'undefined') window.initMap = function() { console.log("Map standby."); };
+        
+        // Initial rendering of icons on page load
+        if (typeof lucide !== 'undefined') lucide.createIcons();
 
         // --- GLOBAL HELP DESK LOGIC (READY IMMEDIATELY) ---
         window.fetchWithTimeout = async function(resource, options = {}) {
@@ -2587,23 +2594,8 @@ if (file_exists($help_file)) {
                 if(guidanceEl && guidanceEl.textContent.includes('Loading')) {
                     guidanceEl.innerHTML = `<span style="color:var(--danger)">📡 Data sync error: ${e.message}</span>`;
                 }
-            }
-        }
-
-        // Dummy functions to prevent ReferenceErrors if chart scripts are missing
-        if (typeof window.initChart === 'undefined') window.initChart = function() { console.log("Main Chart standby."); };
-        if (typeof window.initMiniChart === 'undefined') window.initMiniChart = function() { console.log("Mini Chart standby."); };
-        if (typeof window.initMap === 'undefined') window.initMap = function() { console.log("Map standby."); };
-
-        // Run sync
-        updateSafetyDashboard();
-        setInterval(updateSafetyDashboard, 10000); // Sync every 10 seconds
-
         // Global exposing for manual refresh if needed
         window.refreshSafetyDashboard = updateSafetyDashboard;
-
-        // Initial rendering of icons on page load
-        if (typeof lucide !== 'undefined') lucide.createIcons();
 
     })();
     </script>
