@@ -88,12 +88,20 @@ if ($stmt = mysqli_prepare($link, $sql)) {
         }
 
         // Try to insert using the dynamically detected role column
-        $insert = "INSERT INTO `" . $table . "` (name, email, password, `$role_col`) VALUES (?, ?, '', ?)";
+        // Get next available ID (workaround for Azure missing AUTO_INCREMENT)
+        $maxResult = mysqli_query($link, "SELECT COALESCE(MAX(id), 0) + 1 AS next_id FROM `" . $table . "`");
+        $nextId = 1;
+        if ($maxResult) {
+            $row2 = mysqli_fetch_assoc($maxResult);
+            $nextId = (int)$row2['next_id'];
+        }
+
+        $insert = "INSERT INTO `" . $table . "` (id, name, email, password, `$role_col`) VALUES (?, ?, ?, '', ?)";
         if ($ins = mysqli_prepare($link, $insert)) {
             $nm = $name ?: $email;
-            mysqli_stmt_bind_param($ins, 'sss', $nm, $email, $new_role);
+            mysqli_stmt_bind_param($ins, 'isss', $nextId, $nm, $email, $new_role);
             if (mysqli_stmt_execute($ins)) {
-                $id = mysqli_insert_id($link);
+                $id = mysqli_insert_id($link) ?: $nextId;
                 $user_role = $new_role;
                 $db_name = $nm;
             } else {

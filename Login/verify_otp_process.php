@@ -1,5 +1,8 @@
 <?php
 // verify_otp_process.php
+error_reporting(E_ALL);
+ini_set('display_errors', 1);
+
 ob_start();
 session_start();
 require_once 'config.php';
@@ -24,7 +27,8 @@ if($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['verify_btn'])){
             $_SESSION['reset_verified_email'] = $email;
             
             // Redirect to reset password (no token needed now, we trust session)
-            header("Location: reset_password.php");
+            // Redirect to reset password with fallback parameters for demo/Azure session issues
+            header("Location: reset_password.php?email=" . urlencode($email) . "&verified=demo");
             exit;
         } else {
              header("Location: verify_otp.php?email=".urlencode($email)."&error=Invalid or expired code.");

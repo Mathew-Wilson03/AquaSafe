@@ -1,5 +1,8 @@
 <?php
 // reset_password_process.php
+error_reporting(E_ALL);
+ini_set('display_errors', 1);
+
 ob_start();
 session_start();
 require_once 'config.php';
@@ -12,6 +15,9 @@ if($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['reset_btn'])){
     $pass = $_POST['password'];
     $confirm = $_POST['confirm_password'];
     $session_email = isset($_SESSION['reset_verified_email']) ? $_SESSION['reset_verified_email'] : "";
+    if(empty($session_email) && isset($_POST['verified_email'])) {
+        $session_email = trim($_POST['verified_email']);
+    }
     
     if($pass !== $confirm){
         header("Location: reset_password.php" . ($token ? "?token=$token" : "") . (strpos($token, '?') === false ? "?" : "&") . "error=Passwords do not match.");

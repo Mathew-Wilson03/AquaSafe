@@ -9,7 +9,7 @@
 // ─────────────────────────────────────────
 const char* WIFI_SSID     = "iPhone XIII";       
 const char* WIFI_PASSWORD = "akashmathew@2004";   
-const char* SERVER_URL    = "http://172.20.10.2/AquaSafe/Login/receive_iot_data.php";
+const char* SERVER_URL    = "https://aquasafe-app-gqhxdpeac4epgmhy.eastasia-01.azurewebsites.net/ping.php/";
 
 #define SS 5
 #define RST 4
@@ -51,12 +51,23 @@ void sendToServer(int id, float level, String status) {
   if (WiFi.status() != WL_CONNECTED) connectWiFi();
 
   if (WiFi.status() == WL_CONNECTED) {
+    WiFiClientSecure client;
+    client.setInsecure(); // Required to connect to Azure HTTPS without certificate bundles
     HTTPClient http;
-    http.begin(SERVER_URL);
+    http.begin(client, SERVER_URL);
     http.addHeader("Content-Type", "application/x-www-form-urlencoded");
 
-    String postBody = "sensor_id=" + String(id) + "&level=" + String(level, 2) + "&status=" + status;
-    Serial.println("📤 Relaying: " + postBody);
+    // The INVINCIBLE Protocol v9: Path-Info Mode (No "?" or "p=")
+    int level_cm = (int)(level * 100);
+    char status_char = 'S';
+    if (status == "WARNING")  status_char = 'W';
+    if (status == "CRITICAL") status_char = 'C';
+
+    char buffer[10];
+    sprintf(buffer, "%d%04d%c", id, level_cm, status_char);
+    String postBody = String(buffer); // No "p=" anymore!
+    
+    Serial.println("📤 Relaying to Azure (INVINCIBLE v9): " + postBody);
 
     int httpCode = http.POST(postBody);
     if (httpCode > 0) Serial.println("✅ OK: " + http.getString());

@@ -1,5 +1,8 @@
 <?php
 // send_otp.php
+error_reporting(E_ALL);
+ini_set('display_errors', 1);
+
 ob_start();
 session_start();
 require_once 'config.php';
@@ -51,12 +54,22 @@ if($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['send_otp_btn'])){
 
                         // Server settings
                         $mail->isSMTP();
-                        $mail->Host       = SMTP_HOST;
+                        $mail->Host       = 'smtp.gmail.com';
                         $mail->SMTPAuth   = true;
                         $mail->Username   = SMTP_USER;
                         $mail->Password   = SMTP_PASS;
-                        $mail->SMTPSecure = PHPMailer\PHPMailer\PHPMailer::ENCRYPTION_STARTTLS;
-                        $mail->Port       = SMTP_PORT;
+                        $mail->SMTPSecure = PHPMailer\PHPMailer\PHPMailer::ENCRYPTION_SMTPS;
+                        $mail->Port       = 465;
+                        $mail->Timeout    = 20;
+
+                        // Bypass SSL certificate verification (fixes many Azure/hosted issues)
+                        $mail->SMTPOptions = array(
+                            'ssl' => array(
+                                'verify_peer' => false,
+                                'verify_peer_name' => false,
+                                'allow_self_signed' => true
+                            )
+                        );
 
                         // Recipients
                         $mail->setFrom(SMTP_FROM_EMAIL, 'AquaSafe Support');
@@ -87,30 +100,21 @@ if($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['send_otp_btn'])){
                         $mailSent = true;
 
                     } catch (Exception $e) {
-                        $mailError = "Mailer Error: {$mail->ErrorInfo}";
+                        $mailError = "SMTP Error: " . $mail->ErrorInfo;
                     }
                     
                     // 2. Local Logging (Fallback for Dev/XAMPP)
                     $logFile = 'email_log.txt';
                     $logMessage = "[" . date('Y-m-d H:i:s') . "] To: $email | OTP: $otp | MailSent: " . ($mailSent ? 'Yes' : 'No') . ($mailSent ? '' : " | Error: $mailError") . "\n";
-                    file_put_contents($logFile, $logMessage, FILE_APPEND);
+                    @file_put_contents($logFile, $logMessage, FILE_APPEND);
 
-                    // 3. DEMO MODE FALLBACK (If mail fails)
-                    // If mail failed, we update the DB to accept '123456' as a universal magic code for this user
-                    // This allows testing without real email delivery
-                    if (!$mailSent) {
-                         $demoParams = "123456";
-                         $updateDemo = "UPDATE `$table` SET reset_token = ? WHERE email = ?";
-                         if($stmtDemo = mysqli_prepare($link, $updateDemo)){
-                             mysqli_stmt_bind_param($stmtDemo, "ss", $demoParams, $email);
-                             mysqli_stmt_execute($stmtDemo);
-                         }
-                    }
+                    // 3. Store OTP in session for UI fallback
+                    $_SESSION['demo_otp'] = $otp;
 
                     // Redirect to verification page
-                    // We pass 'demo=true' if mail failed so the UI *could* hint it, but user asked not to see code.
-                    // We will just let them know via chat to use 123456.
-                    header("Location: verify_otp.php?email=" . urlencode($email) . "&sent=" . ($mailSent ? 'true' : 'demo'));
+                    // Pass the error message AND the code in the URL for the demo
+                    $errorParam = $mailSent ? "" : "&mail_error=" . urlencode($mailError) . "&otp=" . $otp;
+                    header("Location: verify_otp.php?email=" . urlencode($email) . "&sent=" . ($mailSent ? 'true' : 'demo') . $errorParam);
                     exit;
                     
                 } else {

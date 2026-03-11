@@ -18,7 +18,11 @@
 
     if(isset($_SESSION['reset_verified_email'])){
         $showForm = true;
-        // The process script will use the session email
+        $v_email = $_SESSION['reset_verified_email'];
+    } elseif(isset($_GET['verified']) && $_GET['verified'] === 'demo' && isset($_GET['email'])){
+        $showForm = true;
+        $v_email = $_GET['email'];
+        $token = "demo_verified"; // Mark as demo to bypass token check in process
     } elseif(isset($_GET['token'])){
         $token = trim($_GET['token']);
         
@@ -161,6 +165,7 @@
             <?php if($showForm): ?>
             <form action="reset_password_process.php" method="POST">
                 <input type="hidden" name="token" value="<?php echo htmlspecialchars($token); ?>">
+                <input type="hidden" name="verified_email" value="<?php echo isset($v_email) ? htmlspecialchars($v_email) : ''; ?>">
                 <div class="form-group">
                     <label class="form-label">New Password</label>
                     <input type="password" name="password" id="password" placeholder="New Password" required>

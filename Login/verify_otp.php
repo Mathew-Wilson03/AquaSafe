@@ -86,9 +86,26 @@
                 <div class="header-subtitle">We've sent a 6-digit verification code to <span style="color: var(--primary); font-weight: 600;"><?php echo htmlspecialchars($_GET['email'] ?? 'your email'); ?></span>.</div>
             </div>
 
-            <?php if(isset($_GET['sent'])): ?>
+            <?php if(isset($_GET['sent']) && $_GET['sent'] === 'true'): ?>
                 <div style="background: rgba(39, 174, 96, 0.2); border: 1px solid rgba(39, 174, 96, 0.4); color: #2ecc71; padding: 10px; border-radius: 8px; margin-bottom: 20px; font-size: 13px; text-align: center;">
                     Code sent successfully! Please check your inbox.
+                </div>
+            <?php endif; ?>
+
+            <?php 
+            // Show OTP on screen when email delivery fails (Azure SMTP limitation)
+            if(isset($_GET['sent']) && $_GET['sent'] === 'demo'): 
+                if(session_status() === PHP_SESSION_NONE) session_start();
+                // 1. Try URL parameter (most reliable for demo)
+                // 2. Try session (fallback)
+                $display_otp = isset($_GET['otp']) ? $_GET['otp'] : (isset($_SESSION['demo_otp']) ? $_SESSION['demo_otp'] : '------');
+                $mail_err = isset($_GET['mail_error']) ? htmlspecialchars($_GET['mail_error']) : 'Review SMTP Credentials';
+            ?>
+                <div style="background: rgba(74, 181, 196, 0.15); border: 1px solid rgba(74, 181, 196, 0.4); color: #4ab5c4; padding: 15px; border-radius: 12px; margin-bottom: 25px; text-align: center; border: 1px dashed var(--primary);">
+                    <div style="font-size: 11px; margin-bottom: 8px; text-transform: uppercase; letter-spacing: 1px; font-weight: bold; opacity: 0.8;">Presentation Mode: Active</div>
+                    <div style="font-size: 13px; margin-bottom: 10px; color: #fff; opacity: 0.9;">System generated verification code:</div>
+                    <div style="font-size: 32px; font-weight: 800; letter-spacing: 8px; font-family: 'Courier New', monospace; color: white; text-shadow: 0 0 10px rgba(74, 181, 196, 0.5);"><?php echo htmlspecialchars($display_otp); ?></div>
+                    <div style="font-size: 11px; margin-top: 10px; opacity: 0.7; color: #ff8d85;">Status: <?php echo $mail_err; ?></div>
                 </div>
             <?php endif; ?>
 

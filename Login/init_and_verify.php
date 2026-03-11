@@ -18,7 +18,13 @@ if (mysqli_num_rows($res) == 0) {
 
 // Run the test simulation
 echo "\n--- Simulating IoT POST ---\n";
-$url = 'http://localhost/AquaSafe/Login/receive_iot_data.php';
+// Dynamically set URL to work on both localhost and Azure
+$protocol = isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on' ? "https" : "http";
+$host = $_SERVER['HTTP_HOST'];
+$url = $protocol . '://' . $host . '/AquaSafe/Login/receive_iot_data.php';
+if (strpos($host, 'localhost') === false) {
+    $url = $protocol . '://' . $host . '/Login/receive_iot_data.php';
+}
 $data = ['sensor_id' => 1, 'level' => 18.75, 'status' => 'CRITICAL'];
 $options = [
     'http' => [

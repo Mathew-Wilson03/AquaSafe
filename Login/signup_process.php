@@ -1,4 +1,8 @@
 <?php
+// Enable error reporting for Azure debugging
+error_reporting(E_ALL);
+ini_set('display_errors', 1);
+
 // Start output buffering
 ob_start();
 session_start();
@@ -81,10 +85,18 @@ if($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['signup_btn'])){
     $clean_role = (strtolower($role) === 'admin' || strtolower($role) === 'administrator') ? 'administrator' : 'user';
     $location = isset($_POST['location']) ? trim($_POST['location']) : 'Central City';
 
-    $sql = "INSERT INTO `$table` (name, email, password, `$role_col`, location) VALUES (?, ?, ?, ?, ?)";
+    $sql = "INSERT INTO `$table` (id, name, email, password, `$role_col`, location) VALUES (?, ?, ?, ?, ?, ?)";
     
+    // Get next available ID (workaround for Azure missing AUTO_INCREMENT)
+    $maxResult = mysqli_query($link, "SELECT COALESCE(MAX(id), 0) + 1 AS next_id FROM `$table`");
+    $nextId = 1;
+    if ($maxResult) {
+        $row = mysqli_fetch_assoc($maxResult);
+        $nextId = (int)$row['next_id'];
+    }
+
     if($stmt = mysqli_prepare($link, $sql)){
-        mysqli_stmt_bind_param($stmt, "sssss", $name, $email, $hashed_password, $clean_role, $location);
+        mysqli_stmt_bind_param($stmt, "isssss", $nextId, $name, $email, $hashed_password, $clean_role, $location);
         
         if(mysqli_stmt_execute($stmt)){
             // Success! Redirect to login

@@ -2,7 +2,15 @@
 require_once 'config.php';
 
 // Prepare a test POST to receive_iot_data.php
-$url = 'http://localhost/AquaSafe/Login/receive_iot_data.php';
+// Dynamically set URL to work on both localhost and Azure
+$protocol = isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on' ? "https" : "http";
+$host = $_SERVER['HTTP_HOST'];
+$url = $protocol . '://' . $host . '/AquaSafe/Login/receive_iot_data.php';
+
+// In case the project root is mapped directly to Login folder on Azure
+if (strpos($host, 'localhost') === false) {
+    $url = $protocol . '://' . $host . '/Login/receive_iot_data.php'; 
+}
 $data = [
     'sensor_id' => 1,
     'level' => 15.5,
