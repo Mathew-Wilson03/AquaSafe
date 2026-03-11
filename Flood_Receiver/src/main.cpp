@@ -9,7 +9,7 @@
 // ─────────────────────────────────────────
 const char* WIFI_SSID     = "iPhone XIII";       
 const char* WIFI_PASSWORD = "akashmathew@2004";   
-const char* SERVER_URL    = "https://aquasafe-app-gqhxdpeac4epgmhy.eastasia-01.azurewebsites.net/ping.php/";
+const char* SERVER_URL    = "https://aquasafe-production-703c.up.railway.app/ping.php/";
 
 #define SS 5
 #define RST 4
