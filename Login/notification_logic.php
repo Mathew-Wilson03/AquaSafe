@@ -12,19 +12,30 @@ require_once 'alert_utils.php';
  */
 function getNotificationSettings($link) {
     $settings = [];
-    // Temporarily disable exceptions for this query to handle schema mismatches gracefully
+    // Temporarily disable exceptions to handle schema mismatches gracefully
     $previous_reporting = mysqli_report(MYSQLI_REPORT_OFF);
     try {
+        // 1. Try Key-Value schema first (Newer Logic)
         $result = mysqli_query($link, "SELECT setting_key, setting_value FROM notification_settings");
         if ($result) {
             while ($row = mysqli_fetch_assoc($result)) {
                 $settings[$row['setting_key']] = $row['setting_value'];
             }
         } else {
-            error_log("Notification Settings Query Failed (Likely schema mismatch): " . mysqli_error($link));
+            // 2. Fallback: Try Column-based schema (Legacy/Dump Schema)
+            $result = mysqli_query($link, "SELECT * FROM notification_settings LIMIT 1");
+            if ($result && $row = mysqli_fetch_assoc($result)) {
+                // Map columns to the keys expected by this app's logic
+                $settings['threshold_safe_max'] = $row['warning_threshold'] ?? '10.00';
+                $settings['threshold_warning_max'] = $row['critical_threshold'] ?? '18.00';
+                $settings['channel_email'] = $row['email_enabled'] ?? '1';
+                $settings['channel_sms'] = $row['sms_enabled'] ?? '1';
+                $settings['channel_push'] = $row['push_enabled'] ?? '0';
+                $settings['channel_siren'] = $row['siren_enabled'] ?? '0';
+            }
         }
     } catch (\Throwable $t) {
-        error_log("Notification Settings Catch Triggered: " . $t->getMessage());
+        error_log("Notification Settings Detection Error: " . $t->getMessage());
     } finally {
         mysqli_report($previous_reporting);
     }
