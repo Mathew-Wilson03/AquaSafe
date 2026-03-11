@@ -1,61 +1,69 @@
 <?php
-if (session_status() === PHP_SESSION_NONE) {
+// Ensure session starts without warning
+if (session_status() === PHP_SESSION_NONE && !headers_sent()) {
     session_start();
 }
-// Robust environment variable fetcher for Azure
-function get_env_var($key, $default) {
+
+/**
+ * Robust environment variable fetcher
+ * Prioritizes Railway, then Azure, then defaults
+ */
+function get_env_var($key, $defaultValue = '') {
+    // 1. Check direct key (e.g. DB_HOST) in all common sources
     if (isset($_SERVER[$key]) && $_SERVER[$key] !== '') return $_SERVER[$key];
+    if (isset($_ENV[$key]) && $_ENV[$key] !== '') return $_ENV[$key];
     if (getenv($key) !== false && getenv($key) !== '') return getenv($key);
     
-    // Railway specific mapping
+    // 2. Railway Mapping (If the user hasn't manually set DB_HOST, use MYSQLHOST)
     $railway_map = [
-        'DB_HOST' => 'MYSQLHOST',
+        'DB_HOST'     => 'MYSQLHOST',
         'DB_USERNAME' => 'MYSQLUSER',
         'DB_PASSWORD' => 'MYSQLPASSWORD',
-        'DB_NAME' => 'MYSQLDATABASE'
+        'DB_NAME'     => 'MYSQLDATABASE',
+        'DB_PORT'     => 'MYSQLPORT'
     ];
+    
     if (isset($railway_map[$key])) {
         $rk = $railway_map[$key];
         if (isset($_SERVER[$rk]) && $_SERVER[$rk] !== '') return $_SERVER[$rk];
+        if (isset($_ENV[$rk]) && $_ENV[$rk] !== '') return $_ENV[$rk];
         if (getenv($rk) !== false && getenv($rk) !== '') return getenv($rk);
     }
 
+    // 3. Azure Prefix Mapping
     $azure_key = 'APPSETTING_' . $key;
     if (isset($_SERVER[$azure_key]) && $_SERVER[$azure_key] !== '') return $_SERVER[$azure_key];
     if (getenv($azure_key) !== false && getenv($azure_key) !== '') return getenv($azure_key);
     
-    return $default;
+    return $defaultValue;
 }
 
-define('DB_SERVER',   get_env_var('DB_HOST',     'aquasafe-db.mysql.database.azure.com'));
-define('DB_USERNAME', get_env_var('DB_USERNAME', 'aquasafeadmin'));
-define('DB_PASSWORD', get_env_var('DB_PASSWORD', 'Aquasafe@123'));
+// Database configuration
+define('DB_SERVER',   get_env_var('DB_HOST',     'localhost'));
+define('DB_USERNAME', get_env_var('DB_USERNAME', 'root'));
+define('DB_PASSWORD', get_env_var('DB_PASSWORD', ''));
 define('DB_NAME',     get_env_var('DB_NAME',     'aquasafe'));
+define('DB_PORT',     get_env_var('DB_PORT',     '3306'));
 
 /* Attempt to connect to MySQL database */
 try {
     mysqli_report(MYSQLI_REPORT_STRICT | MYSQLI_REPORT_ERROR);
     
-    // Azure requires SSL connections by default. We must use mysqli_real_connect to pass the SSL flag.
     $link = mysqli_init();
     
-    // Disable SSL verification for simplicity (Azure certificates usually work out of the box, but this prevents local dev errors)
-    mysqli_options($link, MYSQLI_OPT_SSL_VERIFY_SERVER_CERT, false); 
-    
-    // Set a short timeout (5 seconds) so the app doesn't hang if Azure firewall blocks the connection
+    // Set a short timeout (5 seconds)
     mysqli_options($link, MYSQLI_OPT_CONNECT_TIMEOUT, 5);
     
-    // Connect with the MYSQLI_CLIENT_SSL flag
-    mysqli_real_connect(
-        $link, 
-        DB_SERVER, 
-        DB_USERNAME, 
-        DB_PASSWORD, 
-        DB_NAME, 
-        3306, 
-        null, 
-        MYSQLI_CLIENT_SSL
-    );
+    // Connect to database
+    // We only use SSL if we are clearly on Azure (host contains .azure.com)
+    $is_azure = strpos(DB_SERVER, '.azure.com') !== false;
+    
+    if ($is_azure) {
+        mysqli_options($link, MYSQLI_OPT_SSL_VERIFY_SERVER_CERT, false);
+        mysqli_real_connect($link, DB_SERVER, DB_USERNAME, DB_PASSWORD, DB_NAME, DB_PORT, null, MYSQLI_CLIENT_SSL);
+    } else {
+        mysqli_real_connect($link, DB_SERVER, DB_USERNAME, DB_PASSWORD, DB_NAME, DB_PORT);
+    }
     
 } catch (mysqli_sql_exception $e) {
     die("<div style='font-family:sans-serif; padding: 30px; background: #ffebee; border: 1px solid #ef5350; border-radius: 8px; margin: 20px;'>
