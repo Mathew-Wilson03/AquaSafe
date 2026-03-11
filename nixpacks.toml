@@ -8,12 +8,11 @@ nixPkgs = [
   "php82Extensions.zip",
   "php82Extensions.pdo",
   "php82Extensions.pdo_mysql",
-  "apacheHttpd",
-  "composer"
+  "php82Packages.composer"
 ]
 
 [phases.install]
 cmds = ["cd Login && composer install --no-dev --optimize-autoloader --no-interaction"]
 
 [start]
-cmd = "httpd -D FOREGROUND -f /etc/httpd/httpd.conf"
+cmd = "php -S 0.0.0.0:$PORT -t /app"
