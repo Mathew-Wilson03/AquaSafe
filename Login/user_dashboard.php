@@ -2463,8 +2463,9 @@ if (file_exists($help_file)) {
                     }
 
                     if(updEl && iot.timestamp) {
-                        const timeStr = iot.timestamp.replace(' ', 'T');
-                        updEl.textContent = 'Updated: ' + new Date(timeStr).toLocaleTimeString();
+                        // Ensure UTC interpretation with Z
+                        const d = new Date(iot.timestamp.replace(' ', 'T'));
+                        updEl.textContent = 'Updated: ' + d.toLocaleTimeString();
                     }
 
                     const badgeEl = document.getElementById(dashboardElements.hero.badge);

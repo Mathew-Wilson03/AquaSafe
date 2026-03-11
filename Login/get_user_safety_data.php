@@ -8,6 +8,9 @@ if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
 
+// Force UTC for API consistency
+date_default_timezone_set('UTC');
+
 if (!isset($_SESSION['email'])) {
     ob_end_clean();
     echo json_encode(['status' => 'error', 'message' => 'Unauthorized']);
@@ -63,7 +66,8 @@ $iot_res = mysqli_query($link, $iot_sql);
 
 $readings = [];
 while ($row = mysqli_fetch_assoc($iot_res)) {
-    $row['timestamp'] = $row['created_at']; 
+    // Append Z to indicate UTC for JavaScript Date constructor
+    $row['timestamp'] = $row['created_at'] . 'Z'; 
     $readings[] = $row;
 }
 error_log("[get_user_safety_data] Found " . count($readings) . " readings for location: " . $user_location);
@@ -84,7 +88,7 @@ if (!empty($readings)) {
         'status' => $current['status'],
         'trend' => $trend,
         'location' => $current['location'] ?? $user_location, 
-        'timestamp' => $current['created_at'],
+        'timestamp' => $current['created_at'] . 'Z',
         'formatted_time' => date('h:i A', strtotime($current['created_at']))
     ];
     $response['iot_history'] = $readings;
@@ -97,6 +101,7 @@ $alert_sql = "SELECT id, severity, message, timestamp FROM sensor_alerts
               ORDER BY timestamp DESC LIMIT 1";
 $alert_res = mysqli_query($link, $alert_sql);
 if ($alert_res && $row = mysqli_fetch_assoc($alert_res)) {
+    $row['timestamp'] = $row['timestamp'] . 'Z';
     $response['adminAlert'] = $row;
 }
 
@@ -119,7 +124,7 @@ $iq_sql = "SELECT severity, message, created_at FROM notification_history
            ORDER BY created_at DESC LIMIT 5";
 $iq_res = mysqli_query($link, $iq_sql);
 while ($row = mysqli_fetch_assoc($iq_res)) {
-    $row['timestamp'] = $row['created_at']; // Alias for JS consistency
+    $row['timestamp'] = $row['created_at'] . 'Z'; // UTC with Z
     $row['formatted_time'] = date('h:i A', strtotime($row['created_at']));
     $response['iqHistory'][] = $row;
 }

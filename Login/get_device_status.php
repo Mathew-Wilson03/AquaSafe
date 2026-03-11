@@ -3,6 +3,9 @@ header('Content-Type: application/json');
 require_once 'config.php';
 require_once 'alert_utils.php';
 
+// Force UTC for API consistency
+date_default_timezone_set('UTC');
+
 $response = [
     'status' => 'success',
     'devices' => []
@@ -39,6 +42,7 @@ foreach ($devices as $device) {
         $data['location'] = $data['location_name']; // Map for easier JS access
         // Human readable timestamp
         $data['last_updated'] = $data['last_ping'] ? date('M d, H:i:s', strtotime($data['last_ping'])) : 'Never';
+        $data['last_ping'] = $data['last_ping'] ? $data['last_ping'] . 'Z' : null;
         $response['devices'][] = $data;
     } else {
         $response['devices'][] = [

@@ -1047,7 +1047,10 @@ if ($users_result) {
                                             badge.className = 'device-status-badge ' + (dev.is_online ? 'status-active' : 'status-offline');
                                             badge.textContent = dev.is_online ? 'Active' : 'Offline';
                                         }
-                                        if (ping) ping.textContent = dev.last_ping ? new Date(dev.last_ping).toLocaleTimeString() : 'Never';
+                                        if (ping) {
+                                            const ts = dev.last_ping || dev.timestamp || '';
+                                            ping.textContent = ts ? new Date(ts.replace(' ', 'T')).toLocaleTimeString() : 'Never';
+                                        }
                                         
                                         const locEl = document.getElementById(type + '-location');
                                         if (locEl) locEl.textContent = '📍 ' + (dev.location || 'Unknown');
@@ -3924,7 +3927,7 @@ if ($users_result) {
                                 <div style="flex: 1;">
                                     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
                                         <span style="font-size: 11px; font-weight: 700; color: ${color}; text-transform: uppercase; letter-spacing: 0.5px;">${item.severity}</span>
-                                        <span style="font-size: 11px; opacity: 0.4;">${item.formatted_time}</span>
+                                        <span style="font-size: 11px; opacity: 0.4;">${new Date(item.timestamp.replace(' ', 'T')).toLocaleTimeString()}</span>
                                     </div>
                                     <h4 style="font-size: 14px; margin-bottom: 2px; color: #fff;">📍 ${item.location}</h4>
                                     <p style="font-size: 13px; opacity: 0.7; line-height: 1.4;">${item.message}</p>
@@ -4149,7 +4152,8 @@ if ($users_result) {
                 // ── 1. Update the Live Chart with real sensor data ──
                 if (history.length > 0) {
                     const labels = history.map(r => {
-                        const d = new Date(r.created_at.replace(' ', 'T'));
+                        const ts = r.timestamp || r.created_at.replace(' ', 'T');
+                        const d = new Date(ts.includes('T') ? ts : ts.replace(' ', 'T'));
                         return d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
                     });
                     const dataPoints = history.map(r => parseFloat(r.level));

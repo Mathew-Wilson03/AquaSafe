@@ -2,6 +2,9 @@
 header('Content-Type: application/json');
 require_once 'config.php';
 
+// Force UTC for API consistency
+date_default_timezone_set('UTC');
+
 $response = [
     'status' => 'success',
     'data' => []
@@ -20,7 +23,9 @@ $latest_alert_query = "
     ORDER BY a.timestamp DESC LIMIT 1
 ";
 $latest_alert_result = mysqli_query($link, $latest_alert_query);
-$response['data']['latest_alert'] = mysqli_fetch_assoc($latest_alert_result) ?: ['message' => 'No recent alerts', 'severity' => 'Safe', 'timestamp' => null, 'location' => 'N/A'];
+$latest_alert = mysqli_fetch_assoc($latest_alert_result) ?: ['message' => 'No recent alerts', 'severity' => 'Safe', 'timestamp' => null, 'location' => 'N/A'];
+if($latest_alert['timestamp']) $latest_alert['timestamp'] .= 'Z';
+$response['data']['latest_alert'] = $latest_alert;
 
 // 3. Flood Risk Level (Based on latest sensor reading)
 $risk_query = "SELECT status FROM flood_data ORDER BY created_at DESC LIMIT 1";
@@ -37,8 +42,9 @@ $peak_query = "SELECT MAX(level) as peak FROM flood_data WHERE DATE(created_at) 
 $peak_result = mysqli_query($link, $peak_query);
 $response['data']['daily_peak'] = mysqli_fetch_assoc($peak_result)['peak'] ?? 0.00;
 
-// 6. Last Sync Time
-$response['data']['last_sync'] = date('H:i:s');
+// 6. Last Sync Time (UTC)
+$response['data']['last_sync'] = date('H:i:s') . 'Z';
+$response['data']['timestamp'] = date('Y-m-d H:i:s') . 'Z';
 
 echo json_encode($response);
 ?>
