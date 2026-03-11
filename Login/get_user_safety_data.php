@@ -42,8 +42,9 @@ $response = [
 
 // Get last 4 readings to detect trend and populate intelligence widget
 $loc_esc = mysqli_real_escape_string($link, $user_location);
-$where_cond = "1=1";
+$where_cond = "1=1"; // Default for System Wide and unassigned
 if ($user_location !== 'System Wide' && !empty($user_location)) {
+    // If user has a specific location, show their location + system-wide alerts
     $where_cond = "(location = '$loc_esc' OR location = 'System Wide' OR location = 'Unknown Cluster')";
 }
 
@@ -60,7 +61,7 @@ while ($row = mysqli_fetch_assoc($iot_res)) {
 
 if (!empty($readings)) {
     $current = $readings[0];
-    $prev = $readings[1] ?? null;
+    $prev = count($readings) > 1 ? $readings[1] : null;
     
     $trend = 'Stable'; 
     if ($prev) {
