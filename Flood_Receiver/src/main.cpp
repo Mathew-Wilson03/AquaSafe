@@ -9,7 +9,7 @@
 // ─────────────────────────────────────────
 const char* WIFI_SSID     = "iPhone XIII";       
 const char* WIFI_PASSWORD = "akashmathew@2004";   
-const char* SERVER_URL    = "https://aquasafe-production-703c.up.railway.app/ping.php/";
+const char* SERVER_URL    = "https://aquasafe-production-703c.up.railway.app/iot_v3.php";
 
 #define SS 5
 #define RST 4
@@ -57,17 +57,10 @@ void sendToServer(int id, float level, String status) {
     http.begin(client, SERVER_URL);
     http.addHeader("Content-Type", "application/x-www-form-urlencoded");
 
-    // The INVINCIBLE Protocol v9: Path-Info Mode (No "?" or "p=")
-    int level_cm = (int)(level * 100);
-    char status_char = 'S';
-    if (status == "WARNING")  status_char = 'W';
-    if (status == "CRITICAL") status_char = 'C';
-
-    char buffer[10];
-    sprintf(buffer, "%d%04d%c", id, level_cm, status_char);
-    String postBody = String(buffer); // No "p=" anymore!
+    // Standard POST request for Railway (WAF bypasses no longer needed)
+    String postBody = "payload=" + String(id) + "," + String(level, 2) + "," + status;
     
-    Serial.println("📤 Relaying to Azure (INVINCIBLE v9): " + postBody);
+    Serial.println("📤 Relaying to Server: " + postBody);
 
     int httpCode = http.POST(postBody);
     if (httpCode > 0) Serial.println("✅ OK: " + http.getString());
