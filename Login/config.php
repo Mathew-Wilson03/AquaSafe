@@ -27,6 +27,9 @@ try {
     // Disable SSL verification for simplicity (Azure certificates usually work out of the box, but this prevents local dev errors)
     mysqli_options($link, MYSQLI_OPT_SSL_VERIFY_SERVER_CERT, false); 
     
+    // Set a short timeout (5 seconds) so the app doesn't hang if Azure firewall blocks the connection
+    mysqli_options($link, MYSQLI_OPT_CONNECT_TIMEOUT, 5);
+    
     // Connect with the MYSQLI_CLIENT_SSL flag
     mysqli_real_connect(
         $link, 
