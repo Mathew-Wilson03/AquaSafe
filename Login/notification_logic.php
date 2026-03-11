@@ -12,15 +12,21 @@ require_once 'alert_utils.php';
  */
 function getNotificationSettings($link) {
     $settings = [];
+    // Temporarily disable exceptions for this query to handle schema mismatches gracefully
+    $previous_reporting = mysqli_report(MYSQLI_REPORT_OFF);
     try {
         $result = mysqli_query($link, "SELECT setting_key, setting_value FROM notification_settings");
         if ($result) {
             while ($row = mysqli_fetch_assoc($result)) {
                 $settings[$row['setting_key']] = $row['setting_value'];
             }
+        } else {
+            error_log("Notification Settings Query Failed (Likely schema mismatch): " . mysqli_error($link));
         }
-    } catch (Exception $e) {
-        error_log("Notification Settings Query Failed (Likely schema mismatch): " . $e->getMessage());
+    } catch (\Throwable $t) {
+        error_log("Notification Settings Catch Triggered: " . $t->getMessage());
+    } finally {
+        mysqli_report($previous_reporting);
     }
     // Defaults if not found
     return array_merge([
