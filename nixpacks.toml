@@ -12,7 +12,7 @@ nixPkgs = [
 ]
 
 [phases.install]
-cmds = ["cd Login && composer install --no-dev --optimize-autoloader --no-interaction"]
+cmds = ["if [ -d Login ]; then cd Login && composer install --no-dev --optimize-autoloader --no-interaction; fi"]
 
 [start]
-cmd = "php -S 0.0.0.0:$PORT -t /app"
+cmd = "php -S 0.0.0.0:$PORT"
