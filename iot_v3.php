@@ -29,9 +29,9 @@ if ($raw_data) {
 
         $level  = (float)$v2;
         $s_raw = strtoupper(trim($v3));
-        $status = 'Safe';
-        if ($s_raw === 'WARNING')  $status = 'Warning';
-        if ($s_raw === 'CRITICAL') $status = 'Critical';
+        $status = 'SAFE';
+        if ($s_raw === 'WARNING')  $status = 'WARNING';
+        if ($s_raw === 'CRITICAL') $status = 'CRITICAL';
         $raw_id = (int)$v1;
         $sensor_id = ($raw_id == 1) ? "SNS-001" : "SNS-" . str_pad($raw_id, 3, '0', STR_PAD_LEFT);
 
