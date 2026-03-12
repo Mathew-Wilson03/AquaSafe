@@ -15,5 +15,6 @@ nixPkgs = [
 [phases.install]
 cmds = ["if [ -d Login ]; then cd Login && composer install --no-dev --optimize-autoloader --no-interaction; fi"]
 
-[start]
-cmd = "PHP_CLI_SERVER_WORKERS=10 php -S 0.0.0.0:$PORT -d opcache.enable=1 -d opcache.enable_cli=1"
+# Let Nixpacks use its default web server (Apache/Nginx) for PHP apps 
+# which inherently supports multithreading and production workloads,
+# rather than forcing the fragile single-threaded `php -S` development server.
