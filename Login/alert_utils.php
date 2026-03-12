@@ -57,11 +57,10 @@ function sendBroadcast($link, $area, $message, $severity, $type = 'Admin') {
     // Always log for debugging/audit
     file_put_contents($emailLogFile, $logContent, FILE_APPEND);
 
-    // If SMTP pass is default/placeholder, don't try to send via PHPMailer to avoid hangs/errors
-    if (SMTP_PASS === 'your_app_password_here' || empty(SMTP_PASS)) {
-        error_log("SMTP Credentials not configured. Alert logged to $emailLogFile");
-        return; 
-    }
+    // Temporarily disabled SMTP to prevent Railway hanging
+    error_log("SMTP Email disabled temporarily to prevent page load hanging. Alert logged to $emailLogFile");
+    return; 
+
     
     $mail = new PHPMailer(true);
     try {
