@@ -1,3 +1,6 @@
+[variables]
+NIXPACKS_PHP_ROOT_DIR = "Login"
+
 [phases.setup]
 nixPkgs = [
   "php82",
