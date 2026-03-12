@@ -67,17 +67,11 @@ try {
     // Set a short timeout (5 seconds)
     mysqli_options($link, MYSQLI_OPT_CONNECT_TIMEOUT, 5);
     
-    // Connect to database
-    // We use SSL for Azure and Railway public connections
-    $is_azure = strpos(DB_SERVER, '.azure.com') !== false;
-    $is_railway = strpos(DB_SERVER, '.up.railway.app') !== false;
+    // Standard connection without forced SSL, preventing Railway from hanging
+    mysqli_real_connect($link, DB_SERVER, DB_USERNAME, DB_PASSWORD, DB_NAME, DB_PORT);
     
-    if ($is_azure || $is_railway) {
-        mysqli_options($link, MYSQLI_OPT_SSL_VERIFY_SERVER_CERT, false);
-        mysqli_real_connect($link, DB_SERVER, DB_USERNAME, DB_PASSWORD, DB_NAME, DB_PORT, null, MYSQLI_CLIENT_SSL);
-    } else {
-        mysqli_real_connect($link, DB_SERVER, DB_USERNAME, DB_PASSWORD, DB_NAME, DB_PORT);
-    }
+    // Force MySQL session to UTC to match PHP
+    mysqli_query($link, "SET time_zone = '+00:00'");
     
 } catch (mysqli_sql_exception $e) {
     die("<div style='font-family:sans-serif; padding: 30px; background: #ffebee; border: 1px solid #ef5350; border-radius: 8px; margin: 20px;'>
