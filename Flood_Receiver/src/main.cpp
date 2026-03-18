@@ -47,7 +47,7 @@ String getVal(String data, char separator, int index) {
   return found > index ? data.substring(strIndex[0], strIndex[1]) : "";
 }
 
-void sendToServer(int id, float level, String status) {
+void sendToServer(int id, float level, String status, String gatewayId = "") {
   if (WiFi.status() != WL_CONNECTED) connectWiFi();
 
   if (WiFi.status() == WL_CONNECTED) {
@@ -58,7 +58,10 @@ void sendToServer(int id, float level, String status) {
     http.addHeader("Content-Type", "application/x-www-form-urlencoded");
 
     // Standard POST request for Railway (WAF bypasses no longer needed)
-    String postBody = "payload=" + String(id) + "," + String(level, 2) + "," + status;
+    String postBody = "payload=" + (gatewayId != "" ? gatewayId : String(id)) + "," + String(level, 2) + "," + status;
+    if (gatewayId != "") {
+        postBody += "&gateway_id=" + gatewayId;
+    }
     
     Serial.println("📤 Relaying to Server: " + postBody);
 
@@ -80,7 +83,16 @@ void setup() {
   Serial.println("👂 Gateway Ready...");
 }
 
+unsigned long lastHeartbeat = 0;
+
 void loop() {
+  // 1. Check for Heartbeat every 30s
+  if (millis() - lastHeartbeat > 30000) {
+      lastHeartbeat = millis();
+      Serial.println("💓 Sending Heartbeat...");
+      sendToServer(0, 0.0, "OK", "REC-001");
+  }
+
   int packetSize = LoRa.parsePacket();
   if (packetSize) {
     String received = "";

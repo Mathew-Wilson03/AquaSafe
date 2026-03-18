@@ -27,6 +27,13 @@ if ($raw_data) {
         $v2 = $parts[1]; // Level
         $v3 = $parts[2]; // Status
 
+        // 1. Check for Heartbeat (REC-001)
+        if (trim($v1) === 'REC-001' || $v1 === 'GATEWAY') {
+            mysqli_query($link, "UPDATE sensor_status SET last_ping = NOW(), status = 'Active' WHERE sensor_id = 'REC-001'");
+            echo json_encode(['status' => 'success', 'msg' => 'GATEWAY_PONG']);
+            exit;
+        }
+
         $level  = (float)$v2;
         $s_raw = strtoupper(trim($v3));
         $status = 'SAFE';
@@ -48,6 +55,9 @@ if ($raw_data) {
         mysqli_stmt_bind_param($updateStatus, "dss", $level, $activeStatus, $sensor_id);
         mysqli_stmt_execute($updateStatus);
         mysqli_stmt_close($updateStatus);
+
+        // EXTRA: Update Gateway Status (REC-001) because it is the one relaying this data
+        mysqli_query($link, "UPDATE sensor_status SET last_ping = NOW(), status = 'Active' WHERE sensor_id = 'REC-001'");
 
         // Insert History
         $stmt = mysqli_prepare($link, "INSERT INTO flood_data (sensor_id, location, level, status) VALUES (?, ?, ?, ?)");
