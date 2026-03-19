@@ -4,23 +4,7 @@ if (session_status() === PHP_SESSION_NONE && !headers_sent()) {
     session_start();
 }
 
-// 2. Load Environment Variables (for local development using .env)
-if (file_exists(__DIR__ . '/vendor/autoload.php')) {
-    require_once __DIR__ . '/vendor/autoload.php';
-    if (class_exists('Dotenv\Dotenv')) {
-        try {
-            $dotenv = Dotenv\Dotenv::createImmutable(__DIR__);
-            $dotenv->safeLoad(); // Uses safeLoad to avoid crashing if .env is missing
-        } catch (\Exception $e) {
-            // Silently fail if .env has issues
-        }
-    }
-}
-
-/**
- * Robust environment variable fetcher
- * Prioritizes Railway, then Azure, then defaults
- */
+// 2. Robust environment variable fetcher
 function get_env_var($key, $defaultValue = '') {
     // 1. Check direct key (e.g. DB_HOST) in all common sources
     if (isset($_SERVER[$key]) && $_SERVER[$key] !== '') return $_SERVER[$key];
@@ -51,6 +35,20 @@ function get_env_var($key, $defaultValue = '') {
     return $defaultValue;
 }
 
+// 3. Load Environment Variables (Lazy Loading Dotenv if available)
+if (file_exists(__DIR__ . '/vendor/autoload.php')) {
+    // We only load Dotenv for .env files if not already in environment
+    if (!isset($_SERVER['DB_HOST']) && !getenv('DB_HOST')) {
+        require_once __DIR__ . '/vendor/autoload.php';
+        if (class_exists('Dotenv\Dotenv')) {
+            try {
+                $dotenv = Dotenv\Dotenv::createImmutable(__DIR__);
+                $dotenv->safeLoad();
+            } catch (\Exception $e) {}
+        }
+    }
+}
+
 // Database configuration
 define('DB_SERVER',   get_env_var('DB_HOST',     'localhost'));
 define('DB_USERNAME', get_env_var('DB_USERNAME', 'root'));
@@ -61,23 +59,37 @@ define('DB_PORT',     get_env_var('DB_PORT',     '3306'));
 /* Attempt to connect to MySQL database */
 try {
     mysqli_report(MYSQLI_REPORT_STRICT | MYSQLI_REPORT_ERROR);
-    
+
     $link = mysqli_init();
-    
-    // Set a short timeout (5 seconds)
-    mysqli_options($link, MYSQLI_OPT_CONNECT_TIMEOUT, 5);
-    
-    // Standard connection without forced SSL, preventing Railway from hanging
-    mysqli_real_connect($link, DB_SERVER, DB_USERNAME, DB_PASSWORD, DB_NAME, DB_PORT);
-    
+
+    // Timeout: 8s gives Railway containers time to wake on a warm request
+    mysqli_options($link, MYSQLI_OPT_CONNECT_TIMEOUT, 8);
+    // Return integers/floats as native PHP types (avoids string casts in PHP)
+    mysqli_options($link, MYSQLI_OPT_INT_AND_FLOAT_NATIVE, 1);
+
+    $is_azure   = strpos(DB_SERVER, '.azure.com')    !== false;
+    $is_railway = strpos(DB_SERVER, '.up.railway.app') !== false;
+
+    // Use persistent connection prefix 'p:' — reuses the TCP/SSL socket across
+    // PHP-FPM worker restarts instead of handshaking on every request.
+    $host_prefix = ($is_azure || $is_railway) ? 'p:' : 'p:';
+    $connect_host = $host_prefix . DB_SERVER;
+
+    if ($is_azure || $is_railway) {
+        mysqli_options($link, MYSQLI_OPT_SSL_VERIFY_SERVER_CERT, false);
+        mysqli_real_connect($link, $connect_host, DB_USERNAME, DB_PASSWORD, DB_NAME, (int)DB_PORT, null, MYSQLI_CLIENT_SSL);
+    } else {
+        mysqli_real_connect($link, $connect_host, DB_USERNAME, DB_PASSWORD, DB_NAME, (int)DB_PORT);
+    }
+
     // Force MySQL session to UTC to match PHP
     mysqli_query($link, "SET time_zone = '+00:00'");
-    
+
 } catch (mysqli_sql_exception $e) {
     die("<div style='font-family:sans-serif; padding: 30px; background: #ffebee; border: 1px solid #ef5350; border-radius: 8px; margin: 20px;'>
              <h3 style='color: #c62828;'>Database Connection Error</h3>
-             <p>The application could not connect to the database. If you recently deployed to Azure, you must configure your MySQL Database connection strings.</p>
-             <p><strong>Required Azure Application Settings:</strong> <code>DB_HOST</code>, <code>DB_USER</code>, <code>DB_PASS</code>, <code>DB_NAME</code></p>
+             <p>The application could not connect to the database. Configure your MySQL connection strings in Railway environment variables.</p>
+             <p><strong>Required Variables:</strong> <code>DB_HOST</code>, <code>DB_USERNAME</code>, <code>DB_PASSWORD</code>, <code>DB_NAME</code>, <code>DB_PORT</code></p>
              <br>
              <p style='color:#c62828; font-size: 14px;'><strong>Attempted Host:</strong> " . htmlspecialchars(DB_SERVER) . "</p>
              <p style='color:#c62828; font-size: 14px;'><strong>Technical Details:</strong> " . htmlspecialchars($e->getMessage()) . "</p>
@@ -98,9 +110,28 @@ define('DB_TABLE', 'user');
 define('SUPER_ADMIN_EMAIL', 'mathewwilson2028@mca.ajce.in');
 
 // SMTP configuration (Uses get_env_var)
-if (!defined('SMTP_HOST')) define('SMTP_HOST', get_env_var('SMTP_HOST', 'smtp.gmail.com'));
-if (!defined('SMTP_PORT')) define('SMTP_PORT', get_env_var('SMTP_PORT', '587'));
-if (!defined('SMTP_USER')) define('SMTP_USER', get_env_var('SMTP_USER', ''));
-if (!defined('SMTP_PASS')) define('SMTP_PASS', get_env_var('SMTP_PASS', ''));
+if (!defined('SMTP_HOST'))       define('SMTP_HOST',       get_env_var('SMTP_HOST',       'smtp.gmail.com'));
+if (!defined('SMTP_PORT'))       define('SMTP_PORT',       get_env_var('SMTP_PORT',       '587'));
+if (!defined('SMTP_USER'))       define('SMTP_USER',       get_env_var('SMTP_USER',       ''));
+if (!defined('SMTP_PASS'))       define('SMTP_PASS',       get_env_var('SMTP_PASS',       ''));
 if (!defined('SMTP_FROM_EMAIL')) define('SMTP_FROM_EMAIL', get_env_var('SMTP_FROM_EMAIL', ''));
-if (!defined('SMTP_FROM_NAME')) define('SMTP_FROM_NAME', get_env_var('SMTP_FROM_NAME', 'AquaSafe Alerts'));
+if (!defined('SMTP_FROM_NAME'))  define('SMTP_FROM_NAME',  get_env_var('SMTP_FROM_NAME',  'AquaSafe Alerts'));
+
+// New Mail Parameters
+if (!defined('MAIL_DRIVER'))     define('MAIL_DRIVER',     get_env_var('MAIL_DRIVER',     'smtp'));
+if (!defined('MAIL_TIMEOUT'))    define('MAIL_TIMEOUT',    (int)get_env_var('MAIL_TIMEOUT', 5));
+if (!defined('MAIL_API_KEY'))    define('MAIL_API_KEY',    get_env_var('MAIL_API_KEY',    ''));
+if (!defined('MAIL_API_URL'))    define('MAIL_API_URL',    get_env_var('MAIL_API_URL',    ''));
+
+// Guard: only attempt email if explicitly enabled and configured.
+$mail_enabled_env = get_env_var('MAIL_ENABLED', '');
+if (!defined('ENABLE_EMAIL')) {
+    if ($mail_enabled_env === 'true' || $mail_enabled_env === '1') {
+        define('ENABLE_EMAIL', true);
+    } elseif ($mail_enabled_env === 'false' || $mail_enabled_env === '0') {
+        define('ENABLE_EMAIL', false);
+    } else {
+        // Default logic: only enable if SMTP_USER or MAIL_API_KEY is set
+        define('ENABLE_EMAIL', (SMTP_USER !== '' || MAIL_API_KEY !== ''));
+    }
+}

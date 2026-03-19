@@ -1033,9 +1033,12 @@ if ($users_result) {
                         const riskColors = { 'SAFE': '#2ecc71', 'WARNING': '#f1c40f', 'CRITICAL': '#e74c3c', 'DANGER': '#e74c3c' };
 
                         async function pollDashboardData() {
+                            const signal = window.SyncManager.getSignal('stats');
+
                             try {
                                 // 1. Poll Device Status
-                                const devRes = await fetch('get_device_status.php?_t=' + Date.now());
+                                const devRes = await fetch('get_device_status.php?_t=' + Date.now(), { signal: signal });
+                                // ... rest of devRes handling ...
                                 const devJson = await devRes.json();
                                 if (devJson.status === 'success') {
                                     devJson.devices.forEach(dev => {
@@ -1062,48 +1065,59 @@ if ($users_result) {
                                             const levelEl = document.getElementById('sender-water-level');
                                             const peakEl = document.getElementById('sender-peak');
                                             if (levelEl) levelEl.textContent = parseFloat(dev.water_level).toFixed(2) + ' ft';
-                                            if (peakEl) peakEl.textContent = parseFloat(dev.water_level).toFixed(2) + ' ft'; // Using current as placeholder or local peak
+                                            if (peakEl) peakEl.textContent = parseFloat(dev.water_level).toFixed(2) + ' ft'; 
                                         } else {
-                                            document.getElementById('receiver-packet').textContent = dev.is_online ? 'Decoding' : 'None';
-                                            document.getElementById('receiver-uptime').textContent = dev.is_online ? '12.5 hrs' : '0 hrs';
-                                            document.getElementById('receiver-health').textContent = dev.is_online ? 'Excellent' : 'Offline';
+                                            const pkt = document.getElementById('receiver-packet');
+                                            if(pkt) pkt.textContent = dev.is_online ? 'Decoding' : 'None';
+                                            const up = document.getElementById('receiver-uptime');
+                                            if(up) up.textContent = dev.is_online ? '12.5 hrs' : '0 hrs';
+                                            const hlth = document.getElementById('receiver-health');
+                                            if(hlth) hlth.textContent = dev.is_online ? 'Excellent' : 'Offline';
                                         }
                                     });
                                 }
 
                                 // 2. Poll Widgets Stats
-                                const statsRes = await fetch('get_dashboard_stats.php?_t=' + Date.now());
+                                const statsRes = await fetch('get_dashboard_stats.php?_t=' + Date.now(), { signal: signal });
                                 const statsJson = await statsRes.json();
                                 if (statsJson.status === 'success') {
                                     const d = statsJson.data;
-                                    document.getElementById('widget-alerts-today').textContent = d.total_alerts_today;
+                                    const alertCount = document.getElementById('widget-alerts-today');
+                                    if(alertCount) alertCount.textContent = d.total_alerts_today;
                                     
                                     const riskEl = document.getElementById('widget-flood-risk');
-                                    riskEl.textContent = d.flood_risk_level;
-                                    riskEl.style.color = riskColors[d.flood_risk_level] || '#fff';
+                                    if(riskEl) {
+                                        riskEl.textContent = d.flood_risk_level;
+                                        riskEl.style.color = riskColors[d.flood_risk_level] || '#fff';
+                                    }
                                     
                                     const latest = d.latest_alert;
-                                    document.getElementById('widget-latest-msg').textContent = latest.message;
-                                    document.getElementById('widget-latest-location').textContent = '📍 ' + (latest.location || 'System');
-                                    document.getElementById('widget-latest-alert-container').title = 'Location: ' + (latest.location || 'General');
+                                    const msgEl = document.getElementById('widget-latest-msg');
+                                    if(msgEl) msgEl.textContent = latest.message;
+                                    const locEl = document.getElementById('widget-latest-location');
+                                    if(locEl) locEl.textContent = '📍 ' + (latest.location || 'System');
+                                    const cont = document.getElementById('widget-latest-alert-container');
+                                    if(cont) cont.title = 'Location: ' + (latest.location || 'General');
                                     
-                                    document.getElementById('widget-evac-count').textContent = d.evacuation_points_count;
-                                    document.getElementById('widget-daily-peak').textContent = parseFloat(d.daily_peak).toFixed(2) + ' ft';
-                                    if (document.getElementById('sender-peak')) {
-                                        document.getElementById('sender-peak').textContent = parseFloat(d.daily_peak).toFixed(2) + ' ft';
-                                    }
+                                    const evacEl = document.getElementById('widget-evac-count');
+                                    if(evacEl) evacEl.textContent = d.evacuation_points_count;
+                                    const peakEl = document.getElementById('widget-daily-peak');
+                                    if(peakEl) peakEl.textContent = parseFloat(d.daily_peak).toFixed(2) + ' ft';
                                 }
 
-                                // Refresh icons if Lucide is present
                                 if (window.lucide) lucide.createIcons();
                                 
                             } catch(e) {
-                                console.error("[AquaSafe] Poller Error:", e);
+                                if (e.name !== 'AbortError') console.error("[AquaSafe] Poller Error:", e);
+                            } finally {
+                                // Recursive schedule: 20s
+                                if (!window.aquaSafeSyncRegistry.stats?.signal.aborted) {
+                                    setTimeout(pollDashboardData, 20000);
+                                }
                             }
                         }
 
-                        pollDashboardData();
-                        setInterval(pollDashboardData, 7000); // 7 seconds sync
+                        // pollDashboardData() now managed by AdminSyncEngine
                     })();
                     </script>
 
@@ -1204,8 +1218,10 @@ if ($users_result) {
                         const signalColors = { 'Good': '#2ecc71', 'Weak': '#f1c40f', 'Lost': '#e74c3c' };
 
                         window.fetchSensorStatus = async function() {
+                            const signal = window.SyncManager.getSignal('sensors');
+
                             try {
-                                const res = await fetch('get_sensors_list.php?_t=' + Date.now());
+                                const res = await fetch('get_sensors_list.php?_t=' + Date.now(), { signal: signal });
                                 const json = await res.json();
                                 if (json.status !== 'success') return;
 
@@ -1296,11 +1312,15 @@ if ($users_result) {
                                         } else {
                                             healthEl.innerText = "Critical";
                                             healthEl.className = 'status-value danger-text';
-                                        }
                                     }
                                 }
                             } catch(e) {
-                                console.error("[AquaSafe] Sensor Table Poller Error:", e);
+                                if (e.name !== 'AbortError') console.error("[AquaSafe] Sensor Table Poller Error:", e);
+                            } finally {
+                                // Recursive schedule: 30s
+                                if (!window.aquaSafeSyncRegistry.sensors?.signal.aborted) {
+                                    setTimeout(window.fetchSensorStatus, 30000);
+                                }
                             }
                         }
 
@@ -2207,12 +2227,23 @@ if ($users_result) {
         };
 
         async function fetchWithTimeout(resource, options = {}) {
-            const { timeout = 15000 } = options;
+            const { timeout = 15000, signal } = options;
             const controller = new AbortController();
             const id = setTimeout(() => controller.abort(), timeout);
-            const response = await fetch(resource, { ...options, signal: controller.signal });
-            clearTimeout(id);
-            return response;
+            
+            // Link external signal if provided
+            if (signal) {
+                signal.addEventListener('abort', () => controller.abort(), { once: true });
+            }
+
+            try {
+                const response = await fetch(resource, { ...options, signal: controller.signal });
+                clearTimeout(id);
+                return response;
+            } catch (err) {
+                clearTimeout(id);
+                throw err;
+            }
         }
 
         // GLOBAL UNLOCK: Verify audio context is ready on ANY interaction
@@ -2331,6 +2362,8 @@ if ($users_result) {
 
         // --- HELP DESK ADMIN LOGIC (PRE-DEFINED) ---
         window.fetchHelpdeskRequests = async function() {
+            const signal = window.SyncManager.getSignal('helpdesk');
+
             const listEl = document.getElementById('adminHelpdeskList');
             if(!listEl) return;
 
@@ -2339,7 +2372,10 @@ if ($users_result) {
             }
 
             try {
-                const res = await fetchWithTimeout('manage_helpdesk.php?action=fetch_all', { timeout: 15000 });
+                const res = await fetchWithTimeout('manage_helpdesk.php?action=fetch_all&_t=' + Date.now(), { 
+                    timeout: 15000,
+                    signal: signal 
+                });
                 const json = await res.json();
                 
                 if(json.status === 'success') {
@@ -2373,6 +2409,25 @@ if ($users_result) {
                                     <div style="display: flex; gap: 10px; align-items: center;">
                                         ${!isResolved ? `
                                             <button class="btn-reply" data-id="${req.id}" style="padding: 8px 18px; background: rgba(74, 181, 196, 0.2); border: 2px solid #4ab5c4; color: #4ab5c4; border-radius: 8px; cursor: pointer; font-size: 13px; font-weight: 700; transition:all 0.2s; position:relative; z-index:100;">Reply</button>
+                                        ` : ''}
+                                    </div>
+                                </div>
+                            `;
+                        });
+                        listEl.innerHTML = html;
+                    } else {
+                        listEl.innerHTML = '<div style="text-align:center; padding:30px; opacity:0.5;">No active helpdesk requests.</div>';
+                    }
+                }
+            } catch (e) {
+                if (e.name !== 'AbortError') console.error("Helpdesk Poll Error:", e);
+            } finally {
+                // Recursive schedule: 60s
+                if (!window.aquaSafeSyncRegistry.helpdesk?.signal.aborted) {
+                    setTimeout(window.fetchHelpdeskRequests, 60000);
+                }
+            }
+        };
                                             <button class="btn-resolve" data-id="${req.id}" style="padding: 8px 18px; background: rgba(46, 204, 113, 0.2); border: 2px solid #2ecc71; color: #2ecc71; border-radius: 8px; cursor: pointer; font-size: 13px; font-weight: 700; transition:all 0.2s; position:relative; z-index:100;">Mark Resolved</button>
                                         ` : `
                                             <span style="color: #2ecc71; font-size: 13px; font-weight: 800; display:flex; align-items:center; gap:6px;"><i class="fas fa-check-circle"></i> RESOLVED</span>
@@ -2979,6 +3034,8 @@ if ($users_result) {
         }
 
         window.fetchSystemAlerts = async function() {
+            const signal = window.SyncManager.getSignal('alerts');
+
             const container = document.getElementById('alertsHistoryList');
             const dashboardContainer = document.getElementById('dashboardRecentAlerts');
             const countEl = document.getElementById('activeAlertCount');
@@ -2988,7 +3045,7 @@ if ($users_result) {
 
             try {
                 const locQuery = filterEl && filterEl.value ? `&user_location=${encodeURIComponent(filterEl.value)}` : '';
-                const res = await fetch('manage_alerts.php?action=fetch_all' + locQuery);
+                const res = await fetch('manage_alerts.php?action=fetch_all' + locQuery, { signal: signal });
                 const json = await res.json();
                 
                 if(json.status === 'success') {
@@ -3025,12 +3082,11 @@ if ($users_result) {
                     }
 
                     // 🚨 EMERGENCY ALARM TRIGGER (Scan all new alerts) 🚨
-                    const lastSeenCount = parseInt(localStorage.getItem('seenAlertCount') || '0');
+                    const lastSeenCountValue = parseInt(localStorage.getItem('seenAlertCount') || '0');
                     const silencedId = localStorage.getItem('adminSilencedAlertId');
                     let maxNewId = parseInt(localStorage.getItem('adminLastAlertId') || '0');
                     
-                    // We check the first few alerts if they are new
-                    alerts.slice(0, Math.max(0, alerts.length - lastSeenCount)).forEach(alert => {
+                    alerts.slice(0, Math.max(0, alerts.length - lastSeenCountValue)).forEach(alert => {
                         const id = parseInt(alert.id);
                         const severityUpper = (alert.severity || '').toUpperCase();
                         if ((severityUpper === 'CRITICAL' || severityUpper === 'WARNING') && id > parseInt(silencedId || '0')) {
@@ -3043,36 +3099,33 @@ if ($users_result) {
                         }
                     });
                     
-                    // Update Main Alert List (Full View)
+                    // Update UI Lists (Full History & Dashboard Summary)
                     if(container) {
-                        if(alerts.length > 0) {
-                            let html = '';
-                            alerts.forEach(alert => {
-                                const bgCol = alert.severity === 'Critical' ? 'rgba(231, 76, 60, 0.1)' : (alert.severity === 'Warning' ? 'rgba(241, 196, 15, 0.1)' : 'rgba(74, 181, 196, 0.1)');
-                                const borderCol = alert.severity === 'Critical' ? '#e74c3c' : (alert.severity === 'Warning' ? '#f1c40f' : '#4ab5c4');
-                                const textCol = borderCol;
-                                
-                                html += `
-                                    <div style="background: ${bgCol}; border-left: 4px solid ${borderCol}; padding: 15px; margin-bottom: 15px; border-radius: 0 8px 8px 0; display: flex; justify-content: space-between; align-items: start;">
-                                        <div>
-                                            <strong style="color: ${textCol};">${alert.severity} Alert</strong>
-                                            <p style="font-size: 14px; margin-top: 5px; opacity: 0.8;">${alert.message}</p>
-                                            <div style="font-size: 12px; opacity: 0.5; margin-top: 5px;">
-                                                <i data-lucide="map-pin" style="width: 10px; height: 10px;"></i> ${alert.location || 'System Wide'} • 
-                                                ${new Date(alert.timestamp).toLocaleTimeString()}
-                                            </div>
-                                        </div>
-                                        <button onclick="deleteAlert(${alert.id})" style="background: none; border: none; cursor: pointer; color: rgba(255,255,255,0.4); transition: color 0.2s;" title="Delete Alert">
-                                            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"></path><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"></path><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"></path></svg>
-                                        </button>
+                        let html = '';
+                        alerts.forEach(alert => {
+                            const borderCol = alert.severity === 'Critical' ? '#e74c3c' : (alert.severity === 'Warning' ? '#f1c40f' : '#4ab5c4');
+                            html += `
+                                <div style="background: rgba(255,255,255,0.02); border-left: 4px solid ${borderCol}; padding: 15px; margin-bottom: 15px; border-radius: 0 8px 8px 0; display: flex; justify-content: space-between; align-items: start;">
+                                    <div>
+                                        <strong style="color: ${borderCol};">${alert.severity} Alert</strong>
+                                        <p style="font-size: 14px; margin-top: 5px; opacity: 0.8;">${alert.message}</p>
+                                        <div style="font-size: 12px; opacity: 0.5; margin-top: 5px;">📍 ${alert.location || 'System Wide'} • ${new Date(alert.timestamp).toLocaleTimeString()}</div>
                                     </div>
-                                `;
-                            });
-                            container.innerHTML = html;
-                        } else {
-                            container.innerHTML = '<p style="text-align:center; opacity:0.5;">No active alerts at this time.</p>';
-                        }
+                                    <button onclick="deleteAlert(${alert.id})" style="background: none; border: none; cursor: pointer; color: rgba(255,255,255,0.4);" title="Delete Alert">×</button>
+                                </div>`;
+                        });
+                        container.innerHTML = html || '<p style="text-align:center; opacity:0.5;">No active alerts.</p>';
                     }
+                }
+            } catch (err) {
+                if (err.name !== 'AbortError') console.error("Alert Fetch Error:", err);
+            } finally {
+                // Recursive schedule: 30s
+                if (!window.aquaSafeSyncRegistry.alerts?.signal.aborted) {
+                    setTimeout(window.fetchSystemAlerts, 30000);
+                }
+            }
+        };
 
                     // Update Dashboard Summary (Top 3)
                     if(dashboardContainer) {
@@ -3103,6 +3156,10 @@ if ($users_result) {
 
         // 🚨 IoT INTELLIGENCE FEED LOGIC 🚨
         window.fetchIoTFeed = async function() {
+            if (!window.adminSyncAborts) window.adminSyncAborts = {};
+            if (window.adminSyncAborts.iq) window.adminSyncAborts.iq.abort();
+            window.adminSyncAborts.iq = new AbortController();
+
             const container = document.getElementById('iotFeedTimeline');
             if (!container) return;
 
@@ -3110,7 +3167,7 @@ if ($users_result) {
             const type = filterEl ? filterEl.value : 'all';
 
             try {
-                const res = await fetch(`get_notifications.php?type=${encodeURIComponent(type)}&limit=50`);
+                const res = await fetch(`get_notifications.php?type=${encodeURIComponent(type)}&limit=50`, { signal: window.adminSyncAborts.iq.signal });
                 const json = await res.json();
                 
                 if (json.status === 'success') {
@@ -3906,8 +3963,12 @@ if ($users_result) {
         };
 
         window.fetchIQFeed = async function() {
+            if (!window.adminSyncAborts) window.adminSyncAborts = {};
+            if (window.adminSyncAborts.iq) window.adminSyncAborts.iq.abort();
+            window.adminSyncAborts.iq = new AbortController();
+
             try {
-                const res = await fetch('get_notification_feed.php?limit=20');
+                const res = await fetch('get_notification_feed.php?limit=20', { signal: window.adminSyncAborts.iq.signal });
                 const json = await res.json();
                 const container = document.getElementById('iqFeedTimeline');
                 if (!container) return;
@@ -3996,45 +4057,97 @@ if ($users_result) {
             );
         };
 
-        // Initialize IQ Center
+        // Admin Intelligence Center & Helpers
         fetchIQSettings();
-        fetchIQFeed();
         
-        // Initialize
+        // --- ADMIN DASHBOARD SYNC ENGINE (CENTRALIZED) ---
+        // --- ADMIN DASHBOARD SYNC MANAGER (CENTRALIZED) ---
+        if (!window.aquaSafeSyncActive) {
+            window.aquaSafeSyncActive = true;
+            window.aquaSafeSyncRegistry = {
+                flood: null,
+                stats: null,
+                alerts: null,
+                sensors: null,
+                iq: null,
+                helpdesk: null,
+                settings: null
+            };
+
+            window.SyncManager = {
+                abort: function(key) {
+                    if (window.aquaSafeSyncRegistry[key]) {
+                        window.aquaSafeSyncRegistry[key].abort();
+                        window.aquaSafeSyncRegistry[key] = null;
+                    }
+                },
+                getSignal: function(key) {
+                    this.abort(key);
+                    window.aquaSafeSyncRegistry[key] = new AbortController();
+                    return window.aquaSafeSyncRegistry[key].signal;
+                }
+            };
+
+            // Staggered Boot Sequence
+            (function runStaggered() {
+                if (window.aquaSafeSyncBooted) return;
+                window.aquaSafeSyncBooted = true;
+
+                console.log("[SyncManager] Initializing staggered boot sequence...");
+                
+                // 1. Alerts (Critical) - 1.0s delay
+                setTimeout(() => fetchSystemAlerts(), 1000);
+                
+                // 2. Flood Data (IoT) - 3.0s delay
+                setTimeout(() => monitorFloodAlerts(), 3000);
+                
+                // 3. Stats & Sensors - 5.0s delay
+                setTimeout(() => {
+                    pollDashboardData();
+                    fetchSensorStatus();
+                }, 5000);
+
+                // 4. Intelligence & Support - 8.0s delay
+                setTimeout(() => {
+                    if (typeof fetchIoTFeed === 'function') fetchIoTFeed();
+                    fetchHelpdeskRequests();
+                }, 8000);
+            })();
+        }
+
+        // Global Update Time (UI only)
         updateTime();
         setInterval(updateTime, 1000);
-        
-        // Initial data load for dashboard
-        fetchSystemAlerts();
-        fetchSensorStatus();
 
-        // Dynamic Polling System
-        let pollInterval;
-        
-        window.startPolling = function(seconds) {
-            if(pollInterval) clearInterval(pollInterval);
+        // Global manual refresh
+        window.refreshAdminDashboard = function() {
+            console.log("[SyncManager] Manual refresh triggered.");
+            // Abort all in registry
+            Object.keys(window.aquaSafeSyncRegistry).forEach(key => window.SyncManager.abort(key));
             
-            const ms = (seconds && seconds >= 5) ? seconds * 1000 : 10000; // Default to 10s for IoT reqs
-            console.log("[AquaSafe] Starting dashboard polling every", ms/1000, "seconds");
-            
-            pollInterval = setInterval(() => {
-                if (document.getElementById('dashboard').classList.contains('active')) {
-                    fetchSystemAlerts();
-                    fetchSensorStatus();
-                } else if (document.getElementById('alerts').classList.contains('active')) {
-                    fetchSystemAlerts();
-                } else if (document.getElementById('sensors').classList.contains('active')) {
-                    fetchSensorStatus();
-                } else if (document.getElementById('notifications').classList.contains('active')) {
-                    fetchIQFeed();
-                }
-            }, ms);
+            // Immediate re-triggers (Recursive chains will reset)
+            fetchSystemAlerts();
+            setTimeout(monitorFloodAlerts, 500);
+            setTimeout(pollDashboardData, 1000);
+            setTimeout(fetchSensorStatus, 1500);
         };
 
-        // Start with default 30s
-        startPolling(30);
+        // Global Update Time (UI only, no network)
+        updateTime();
+        setInterval(updateTime, 1000);
 
-        // 10. Removed problematic centralized listener - sticking to robust inline calls
+        // Global manual refresh
+        window.refreshAdminDashboard = function() {
+            console.log("[AdminSyncEngine] Manual refresh triggered.");
+            // Abort all pending
+            Object.values(window.adminSyncAborts).forEach(ctrl => ctrl && ctrl.abort());
+            
+            monitorFloodAlerts();
+            setTimeout(pollDashboardData, 500);
+            setTimeout(fetchSystemAlerts, 1000);
+            setTimeout(fetchSensorStatus, 1500);
+        };
+
         // Global Export Diagnostic
         console.log("[AquaSafe] Export Definitions Check:", {
             csv: typeof window.exportReportCSV,
@@ -4042,10 +4155,6 @@ if ($users_result) {
         });
         
         log("AquaSafe Admin System: LOADED SUCCESSFULLY!");
-
-        // Initial check for Help Desk notifications
-        fetchHelpdeskRequests();
-        setInterval(fetchHelpdeskRequests, 60000); // Check every minute
     </script>
     <!-- Admin Reply Modal -->
     <div id="adminReplyModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.7); z-index:9999; justify-content:center; align-items:center; backdrop-filter:blur(5px);">
@@ -4137,19 +4246,20 @@ if ($users_result) {
         let lastSeenEmergencyId = 0;
 
         async function monitorFloodAlerts() {
+            const signal = window.SyncManager.getSignal('flood');
+            
             try {
-                const res  = await fetch('get_flood_data.php?_t=' + Date.now());
+                const res  = await fetch('get_flood_data.php?_t=' + Date.now(), { signal: signal });
                 const json = await res.json();
 
                 if (json.status !== 'success') return;
 
-                const history = json.history || [];   // array, oldest → newest
+                const history = json.history || [];
                 const latest  = json.latest;
                 if (!latest) return;
-
+                // ... rest of monitorFloodAlerts logic ...
                 const latestId = parseInt(latest.id);
 
-                // ── 1. Update the Live Chart with real sensor data ──
                 if (history.length > 0) {
                     const labels = history.map(r => {
                         const ts = r.timestamp || r.created_at.replace(' ', 'T');
@@ -4162,79 +4272,36 @@ if ($users_result) {
                         r.status === 'WARNING'  ? '#f1c40f' : '#2ecc71'
                     );
 
-                    // A. Update the Report Tab Chart (floodChart) if exists
                     if (typeof floodChart !== 'undefined' && floodChart) {
-                        floodChart.data.labels                              = labels;
-                        floodChart.data.datasets[0].data                    = dataPoints;
-                        floodChart.data.datasets[0].label                   = 'Water Level (ft)';
-                        floodChart.data.datasets[0].pointBackgroundColor    = pointColors;
-                        floodChart.data.datasets[0].pointRadius             = 4;
-                        floodChart.options.scales.y.max                     = 25; 
-                        floodChart.options.scales.y.title                   = { display: true, text: 'Level (ft)', color: 'rgba(255,255,255,0.5)' };
+                        floodChart.data.labels = labels;
+                        floodChart.data.datasets[0].data = dataPoints;
+                        floodChart.data.datasets[0].pointBackgroundColor = pointColors;
                         floodChart.update('none');
-                    }
-
-                    // B. Sync with the Dashboard ChartDataStore (for Churakullam, Kakkikavala, Nellimala)
-                    ['Churakullam', 'Kakkikavala', 'Nellimala'].forEach(area => {
-                        if (chartDataStore[area]) {
-                            chartDataStore[area].labels = labels;
-                            chartDataStore[area].data   = dataPoints;
-                        }
-                    });
-
-                    // C. Refresh the Dashboard Chart (waterChart) if viewing an IoT area
-                    if (typeof waterChart !== 'undefined' && waterChart && ['Churakullam', 'Kakkikavala', 'Nellimala'].includes(currentArea)) {
-                        waterChart.data.labels = labels;
-                        waterChart.data.datasets[0].data = dataPoints;
-                        // Use status colors for points on dashboard too
-                        waterChart.data.datasets[0].pointBackgroundColor = pointColors;
-                        waterChart.options.scales.y.max = 25;
-                        waterChart.update('none');
                     }
                 }
 
-                // ── 2. Only popup for NEW CRITICAL alerts (not every reading) ──
                 if (latestId > lastIoTAlertId) {
                     if (lastIoTAlertId !== 0 && latest.status === 'CRITICAL') {
-                        window.showNotification(
-                            '🚨 CRITICAL FLOOD ALERT! Water level: ' + parseFloat(latest.level).toFixed(2) + ' ft',
-                            'error'
-                        );
+                        window.showNotification('🚨 CRITICAL FLOOD ALERT: ' + latest.level + ' ft', 'error');
                     }
                     lastIoTAlertId = latestId;
                 }
-
-                // ── 2.5 Handle Emergency Location signals ──
-                if (json.emergency_signals && json.emergency_signals.length > 0) {
-                    const latestEmergency = json.emergency_signals[0];
-                    const emId = parseInt(latestEmergency.id);
-                    if (emId > lastSeenEmergencyId) {
-                        if (lastSeenEmergencyId !== 0) {
-                            // Trigger the sirens and visual alarm for new location shares
-                            if (typeof playEmergencyAlarm === 'function') {
-                                playEmergencyAlarm("SOS: User shared location at " + latestEmergency.latitude.toFixed(4) + ", " + latestEmergency.longitude.toFixed(4), 'SOS_' + emId, true);
-                            }
-                        }
-                        lastSeenEmergencyId = emId;
-                    }
-                }
-
-                // ── 3. Update the Live Map markers ──
-                if (typeof refreshMapMarkers === 'function' && document.getElementById('map').classList.contains('active')) {
-                    refreshMapMarkers();
-                }
-
             } catch(e) {
-                console.warn('IoT Poll Error:', e);
+                if (e.name !== 'AbortError') console.warn('IoT Poll Error:', e);
+            } finally {
+                // Recursive schedule: 15s
+                if (!window.aquaSafeSyncRegistry.flood?.signal.aborted) {
+                    setTimeout(monitorFloodAlerts, 15000);
+                }
             }
         }
 
         // Initialize Lucide Icons on Load
         if(window.lucide) lucide.createIcons();
 
-        // Start Polling
-        monitorFloodAlerts();
-        setInterval(monitorFloodAlerts, 5000);
+        // Start Polling (Managed by AdminSyncEngine)
+        // monitorFloodAlerts();
+        // setInterval(monitorFloodAlerts, 5000);
 
 
         // --- CENSUS UPLOAD LOGIC ---

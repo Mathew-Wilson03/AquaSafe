@@ -36,9 +36,11 @@ if ($action === 'fetch_sensors') {
 }
 
 if ($action === 'broadcast') {
+    require_once 'alert_utils.php';
+    
     $severity = $_POST['severity'] ?? 'Info';
     $message = $_POST['message'] ?? '';
-    // Map 'All' to 'System Wide' for consistency if needed, but the filter now handles 'All' too
+    // Map 'All' to 'System Wide' for consistency
     $location = $_POST['location'] ?? 'System Wide';
     if ($location === 'All') $location = 'System Wide'; 
 
@@ -47,9 +49,18 @@ if ($action === 'broadcast') {
         exit;
     }
 
-    $sql = "INSERT INTO sensor_alerts (severity, message, location, alert_type) VALUES ('$severity', '$message', '$location', 'Admin')";
-    if (mysqli_query($link, $sql)) {
-        echo json_encode(['status' => 'success', 'message' => 'Alert broadcasted successfully']);
+    // 1. Save to Database using Prepared Statement
+    $stmt = mysqli_prepare($link, "INSERT INTO sensor_alerts (severity, message, location, alert_type) VALUES (?, ?, ?, 'Admin')");
+    mysqli_stmt_bind_param($stmt, "sss", $severity, $message, $location);
+    
+    if (mysqli_stmt_execute($stmt)) {
+        mysqli_stmt_close($stmt);
+        
+        // 2. Trigger non-blocking email broadcast if enabled
+        // sendBroadcast now handles background processing and logging.
+        sendBroadcast($severity, $location, $message, $link);
+        
+        echo json_encode(['status' => 'success', 'message' => 'Alert broadcasted and scheduled for delivery']);
     } else {
         echo json_encode(['status' => 'error', 'message' => 'Failed to broadcast: ' . mysqli_error($link)]);
     }

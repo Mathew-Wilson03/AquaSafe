@@ -1,5 +1,8 @@
 <?php
 header('Content-Type: application/json');
+// Dashboard stats change at most every IoT push; 15 s cache is safe and saves
+// a full Railway DB round-trip on every rapid browser refresh.
+header('Cache-Control: public, max-age=15, stale-while-revalidate=5');
 require_once 'config.php';
 
 // Force UTC for API consistency
@@ -15,16 +18,15 @@ $alerts_query = "SELECT COUNT(*) as total FROM sensor_alerts WHERE DATE(timestam
 $alerts_result = mysqli_query($link, $alerts_query);
 $response['data']['total_alerts_today'] = mysqli_fetch_assoc($alerts_result)['total'] ?? 0;
 
-// 2. Latest Alert Message (with Location)
-$latest_alert_query = "
-    SELECT a.message, a.severity, a.timestamp, s.location_name as location 
-    FROM sensor_alerts a 
-    LEFT JOIN sensor_status s ON (a.message LIKE CONCAT('%', s.sensor_id, '%') OR a.message LIKE CONCAT('%', s.location_name, '%'))
-    ORDER BY a.timestamp DESC LIMIT 1
-";
+// 2. Latest Alert Message
+//    sensor_alerts already has a `location` column — no JOIN needed.
+$latest_alert_query = "SELECT message, severity, timestamp, location
+    FROM sensor_alerts
+    ORDER BY timestamp DESC LIMIT 1";
 $latest_alert_result = mysqli_query($link, $latest_alert_query);
-$latest_alert = mysqli_fetch_assoc($latest_alert_result) ?: ['message' => 'No recent alerts', 'severity' => 'Safe', 'timestamp' => null, 'location' => 'N/A'];
-if($latest_alert['timestamp']) $latest_alert['timestamp'] .= 'Z';
+$latest_alert = mysqli_fetch_assoc($latest_alert_result) 
+    ?: ['message' => 'No recent alerts', 'severity' => 'Safe', 'timestamp' => null, 'location' => 'N/A'];
+if ($latest_alert['timestamp']) $latest_alert['timestamp'] .= 'Z';
 $response['data']['latest_alert'] = $latest_alert;
 
 // 3. Flood Risk Level (Based on latest sensor reading)

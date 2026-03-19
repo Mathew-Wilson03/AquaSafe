@@ -1,0 +1,12 @@
+--- ALERT: 2026-03-12 04:50:18 ---
+Subject: ⚠️ Critical Alert: System Wide
+Recipients: abin@gmail.com, admin1@aquasafe.com, admin2@aquasafe.com, admin@aquasafe.com, agnussabu2028@mca.ajce.in, akash@gmail.com, albinsunny0420@gmail.com, ardrasnair2028@mca.ajce.in, delvinvarghese2028@mca.ajce.in, ebanabrahamsaji2028@mca.ajce.in, kevindaniel2028@mca.ajce.in, manoj@gmail.com, mathew.akashwillson@gmail.com, mathewwilson2028@mca.ajce.in, sharonshibupandakasalayil2028@mca.ajce.in, test_7mfv82yz@example.com, test_98q9kamc@example.com, test_e15vcu5o@example.com, test_ea9mc4a5@example.com, test_fu0t7gx0@example.com, test_jl97kv3f@example.com, test_mviwjkii@example.com, test_n25lq4tx@example.com, test_z92qsscj@example.com, alice@example.com, bob@example.com, Daily Summary, ebanabrahansaji2028@mca.ajce.in, jane.smith@example.com, jane@example.com, john.doe@example.com, john@example.com
+Body: CRITICAL: Flood Bridge test signal active. Timestamp: 2026-03-12 04:50:17 [TEST_BRIDGE]
+--------------------------------------
+
+--- ALERT: 2026-03-12 04:50:53 ---
+Subject: ⚠️ Critical Alert: System Wide
+Recipients: abin@gmail.com, admin1@aquasafe.com, admin2@aquasafe.com, admin@aquasafe.com, agnussabu2028@mca.ajce.in, akash@gmail.com, albinsunny0420@gmail.com, ardrasnair2028@mca.ajce.in, delvinvarghese2028@mca.ajce.in, ebanabrahamsaji2028@mca.ajce.in, kevindaniel2028@mca.ajce.in, manoj@gmail.com, mathew.akashwillson@gmail.com, mathewwilson2028@mca.ajce.in, sharonshibupandakasalayil2028@mca.ajce.in, test_7mfv82yz@example.com, test_98q9kamc@example.com, test_e15vcu5o@example.com, test_ea9mc4a5@example.com, test_fu0t7gx0@example.com, test_jl97kv3f@example.com, test_mviwjkii@example.com, test_n25lq4tx@example.com, test_z92qsscj@example.com, alice@example.com, bob@example.com, Daily Summary, ebanabrahansaji2028@mca.ajce.in, jane.smith@example.com, jane@example.com, john.doe@example.com, john@example.com
+Body: CRITICAL: Flood Bridge test signal active. Timestamp: 2026-03-12 04:50:51 [TEST_BRIDGE]
+--------------------------------------
+

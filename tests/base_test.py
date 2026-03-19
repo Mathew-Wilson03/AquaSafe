@@ -9,8 +9,8 @@ import string
 
 class AquaSafeBaseTest(unittest.TestCase):
     driver = None
-    base_url = "http://localhost:8000"
-    artifact_dir = r"C:\Users\mathe\.gemini\antigravity\brain\f1a2d25b-3e23-4d22-99c2-88063e4aeb5b"
+    base_url = "https://aquasafe-production-703c.up.railway.app"
+    artifact_dir = r"C:\Users\mathe\.gemini\antigravity\brain\1e8b2663-1195-4109-9191-e6835c21e35a"
     
     # Shared test data (static to persist across files if needed, or re-generated)
     test_email = f"test_{''.join(random.choices(string.ascii_lowercase + string.digits, k=8))}@example.com"

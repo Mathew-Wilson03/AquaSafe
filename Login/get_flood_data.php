@@ -19,6 +19,9 @@
  */
 
 header('Content-Type: application/json');
+// Allow shared caches (CDN / browser) to reuse this response for 10 seconds.
+// Sensor data changes no faster than the IoT push interval, so this is safe.
+header('Cache-Control: public, max-age=10, stale-while-revalidate=5');
 require_once 'config.php';
 
 if (!$link) {
@@ -30,8 +33,10 @@ if (!$link) {
 // Force UTC for API consistency
 date_default_timezone_set('UTC');
 
-// -- 1. Get the single latest reading --
-$latest_result = mysqli_query($link, "SELECT * FROM flood_data ORDER BY created_at DESC LIMIT 1");
+// -- 1. Get the single latest reading (explicit columns — no SELECT *) --
+$latest_result = mysqli_query($link,
+    "SELECT id, level, status, location, created_at FROM flood_data ORDER BY created_at DESC LIMIT 1"
+);
 
 if (!$latest_result || mysqli_num_rows($latest_result) === 0) {
     echo json_encode(['status' => 'error', 'message' => 'No flood data available yet.']);
@@ -43,8 +48,10 @@ if($latest) {
     $latest['timestamp'] = $latest['created_at'] . 'Z';
 }
 
-// -- 2. Get last 24 readings for the trend chart --
-$history_result = mysqli_query($link, "SELECT level, status, created_at FROM flood_data ORDER BY created_at DESC LIMIT 24");
+// -- 2. Get last 24 readings for the trend chart (explicit columns) --
+$history_result = mysqli_query($link,
+    "SELECT level, status, location, created_at FROM flood_data ORDER BY created_at DESC LIMIT 24"
+);
 $history = [];
 while ($row = mysqli_fetch_assoc($history_result)) {
     $row['timestamp'] = $row['created_at'] . 'Z';

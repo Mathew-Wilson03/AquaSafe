@@ -44,55 +44,26 @@ if($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['send_link_btn'])){
                     $path = dirname($_SERVER['PHP_SELF']); // /AquaSafe/Login
                     $resetLink = "$protocol://$host$path/reset_password.php?token=$token";
                     
-                    // 5. Send Email via PHPMailer (Gmail SMTP)
-                    // Load Composer's autoloader
-                    require 'vendor/autoload.php';
-                    
-                    $mailSent = false;
-                    $mailError = '';
-
-                    try {
-                        $mail = new PHPMailer\PHPMailer\PHPMailer(true);
-
-                        // Server settings
-                        $mail->isSMTP();
-                        $mail->Host       = SMTP_HOST;
-                        $mail->SMTPAuth   = true;
-                        $mail->Username   = SMTP_USER;
-                        $mail->Password   = SMTP_PASS;
-                        $mail->SMTPSecure = (SMTP_PORT == 465) ? PHPMailer\PHPMailer\PHPMailer::ENCRYPTION_SMTPS : PHPMailer\PHPMailer\PHPMailer::ENCRYPTION_STARTTLS;
-                        $mail->Port       = SMTP_PORT;
-
-                        // Recipients
-                        $mail->setFrom('mathewwilson2028@mca.ajce.in', 'AquaSafe Support');
-                        $mail->addAddress($email);
-
-                        // Content
-                        $mail->isHTML(true);
-                        $mail->Subject = 'Reset Your Password - AquaSafe';
-                        $mail->Body    = "
-                            <div style='font-family: sans-serif; padding: 20px; background: #f4f4f4;'>
-                                <div style='max-width: 600px; margin: 0 auto; background: white; padding: 30px; border-radius: 10px; box-shadow: 0 2px 5px rgba(0,0,0,0.1);'>
-                                    <h2 style='color: #4ab5c4; text-align: center;'>Reset Password</h2>
-                                    <p>Hello,</p>
-                                    <p>We received a request to reset your password. Click the button below to proceed:</p>
-                                    <div style='text-align: center; margin: 30px 0;'>
-                                        <a href='$resetLink' style='background: #4ab5c4; color: white; padding: 12px 25px; text-decoration: none; border-radius: 5px; font-weight: bold;'>Reset Password</a>
-                                    </div>
-                                    <p style='color: #666; font-size: 13px;'>If the button doesn't work, copy this link:<br>$resetLink</p>
-                                    <p>This link expires in 15 minutes.</p>
+                    // 5. Send Email via MailHelper
+                    require_once 'MailHelper.php';
+                    $subject = 'Reset Your Password - AquaSafe';
+                    $body = "
+                        <div style='font-family: sans-serif; padding: 20px; background: #f4f4f4;'>
+                            <div style='max-width: 600px; margin: 0 auto; background: white; padding: 30px; border-radius: 10px; box-shadow: 0 2px 5px rgba(0,0,0,0.1);'>
+                                <h2 style='color: #4ab5c4; text-align: center;'>Reset Password</h2>
+                                <p>Hello,</p>
+                                <p>We received a request to reset your password. Click the button below to proceed:</p>
+                                <div style='text-align: center; margin: 30px 0;'>
+                                    <a href='$resetLink' style='background: #4ab5c4; color: white; padding: 12px 25px; text-decoration: none; border-radius: 5px; font-weight: bold;'>Reset Password</a>
                                 </div>
+                                <p style='color: #666; font-size: 13px;'>If the button doesn't work, copy this link:<br>$resetLink</p>
+                                <p>This link expires in 15 minutes.</p>
                             </div>
-                        ";
-                        $mail->AltBody = "Click here to reset your password: $resetLink (Expires in 15 mins)";
-
-                        $mail->send();
-                        $mailSent = true;
-
-                    } catch (Exception $e) {
-                         // Mail failed - we catch it so we can still log it for localhost testing
-                         $mailError = "Message could not be sent. Mailer Error: {$mail->ErrorInfo}";
-                    }
+                        </div>
+                    ";
+                    
+                    $mailSent = MailHelper::send($email, $subject, $body);
+                    $mailError = $mailSent ? '' : 'Failed to send via MailHelper';
                     
                     // 6. LOGGING (Backup & Localhost Verification)
                     $logFile = 'email_log.txt';

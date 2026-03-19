@@ -11,6 +11,18 @@ if (session_status() === PHP_SESSION_NONE) {
 // Force UTC for API consistency
 date_default_timezone_set('UTC');
 
+// ETag: invalidates every 10 seconds per user — avoids re-fetching unchanged data
+// on every poll while still staying within the 25-second JS interval.
+$etag_user = (int)($_SESSION['id'] ?? 0);
+$etag = '"' . md5($etag_user . floor(time() / 10)) . '"';
+header('ETag: ' . $etag);
+header('Cache-Control: private, no-cache'); // private: only browser caches, not CDN
+if (isset($_SERVER['HTTP_IF_NONE_MATCH']) && $_SERVER['HTTP_IF_NONE_MATCH'] === $etag) {
+    ob_end_clean();
+    http_response_code(304);
+    exit;
+}
+
 if (!isset($_SESSION['email'])) {
     ob_end_clean();
     echo json_encode(['status' => 'error', 'message' => 'Unauthorized']);

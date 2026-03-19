@@ -41,64 +41,28 @@ if($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['send_otp_btn'])){
                 mysqli_stmt_bind_param($ustmt, "ss", $otp, $email); // Removed expiry param, using SQL function
                 if(mysqli_stmt_execute($ustmt)){
                     
-                    // 1. Send Email via PHPMailer
-                    require 'vendor/autoload.php';
-                    $mailSent = false;
-                    $mailError = '';
-
-                    try {
-                        $mail = new PHPMailer\PHPMailer\PHPMailer(true);
-
-                        // Server settings
-                        $mail->isSMTP();
-                        $mail->Host       = SMTP_HOST;
-                        $mail->SMTPAuth   = true;
-                        $mail->Username   = SMTP_USER;
-                        $mail->Password   = SMTP_PASS;
-                        $mail->SMTPSecure = (SMTP_PORT == 465) ? PHPMailer\PHPMailer\PHPMailer::ENCRYPTION_SMTPS : PHPMailer\PHPMailer\PHPMailer::ENCRYPTION_STARTTLS;
-                        $mail->Port       = SMTP_PORT;
-                        $mail->Timeout    = 20;
-
-                        // Bypass SSL certificate verification (fixes many Azure/hosted issues)
-                        $mail->SMTPOptions = array(
-                            'ssl' => array(
-                                'verify_peer' => false,
-                                'verify_peer_name' => false,
-                                'allow_self_signed' => true
-                            )
-                        );
-
-                        // Recipients
-                        $mail->setFrom(SMTP_FROM_EMAIL, 'AquaSafe Support');
-                        $mail->addAddress($email);
-
-                        // Content
-                        $mail->isHTML(true);
-                        $mail->Subject = 'Your AquaSafe Verification Code';
-                        $mail->Body    = "
-                            <div style='font-family: sans-serif; padding: 20px; background: #f4f4f4;'>
-                                <div style='max-width: 600px; margin: 0 auto; background: white; padding: 30px; border-radius: 10px; box-shadow: 0 2px 5px rgba(0,0,0,0.1);'>
-                                    <h2 style='color: #4ab5c4; text-align: center;'>Verification Code</h2>
-                                    <p>Hello,</p>
-                                    <p>We received a request to reset your password. Use the verification code below to proceed:</p>
-                                    <div style='text-align: center; margin: 30px 0;'>
-                                        <div style='display: inline-block; background: #f0f7f8; color: #3a97a5; padding: 15px 40px; border-radius: 8px; font-size: 32px; font-weight: bold; letter-spacing: 5px; border: 2px dashed #4ab5c4;'>
-                                            $otp
-                                        </div>
+                    // 1. Send Email via MailHelper
+                    require_once 'MailHelper.php';
+                    $subject = 'Your AquaSafe Verification Code';
+                    $body = "
+                        <div style='font-family: sans-serif; padding: 20px; background: #f4f4f4;'>
+                            <div style='max-width: 600px; margin: 0 auto; background: white; padding: 30px; border-radius: 10px; box-shadow: 0 2px 5px rgba(0,0,0,0.1);'>
+                                <h2 style='color: #4ab5c4; text-align: center;'>Verification Code</h2>
+                                <p>Hello,</p>
+                                <p>We received a request to reset your password. Use the verification code below to proceed:</p>
+                                <div style='text-align: center; margin: 30px 0;'>
+                                    <div style='display: inline-block; background: #f0f7f8; color: #3a97a5; padding: 15px 40px; border-radius: 8px; font-size: 32px; font-weight: bold; letter-spacing: 5px; border: 2px dashed #4ab5c4;'>
+                                        $otp
                                     </div>
-                                    <p>This code expires in 24 hours.</p>
-                                    <p style='color: #666; font-size: 13px;'>If you did not request this, please ignore this email.</p>
                                 </div>
+                                <p>This code expires in 24 hours.</p>
+                                <p style='color: #666; font-size: 13px;'>If you did not request this, please ignore this email.</p>
                             </div>
-                        ";
-                        $mail->AltBody = "Your AquaSafe verification code is: $otp (Expires in 24 hours)";
-
-                        $mail->send();
-                        $mailSent = true;
-
-                    } catch (Exception $e) {
-                        $mailError = "SMTP Error: " . $mail->ErrorInfo;
-                    }
+                        </div>
+                    ";
+                    
+                    $mailSent = MailHelper::send($email, $subject, $body);
+                    $mailError = $mailSent ? '' : 'Failed to send via MailHelper';
                     
                     // 2. Local Logging (Fallback for Dev/XAMPP)
                     $logFile = 'email_log.txt';
