@@ -882,7 +882,7 @@ if ($users_result) {
                     if (tabId === 'reports' && typeof window.renderReportCharts === 'function') window.renderReportCharts();
                     if (typeof window.refreshAdminDashboard === 'function') {
                          console.log("[AquaSafe] Triggering background refresh for:", tabId);
-                         // window.refreshAdminDashboard(); // Optional: trigger full refresh
+                         window.refreshAdminDashboard(); // Trigger full refresh
                     }
                 } catch(e) { console.error("switchTab Crisis:", e); }
             };
@@ -4079,9 +4079,11 @@ if ($users_result) {
             
             // Immediate re-triggers (Recursive chains will reset)
             if (typeof fetchSystemAlerts === 'function') fetchSystemAlerts();
-            if (typeof monitorFloodAlerts === 'function') setTimeout(monitorFloodAlerts, 500);
-            if (typeof pollDashboardData === 'function') setTimeout(pollDashboardData, 1000);
-            if (typeof fetchSensorStatus === 'function') setTimeout(fetchSensorStatus, 1500);
+            if (typeof monitorFloodAlerts === 'function') setTimeout(monitorFloodAlerts, 200);
+            if (typeof pollDashboardData === 'function') setTimeout(pollDashboardData, 400);
+            if (typeof fetchSensorStatus === 'function') setTimeout(fetchSensorStatus, 600);
+            if (typeof fetchHelpdeskRequests === 'function') setTimeout(fetchHelpdeskRequests, 800);
+            if (typeof fetchIoTFeed === 'function') setTimeout(fetchIoTFeed, 1000);
         };
 
         // Global Export Diagnostic
