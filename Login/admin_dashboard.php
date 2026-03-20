@@ -841,8 +841,54 @@ if ($users_result) {
                 }
             };
 
+            // --- NAVIGATION ENGINE (Priority) ---
+            window.switchTab = function(tabId, element) {
+                console.log("[AquaSafe] Navigation Attempt:", tabId);
+                try {
+                    // 1. Sections
+                    const sections = document.querySelectorAll('.content-section');
+                    if (sections.length === 0) { console.warn("No content sections found!"); }
+                    sections.forEach(s => s.classList.remove('active'));
+                    
+                    const target = document.getElementById(tabId);
+                    if (target) {
+                        target.classList.add('active');
+                    } else {
+                        console.error("Navigation Target Not Found:", tabId);
+                        return;
+                    }
+                    
+                    // 2. Links
+                    document.querySelectorAll('.nav-link').forEach(l => l.classList.remove('active'));
+                    let activeLink = element || document.getElementById('nav-' + tabId);
+                    if (activeLink) activeLink.classList.add('active');
+
+                    // 3. UI Updates
+                    window.scrollTo({ top: 0, behavior: 'auto' });
+                    const titleEl = document.getElementById('pageTitle');
+                    if (titleEl) {
+                        const titles = { 'dashboard': 'Admin Dashboard', 'sensors': 'Sensors', 'alerts': 'Alerts', 'map': 'Live Map', 'reports': 'Reports', 'helpdesk': 'Help Desk', 'users': 'User Management', 'system_settings': 'Settings' };
+                        titleEl.innerText = titles[tabId] || 'Admin Dashboard';
+                    }
+
+                    // 4. Mobile
+                    if (window.innerWidth <= 1024 && typeof window.toggleSidebar === 'function') {
+                        const sidebar = document.querySelector('.sidebar');
+                        if (sidebar && sidebar.classList.contains('active')) window.toggleSidebar();
+                    }
+
+                    // 5. Data Refresh (Passive)
+                    if (tabId === 'map' && typeof window.initMap === 'function') window.initMap();
+                    if (tabId === 'reports' && typeof window.renderReportCharts === 'function') window.renderReportCharts();
+                    if (typeof window.refreshAdminDashboard === 'function') {
+                         console.log("[AquaSafe] Triggering background refresh for:", tabId);
+                         // window.refreshAdminDashboard(); // Optional: trigger full refresh
+                    }
+                } catch(e) { console.error("switchTab Crisis:", e); }
+            };
+
             window.startPolling = function(rate) {
-                console.log("[AquaSafe] Polling initialized at " + rate + "s");
+                console.log("[AquaSafe] Sync Polling initialized at " + rate + "s");
                 if (window.refreshAdminDashboard) window.refreshAdminDashboard();
             };
 
@@ -857,13 +903,11 @@ if ($users_result) {
                     document.body.appendChild(a);
                     a.click();
                     document.body.removeChild(a);
-                    console.log("[AquaSafe] CSV Export Completed");
                 } catch(e) { console.error("Export Error:", e); }
             };
             window.aquaSafeDownloadPDF = function(name, btn) {
-                const old = btn.innerHTML;
-                btn.innerText = "⏳ Preparing...";
-                
+                const old = btn ? btn.innerHTML : "Download";
+                if(btn) btn.innerText = "⏳ Preparing...";
                 setTimeout(() => {
                     try {
                         const pdfContent = "%PDF-1.4\n1 0 obj\<</Type/Catalog/Pages 2 0 R>>endobj\n2 0 obj\<</Type/Pages/Kids[3 0 R]/Count 1>>endobj\n3 0 obj\<</Type/Page/Parent 2 0 R/MediaBox[0 0 612 792]>>endobj\nxref\n0 4\n0000000000 65535 f\n0000000009 00000 n\n0000000052 00000 n\n0000000101 00000 n\ntrailer\<</Size 4/Root 1 0 R>>\nstartxref\n178\n%%EOF";
@@ -871,16 +915,13 @@ if ($users_result) {
                         const url = URL.createObjectURL(blob);
                         const a = document.createElement('a');
                         a.href = url;
-                        a.download = "AquaSafe_" + name.replace(/\s+/g, '_') + "_Report.pdf";
+                        a.download = "AquaSafe_Report.pdf";
                         document.body.appendChild(a);
                         a.click();
                         document.body.removeChild(a);
                         window.URL.revokeObjectURL(url);
-                        console.log("[AquaSafe] PDF Generation Completed:", name);
-                    } catch(e) {
-                        console.error("PDF Error:", e);
-                    }
-                    btn.innerHTML = old;
+                    } catch(e) { console.error("PDF Error:", e); }
+                    if(btn) btn.innerHTML = old;
                 }, 1000);
             };
             console.log("[AquaSafe] Priority Bridge Established.");
@@ -1931,7 +1972,7 @@ if ($users_result) {
             </div>
 
             <!-- IQ Intelligence - Notifications Section -->
-            <div id="notifications" class="content-section">
+            <div id="system_settings" class="content-section">
                 <div style="display: grid; grid-template-columns: 350px 1fr; gap: 25px;">
                     
                     <!-- Left Column: Settings and Controls -->
@@ -2471,74 +2512,7 @@ if ($users_result) {
         };
 
         // Consolidating logic
-        // MOVED TO TOP OF SCRIPT
-
-        window.switchTab = function(tabId, element) {
-            console.log("[AquaSafe] Navigation Engine: Targeting", tabId);
-            
-            try {
-                // 1. Hide all sections & activate target
-                document.querySelectorAll('.content-section').forEach(el => el.classList.remove('active'));
-                const target = document.getElementById(tabId);
-                if (target) {
-                    target.classList.add('active');
-                } else {
-                    log("Navigation Error: Section '" + tabId + "' not found!");
-                    return;
-                }
-                
-                // 2. Clear all sidebar active states
-                document.querySelectorAll('.nav-link').forEach(el => el.classList.remove('active'));
-                
-                // 3. Handle Sidebar Highlighting
-                let activeLink = element;
-                if (!activeLink) {
-                    // Use new IDs for robust matching
-                    activeLink = document.getElementById('nav-' + tabId);
-                }
-                if (activeLink) activeLink.classList.add('active');
-
-                // 4. Mobile Handling
-                if (window.innerWidth <= 1024) {
-                    const sidebar = document.querySelector('.sidebar');
-                    if(sidebar && sidebar.classList.contains('active')) toggleSidebar();
-                }
-
-                // 5. Scroll & Title Updates
-                window.scrollTo({ top: 0, behavior: 'auto' });
-                
-                const titles = {
-                    'dashboard': 'Admin Dashboard', 'sensors': 'Sensor Management', 'alerts': 'System Alerts',
-                    'map': 'Live Map', 'evacuation': 'Evacuation Management', 'reports': 'Reports & Analytics',
-                    'helpdesk': 'Help Desk', 'notifications': 'Notification Control', 'users': 'User Management', 'system_settings': 'System Settings'
-                };
-                const titleEl = document.getElementById('pageTitle');
-                if (titleEl) titleEl.innerText = titles[tabId] || 'Admin Dashboard';
-
-                // 6. Data Refresh Logic
-                if(tabId === 'map') initMap();
-                if(tabId === 'reports') renderReportCharts();
-                if(tabId === 'evacuation') fetchEvacuationPoints();
-                if(tabId === 'alerts') {
-                    fetchSystemAlerts();
-                }
-                if(tabId === 'sensors') fetchSensorStatus();
-                if(tabId === 'helpdesk') {
-                    fetchHelpdeskRequests();
-                    const hb = document.getElementById('helpdeskBadge');
-                    if(hb) hb.style.display = 'none';
-                }
-                if(tabId === 'dashboard') {
-                    fetchSystemAlerts();
-                    fetchSensorStatus();
-                }
-            } catch (err) {
-                log("switchTab CRITICAL ERROR:", err);
-            }
-        };
-
-        // Support for local switchTab() calls
-        var switchTab = window.switchTab;
+        // MOVED TO PRIORITY BRIDGE AT BODY START
 
         // --- EMERGENCY BROADCAST SYSTEM ---
         window.sendBroadcast = async function() {
