@@ -36,21 +36,21 @@ if ($raw_payload) {
     $v3 = $input['st']  ?? ($input['status'] ?? null);
 }
 
-// Heartbeat for REC-001 (Gateway)
-if ($v1 === 'REC-001' || $v1 === 'GATEWAY') {
-    $updateHeartbeat = mysqli_prepare($link, "UPDATE sensor_status SET last_ping = NOW(), status = 'Active' WHERE sensor_id = 'REC-001'");
-    mysqli_stmt_execute($updateHeartbeat);
-    mysqli_stmt_close($updateHeartbeat);
-    echo json_encode(['status' => 'success', 'recorded' => 'gateway_heartbeat']);
-    exit;
-}
-
 // If we have level and status, record it!
 if ($v2 !== null && $v3 !== null) {
     $level  = (float)$v2;
     $status = strtoupper(trim($v3));
-    $raw_id = (int)$v1;
-    $sensor_id = ($raw_id == 1) ? "SNS-001" : "SNS-" . str_pad($raw_id, 3, '0', STR_PAD_LEFT);
+    $raw_id = (string)$v1; // Cast to string to handle 'REC-001'
+
+    // Handle Receiver/Gateway Heartbeat
+    if ($raw_id === "REC-001" || strtoupper($raw_id) === "GATEWAY" || $raw_id === "0") {
+        mysqli_query($link, "UPDATE sensor_status SET last_ping = NOW(), status = 'Active' WHERE sensor_id = 'REC-001'");
+        echo json_encode(['status' => 'success', 'recorded' => false, 'msg' => 'GATEWAY_PULSE_OK']);
+        exit;
+    }
+
+    $sensor_id = (is_numeric($raw_id) && (int)$raw_id == 1) ? "SNS-001" : 
+                 ((is_numeric($raw_id)) ? "SNS-" . str_pad($raw_id, 3, '0', STR_PAD_LEFT) : $raw_id);
 
     require_once 'notification_logic.php';
     $chkLoc = mysqli_query($link, "SELECT location_name FROM sensor_status WHERE sensor_id = '$sensor_id' LIMIT 1");
@@ -65,7 +65,8 @@ if ($v2 !== null && $v3 !== null) {
     mysqli_stmt_execute($updateStatus);
     mysqli_stmt_close($updateStatus);
 
-    // [New] Relay Logic: Also update the Receiver (Gateway) status when relaying sensor data
+    // FIX: Also update the Receiver (Gateway) status whenever ANY sensor sends data
+    // This confirms the bridge is working.
     mysqli_query($link, "UPDATE sensor_status SET last_ping = NOW(), status = 'Active' WHERE sensor_id = 'REC-001'");
 
     // Insert History

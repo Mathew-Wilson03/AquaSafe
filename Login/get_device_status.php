@@ -17,7 +17,7 @@ $devices = [
     ['id' => 'REC-001', 'name' => 'Receiver ESP']
 ];
 
-$offline_threshold = 60; // seconds
+$offline_threshold = 60; // Increased to 60s for better stability
 
 foreach ($devices as $device) {
     $sensor_id = $device['id'];

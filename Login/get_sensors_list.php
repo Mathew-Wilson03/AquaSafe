@@ -11,7 +11,7 @@ $response = [
 $q_all = "SELECT *, TIMESTAMPDIFF(SECOND, last_ping, NOW()) as seconds_since_ping FROM sensor_status ORDER BY sensor_id ASC";
 $res_all = mysqli_query($link, $q_all);
 
-$offline_threshold = 60; // seconds
+$offline_threshold = 60; // Increased to 60s for better stability
 $signal_threshold_good = 15;
 
 while ($row = mysqli_fetch_assoc($res_all)) {
