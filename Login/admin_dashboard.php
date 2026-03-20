@@ -2900,7 +2900,7 @@ if ($users_result) {
         function playEmergencyAlarm(statusText, alertId = null, shouldSiren = true) {
             // 1. Visual Popup (SweetAlert2) - Independent of Siren
             if(window.Swal) {
-                const currentAlertId = alertId || localStorage.getItem('adminLastAlertId');
+                const currentAlertId = String(alertId || localStorage.getItem('adminLastAlertId') || '');
                 if (window.adminLastSwalId !== currentAlertId) {
                     window.adminLastSwalId = currentAlertId;
                     const isCrit = (statusText || '').toUpperCase().includes('CRITICAL');
@@ -3062,8 +3062,8 @@ if ($users_result) {
                                 // Only trigger the emergency siren if it's a NEW critical alert vs what we last processed
                                 // OR if we just loaded the page and the current state is actively critical and not manually silenced
                                 if (id !== lastProcessedId && id > silencedId) {
-                                    const shouldSiren = (latestAlert.alert_type === 'IoT');
-                                    playEmergencyAlarm(latestAlert.severity + ": " + latestAlert.message, latestAlert.id, shouldSiren);
+                                    // Always play siren for CRITICAL/WARNING regardless of alert_type
+                                    playEmergencyAlarm(latestAlert.severity + ": " + latestAlert.message, latestAlert.id, true);
                                     
                                     localStorage.setItem('adminLastProcessedAlertId', id);
                                 }
@@ -4221,8 +4221,15 @@ if ($users_result) {
                 }
 
                 if (latestId > lastIoTAlertId) {
-                    if (lastIoTAlertId !== 0 && latest.status === 'CRITICAL') {
-                        window.showNotification('🚨 CRITICAL FLOOD ALERT: ' + latest.level + ' ft', 'error');
+                    const iotSev = (latest.status || 'SAFE').toUpperCase();
+                    if (iotSev === 'CRITICAL' || iotSev === 'WARNING') {
+                        // This handles the full popup + siren via the shared alarm function
+                        const iotMsg = iotSev + `: Water at ${latest.level} ft - ${latest.location || 'Sensor Area'}`;
+                        // Use a synthetic alert ID scoped to IoT to avoid deduplication conflicts with DB alerts
+                        const iotAlarmId = 'iot-' + latestId;
+                        if (window.adminLastSwalId !== iotAlarmId) {
+                            playEmergencyAlarm(iotMsg, iotAlarmId, true);
+                        }
                     }
                     lastIoTAlertId = latestId;
                 }

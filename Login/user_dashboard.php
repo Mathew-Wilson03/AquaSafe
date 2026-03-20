@@ -2425,10 +2425,14 @@ if (file_exists($help_file)) {
                                 playAlertSiren(sev);
                                 if (window.Swal) {
                                     Swal.fire({
-                                        toast: true, position: 'top-end', icon: 'warning',
-                                        title: `${sev} ALERT DETECTED`,
-                                        text: latestAlert.message.substring(0, 50) + '...',
-                                        showConfirmButton: false, timer: 7000, timerProgressBar: true
+                                        title: `🚨 ${sev} FLOOD ALERT!`,
+                                        text: latestAlert.message,
+                                        icon: sev === 'CRITICAL' ? 'error' : 'warning',
+                                        confirmButtonText: 'I UNDERSTAND - TAKE ACTION',
+                                        background: '#1e2029',
+                                        color: '#fff',
+                                        confirmButtonColor: '#e74c3c',
+                                        backdrop: sev === 'CRITICAL' ? `rgba(231, 76, 60, 0.6)` : `rgba(241, 196, 15, 0.4)`
                                     });
                                 }
                                 lastProcessedAlertId = latestAlert.id;

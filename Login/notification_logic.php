@@ -104,13 +104,17 @@ function processIoTNotification($link, $sensor_id, $location, $level) {
         mysqli_stmt_close($log_stmt);
 
         // 4. Trigger Alerts via Channels
-        // If it's Warning or Critical, we might want to send external alerts
+        // If it's Warning or Critical, insert into sensor_alerts (read by dashboard for popup/siren)
         if ($new_severity !== 'Safe') {
+            // ✅ KEY FIX: Insert into sensor_alerts so the dashboard polling can detect it
+            $alert_sql = "INSERT INTO sensor_alerts (severity, message, location, alert_type) VALUES (?, ?, ?, 'IoT')";
+            $alert_stmt = mysqli_prepare($link, $alert_sql);
+            mysqli_stmt_bind_param($alert_stmt, "sss", $new_severity, $message, $location);
+            mysqli_stmt_execute($alert_stmt);
+            mysqli_stmt_close($alert_stmt);
+
             // Check delivery channels
             if ($settings['channel_email'] == '1') {
-                // We use sendBroadcast from alert_utils.php but wrap it with channel checks
-                // For now, sendBroadcast handles its own recipient list and levels.
-                // We can extend it or use it as is if it matches requirements.
                 sendBroadcast($link, $location, $message, strtoupper($new_severity), 'IoT');
             }
             
