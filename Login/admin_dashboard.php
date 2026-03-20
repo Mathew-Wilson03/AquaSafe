@@ -829,15 +829,15 @@ if ($users_result) {
     <script>
         (function() {
             // --- SYNC ENGINE (Priority) ---
+            window.aquaSafeSyncRegistry = window.aquaSafeSyncRegistry || {};
             window.SyncManager = {
-                controllers: {},
                 getSignal(key) {
-                    if (this.controllers[key]) this.controllers[key].abort();
-                    this.controllers[key] = new AbortController();
-                    return this.controllers[key].signal;
+                    if (window.aquaSafeSyncRegistry[key]) window.aquaSafeSyncRegistry[key].abort();
+                    window.aquaSafeSyncRegistry[key] = new AbortController();
+                    return window.aquaSafeSyncRegistry[key].signal;
                 },
                 abort(key) {
-                    if (this.controllers[key]) this.controllers[key].abort();
+                    if (window.aquaSafeSyncRegistry[key]) window.aquaSafeSyncRegistry[key].abort();
                 }
             };
 
@@ -943,7 +943,7 @@ if ($users_result) {
                 <li><a href="#" id="nav-evacuation" class="nav-link" onclick="switchTab('evacuation', this)">📍 Evacuation Points</a></li>
                 <li><a href="#" id="nav-reports" class="nav-link" onclick="switchTab('reports', this)">📊 Reports</a></li>
                 <li><a href="#" id="nav-helpdesk" class="nav-link" onclick="switchTab('helpdesk', this)">🆘 Help Desk <span id="helpdeskBadge"></span></a></li>
-                <li><a href="#" id="nav-notifications" class="nav-link" onclick="switchTab('notifications', this)">🔔 Notifications</a></li>
+                <li><a href="#" id="nav-notifications" class="nav-link" onclick="switchTab('system_settings', this)">🔔 Notifications</a></li>
                 <?php if($user_email === SUPER_ADMIN_EMAIL): ?>
                 <li><a href="#" id="nav-users" class="nav-link" onclick="switchTab('users', this)">👥 Manage Users</a></li>
                 <?php endif; ?>
@@ -4035,32 +4035,9 @@ if ($users_result) {
         fetchIQSettings();
         
         // --- ADMIN DASHBOARD SYNC ENGINE (CENTRALIZED) ---
-        // --- ADMIN DASHBOARD SYNC MANAGER (CENTRALIZED) ---
         if (!window.aquaSafeSyncActive) {
             window.aquaSafeSyncActive = true;
-            window.aquaSafeSyncRegistry = {
-                flood: null,
-                stats: null,
-                alerts: null,
-                sensors: null,
-                iq: null,
-                helpdesk: null,
-                settings: null
-            };
-
-            window.SyncManager = {
-                abort: function(key) {
-                    if (window.aquaSafeSyncRegistry[key]) {
-                        window.aquaSafeSyncRegistry[key].abort();
-                        window.aquaSafeSyncRegistry[key] = null;
-                    }
-                },
-                getSignal: function(key) {
-                    this.abort(key);
-                    window.aquaSafeSyncRegistry[key] = new AbortController();
-                    return window.aquaSafeSyncRegistry[key].signal;
-                }
-            };
+            if (!window.aquaSafeSyncRegistry) window.aquaSafeSyncRegistry = {};
 
             // Staggered Boot Sequence
             (function runStaggered() {
@@ -4170,7 +4147,7 @@ if ($users_result) {
                 
                 if(json.success) {
                     window.showNotification(json.message, 'success');
-                    startPolling(parseInt(refresh));
+                    if (typeof window.startPolling === 'function') window.startPolling(parseInt(refresh));
                 } else {
                     window.showNotification("Error: " + json.message, 'error');
                 }
@@ -4192,7 +4169,7 @@ if ($users_result) {
                     if(document.getElementById('refreshRate')) {
                         const rate = s.refresh_rate || '30';
                         document.getElementById('refreshRate').value = rate;
-                        startPolling(parseInt(rate));
+                        if (typeof window.startPolling === 'function') window.startPolling(parseInt(rate));
                     }
                 }
             } catch(e) { console.error("Fetch Settings Error", e); }
