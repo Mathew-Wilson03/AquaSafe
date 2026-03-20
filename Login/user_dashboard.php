@@ -2444,7 +2444,7 @@ if (file_exists($help_file)) {
                     }
 
                     renderAlertTerminal();
-                    updateAlertBadge(rawAlertRegistry.length);
+                    updateAlertBadge(rawAlertRegistry);
                     updateLatestAlertHero(rawAlertRegistry[0]);
                 }
             } catch (e) {
@@ -2458,15 +2458,23 @@ if (file_exists($help_file)) {
             }
         }
 
-        function updateAlertBadge(count) {
+        function updateAlertBadge(alerts) {
             const badge = document.getElementById('alertBadge');
-            if (badge) {
-                if (count > 0) {
-                    badge.textContent = count;
-                    badge.style.display = 'flex';
-                } else {
-                    badge.style.display = 'none';
-                }
+            if (!badge) return;
+            
+            const lastSeenId = parseInt(localStorage.getItem('lastSeenAlertId') || '0');
+            
+            // Count only alerts the user hasn't seen yet (IDs greater than lastSeen)
+            const unseenCount = Array.isArray(alerts)
+                ? alerts.filter(a => parseInt(a.id) > lastSeenId).length
+                : 0;
+
+            if (unseenCount > 0) {
+                badge.textContent = unseenCount;
+                badge.style.display = 'flex';
+            } else {
+                badge.style.display = 'none';
+                badge.textContent = '';
             }
         }
 
