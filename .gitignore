@@ -11,18 +11,7 @@ Login/vendor/
 # Log and debug files
 Login/*.log
 Login/*.txt
-Login/debug_*.php
-Login/check_*.php
-Login/dump_*.php
-Login/test_*.php
-Login/fix_*.php
-Login/create_*.php
-Login/setup_*.php
-Login/patch_*.php
-Login/repair_*.php
-Login/diag_*.php
-Login/full_*.php
-Login/perf_*.php
+Login/schema_audit.log
 
 # Zip archives
 *.zip

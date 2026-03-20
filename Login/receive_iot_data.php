@@ -36,6 +36,15 @@ if ($raw_payload) {
     $v3 = $input['st']  ?? ($input['status'] ?? null);
 }
 
+// Heartbeat for REC-001 (Gateway)
+if ($v1 === 'REC-001' || $v1 === 'GATEWAY') {
+    $updateHeartbeat = mysqli_prepare($link, "UPDATE sensor_status SET last_ping = NOW(), status = 'Active' WHERE sensor_id = 'REC-001'");
+    mysqli_stmt_execute($updateHeartbeat);
+    mysqli_stmt_close($updateHeartbeat);
+    echo json_encode(['status' => 'success', 'recorded' => 'gateway_heartbeat']);
+    exit;
+}
+
 // If we have level and status, record it!
 if ($v2 !== null && $v3 !== null) {
     $level  = (float)$v2;
@@ -55,6 +64,9 @@ if ($v2 !== null && $v3 !== null) {
     mysqli_stmt_bind_param($updateStatus, "dss", $level, $status, $sensor_id);
     mysqli_stmt_execute($updateStatus);
     mysqli_stmt_close($updateStatus);
+
+    // [New] Relay Logic: Also update the Receiver (Gateway) status when relaying sensor data
+    mysqli_query($link, "UPDATE sensor_status SET last_ping = NOW(), status = 'Active' WHERE sensor_id = 'REC-001'");
 
     // Insert History
     $stmt = mysqli_prepare($link, "INSERT INTO flood_data (sensor_id, location, level, status) VALUES (?, ?, ?, ?)");

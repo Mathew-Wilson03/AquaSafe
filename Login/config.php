@@ -1,4 +1,8 @@
 <?php
+// CRITICAL: TEMPORARY ERROR REPORTING FOR DEBUGGING
+error_reporting(E_ALL);
+ini_set('display_errors', 1);
+
 // Ensure session starts without warning
 if (session_status() === PHP_SESSION_NONE && !headers_sent()) {
     session_start();
@@ -6,12 +10,7 @@ if (session_status() === PHP_SESSION_NONE && !headers_sent()) {
 
 // 2. Robust environment variable fetcher
 function get_env_var($key, $defaultValue = '') {
-    // 1. Check direct key (e.g. DB_HOST) in all common sources
-    if (isset($_SERVER[$key]) && $_SERVER[$key] !== '') return $_SERVER[$key];
-    if (isset($_ENV[$key]) && $_ENV[$key] !== '') return $_ENV[$key];
-    if (getenv($key) !== false && getenv($key) !== '') return getenv($key);
-    
-    // 2. Railway Mapping (If the user hasn't manually set DB_HOST, use MYSQLHOST)
+    // 1. Railway Internal Mapping (Highest Priority for DB performance on Railway)
     $railway_map = [
         'DB_HOST'     => 'MYSQLHOST',
         'DB_USERNAME' => 'MYSQLUSER',
@@ -27,6 +26,11 @@ function get_env_var($key, $defaultValue = '') {
         if (getenv($rk) !== false && getenv($rk) !== '') return getenv($rk);
     }
 
+    // 2. Check direct key (e.g. DB_HOST from .env)
+    if (isset($_SERVER[$key]) && $_SERVER[$key] !== '') return $_SERVER[$key];
+    if (isset($_ENV[$key]) && $_ENV[$key] !== '') return $_ENV[$key];
+    if (getenv($key) !== false && getenv($key) !== '') return getenv($key);
+    
     // 3. Azure Prefix Mapping
     $azure_key = 'APPSETTING_' . $key;
     if (isset($_SERVER[$azure_key]) && $_SERVER[$azure_key] !== '') return $_SERVER[$azure_key];
@@ -62,20 +66,21 @@ try {
 
     $link = mysqli_init();
 
-    // Timeout: 8s gives Railway containers time to wake on a warm request
-    mysqli_options($link, MYSQLI_OPT_CONNECT_TIMEOUT, 8);
-    // Return integers/floats as native PHP types (avoids string casts in PHP)
+    // Timeout: 2s (EMERGENCY REDUCTION) to release workers faster during DB latency
+    mysqli_options($link, MYSQLI_OPT_CONNECT_TIMEOUT, 2);
+    // Return integers/floats as native PHP types
     mysqli_options($link, MYSQLI_OPT_INT_AND_FLOAT_NATIVE, 1);
 
-    $is_azure   = strpos(DB_SERVER, '.azure.com')    !== false;
-    $is_railway = strpos(DB_SERVER, '.up.railway.app') !== false;
+    // Robust environment detection
+    $is_azure   = (getenv('WEBSITE_SITE_NAME') !== false);
+    $is_railway = (getenv('RAILWAY_ENVIRONMENT') !== false || getenv('RAILWAY_PROJECT_ID') !== false);
 
-    // Use persistent connection prefix 'p:' — reuses the TCP/SSL socket across
-    // PHP-FPM worker restarts instead of handshaking on every request.
-    $host_prefix = ($is_azure || $is_railway) ? 'p:' : 'p:';
+    // DISABLE PERSISTENT CONNECTIONS ('p:') 
+    // This resolves the "still loading" hang issue caused by connection pool exhaustion/locks
+    $host_prefix = ''; 
     $connect_host = $host_prefix . DB_SERVER;
 
-    if ($is_azure || $is_railway) {
+    if ($is_azure || $is_railway || (int)DB_PORT === 37624) {
         mysqli_options($link, MYSQLI_OPT_SSL_VERIFY_SERVER_CERT, false);
         mysqli_real_connect($link, $connect_host, DB_USERNAME, DB_PASSWORD, DB_NAME, (int)DB_PORT, null, MYSQLI_CLIENT_SSL);
     } else {

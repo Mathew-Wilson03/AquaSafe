@@ -16,4 +16,4 @@ nixPkgs = [
 cmds = ["if [ -d Login ]; then cd Login && composer install --no-dev --optimize-autoloader --no-interaction; fi"]
 
 [start]
-cmd = "PHP_CLI_SERVER_WORKERS=10 php -S 0.0.0.0:$PORT -d opcache.enable=1 -d opcache.enable_cli=1"
+cmd = "PHP_CLI_SERVER_WORKERS=50 php -S 0.0.0.0:$PORT -d opcache.enable=1 -d opcache.enable_cli=1"

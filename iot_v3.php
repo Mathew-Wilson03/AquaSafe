@@ -47,28 +47,32 @@ if ($raw_data) {
         $locRow = mysqli_fetch_assoc($chkLoc);
         $location_name = $locRow ? $locRow['location_name'] : "Unknown Cluster";
 
-        processIoTNotification($link, $sensor_id, $location_name, $level);
-
-        // Update Real-time
+        // 2. Update Real-time Status
         $activeStatus = 'Active';
         $updateStatus = mysqli_prepare($link, "UPDATE sensor_status SET water_level = ?, status = ?, last_ping = NOW() WHERE sensor_id = ?");
         mysqli_stmt_bind_param($updateStatus, "dss", $level, $activeStatus, $sensor_id);
         mysqli_stmt_execute($updateStatus);
         mysqli_stmt_close($updateStatus);
 
-        // EXTRA: Update Gateway Status (REC-001) because it is the one relaying this data
+        // 3. Update Gateway Status (REC-001) as it relays this data
         mysqli_query($link, "UPDATE sensor_status SET last_ping = NOW(), status = 'Active' WHERE sensor_id = 'REC-001'");
 
-        // Insert History
+        // 4. Insert into Flood Data History
         $stmt = mysqli_prepare($link, "INSERT INTO flood_data (sensor_id, location, level, status) VALUES (?, ?, ?, ?)");
         mysqli_stmt_bind_param($stmt, "ssds", $sensor_id, $location_name, $level, $status);
+        $insertSuccess = mysqli_stmt_execute($stmt);
+        mysqli_stmt_close($stmt);
 
-        if (mysqli_stmt_execute($stmt)) {
+        // 5. Process Notifications (Intelligence Center) AFTER recording
+        // This ensures slow SMTP won't delay the IoT device response.
+        require_once 'Login/notification_logic.php';
+        processIoTNotification($link, $sensor_id, $location_name, $level);
+
+        if ($insertSuccess) {
             echo json_encode(['status' => 'success', 'recorded' => true, 'lvl' => $level, 'st' => $status]);
         } else {
-            echo json_encode(['status' => 'error', 'msg' => 'DB ERR']);
+            echo json_encode(['status' => 'error', 'msg' => 'DB_INSERT_FAIL']);
         }
-        mysqli_stmt_close($stmt);
         exit;
     }
 }
