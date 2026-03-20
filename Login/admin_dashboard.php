@@ -1371,6 +1371,8 @@ if ($users_result) {
                                         } else {
                                             healthEl.innerText = "Critical";
                                             healthEl.className = "status-value danger-text";
+                                        }
+                                    }
                                 }
                             } catch(e) {
                                 if (e.name !== 'AbortError') console.error("[AquaSafe] Sensor Table Poller Error:", e);
@@ -3089,16 +3091,6 @@ if ($users_result) {
                         });
                         container.innerHTML = html || '<p style="text-align:center; opacity:0.5;">No active alerts.</p>';
                     }
-                }
-            } catch (err) {
-                if (err.name !== 'AbortError') console.error("Alert Fetch Error:", err);
-            } finally {
-                // Recursive schedule: 30s
-                if (!window.aquaSafeSyncRegistry.alerts?.signal.aborted) {
-                    setTimeout(window.fetchSystemAlerts, 30000);
-                }
-            }
-        };
 
                     // Update Dashboard Summary (Top 3)
                     if(dashboardContainer) {
@@ -3123,7 +3115,12 @@ if ($users_result) {
                     }
                 }
             } catch (err) {
-                log("Alert Fetch Error:", err);
+                if (err.name !== 'AbortError') console.error("Alert Fetch Error:", err);
+            } finally {
+                // Recursive schedule: 30s
+                if (!window.aquaSafeSyncRegistry.alerts?.signal.aborted) {
+                    setTimeout(window.fetchSystemAlerts, 30000);
+                }
             }
         };
 
