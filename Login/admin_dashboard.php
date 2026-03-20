@@ -880,6 +880,7 @@ if ($users_result) {
                     // 5. Data Refresh (Passive)
                     if (tabId === 'map' && typeof window.initMap === 'function') window.initMap();
                     if (tabId === 'reports' && typeof window.renderReportCharts === 'function') window.renderReportCharts();
+                    if (tabId === 'evacuation' && typeof window.fetchEvacuationPoints === 'function') window.fetchEvacuationPoints();
                     if (typeof window.refreshAdminDashboard === 'function') {
                          console.log("[AquaSafe] Triggering background refresh for:", tabId);
                          window.refreshAdminDashboard(); // Trigger full refresh
