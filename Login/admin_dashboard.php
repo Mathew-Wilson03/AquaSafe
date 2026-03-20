@@ -3047,8 +3047,9 @@ if ($users_result) {
                                 badgeEl.style.display = 'none';
                             }
                         }
-                        
-                        // 🚨 ROBUST EMERGENCY ALARM TRIGGER & NOTIFICATION BEEP 🚨
+                    } // <-- Add missing closing brace for if(badgeEl)
+
+                    // 🚨 ROBUST EMERGENCY ALARM TRIGGER & NOTIFICATION BEEP 🚨
                         const latestAlert = alerts[0];
                         if (latestAlert) {
                             const sev = (latestAlert.severity || 'INFO').toUpperCase();
