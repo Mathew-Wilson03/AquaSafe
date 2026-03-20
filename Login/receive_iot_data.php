@@ -44,7 +44,10 @@ if ($v2 !== null && $v3 !== null) {
 
     // Handle Receiver/Gateway Heartbeat
     if ($raw_id === "REC-001" || strtoupper($raw_id) === "GATEWAY" || $raw_id === "0") {
-        mysqli_query($link, "UPDATE sensor_status SET last_ping = NOW(), status = 'Active' WHERE sensor_id = 'REC-001'");
+        $updateRec = mysqli_query($link, "UPDATE sensor_status SET last_ping = NOW(), status = 'Active' WHERE sensor_id = 'REC-001'");
+        if (mysqli_affected_rows($link) === 0) {
+            mysqli_query($link, "INSERT INTO sensor_status (sensor_id, location_name, status, last_ping) VALUES ('REC-001', 'Main Gateway', 'Active', NOW())");
+        }
         echo json_encode(['status' => 'success', 'recorded' => false, 'msg' => 'GATEWAY_PULSE_OK']);
         exit;
     }
@@ -63,11 +66,20 @@ if ($v2 !== null && $v3 !== null) {
     $updateStatus = mysqli_prepare($link, "UPDATE sensor_status SET water_level = ?, status = ?, last_ping = NOW() WHERE sensor_id = ?");
     mysqli_stmt_bind_param($updateStatus, "dss", $level, $status, $sensor_id);
     mysqli_stmt_execute($updateStatus);
+    
+    if (mysqli_stmt_affected_rows($updateStatus) === 0) {
+        $check = mysqli_query($link, "SELECT 1 FROM sensor_status WHERE sensor_id = '$sensor_id' LIMIT 1");
+        if (mysqli_num_rows($check) === 0) {
+            mysqli_query($link, "INSERT INTO sensor_status (sensor_id, location_name, water_level, status, last_ping) VALUES ('$sensor_id', '$location_name', $level, '$status', NOW())");
+        }
+    }
     mysqli_stmt_close($updateStatus);
 
     // FIX: Also update the Receiver (Gateway) status whenever ANY sensor sends data
-    // This confirms the bridge is working.
-    mysqli_query($link, "UPDATE sensor_status SET last_ping = NOW(), status = 'Active' WHERE sensor_id = 'REC-001'");
+    $updateBridge = mysqli_query($link, "UPDATE sensor_status SET last_ping = NOW(), status = 'Active' WHERE sensor_id = 'REC-001'");
+    if (mysqli_affected_rows($link) === 0) {
+        mysqli_query($link, "INSERT INTO sensor_status (sensor_id, location_name, status, last_ping) VALUES ('REC-001', 'Main Gateway', 'Active', NOW())");
+    }
 
     // Insert History
     $stmt = mysqli_prepare($link, "INSERT INTO flood_data (sensor_id, location, level, status) VALUES (?, ?, ?, ?)");

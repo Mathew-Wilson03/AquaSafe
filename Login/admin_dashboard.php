@@ -828,6 +828,24 @@ if ($users_result) {
     <!-- AquaSafe Priority Handlers Bridge -->
     <script>
         (function() {
+            // --- SYNC ENGINE (Priority) ---
+            window.SyncManager = {
+                controllers: {},
+                getSignal(key) {
+                    if (this.controllers[key]) this.controllers[key].abort();
+                    this.controllers[key] = new AbortController();
+                    return this.controllers[key].signal;
+                },
+                abort(key) {
+                    if (this.controllers[key]) this.controllers[key].abort();
+                }
+            };
+
+            window.startPolling = function(rate) {
+                console.log("[AquaSafe] Polling initialized at " + rate + "s");
+                if (window.refreshAdminDashboard) window.refreshAdminDashboard();
+            };
+
             window.aquaSafeExportCSV = function() {
                 try {
                     const csv = "Date,Report,Status\nDec 19,Daily Summary,Completed";
@@ -1032,7 +1050,7 @@ if ($users_result) {
                     (function() {
                         const riskColors = { 'SAFE': '#2ecc71', 'WARNING': '#f1c40f', 'CRITICAL': '#e74c3c', 'DANGER': '#e74c3c' };
 
-                        async function pollDashboardData() {
+                        window.pollDashboardData = async function() {
                             const signal = window.SyncManager.getSignal('stats');
 
                             try {
@@ -2409,25 +2427,6 @@ if ($users_result) {
                                     <div style="display: flex; gap: 10px; align-items: center;">
                                         ${!isResolved ? `
                                             <button class="btn-reply" data-id="${req.id}" style="padding: 8px 18px; background: rgba(74, 181, 196, 0.2); border: 2px solid #4ab5c4; color: #4ab5c4; border-radius: 8px; cursor: pointer; font-size: 13px; font-weight: 700; transition:all 0.2s; position:relative; z-index:100;">Reply</button>
-                                        ` : ''}
-                                    </div>
-                                </div>
-                            `;
-                        });
-                        listEl.innerHTML = html;
-                    } else {
-                        listEl.innerHTML = '<div style="text-align:center; padding:30px; opacity:0.5;">No active helpdesk requests.</div>';
-                    }
-                }
-            } catch (e) {
-                if (e.name !== 'AbortError') console.error("Helpdesk Poll Error:", e);
-            } finally {
-                // Recursive schedule: 60s
-                if (!window.aquaSafeSyncRegistry.helpdesk?.signal.aborted) {
-                    setTimeout(window.fetchHelpdeskRequests, 60000);
-                }
-            }
-        };
                                             <button class="btn-resolve" data-id="${req.id}" style="padding: 8px 18px; background: rgba(46, 204, 113, 0.2); border: 2px solid #2ecc71; color: #2ecc71; border-radius: 8px; cursor: pointer; font-size: 13px; font-weight: 700; transition:all 0.2s; position:relative; z-index:100;">Mark Resolved</button>
                                         ` : `
                                             <span style="color: #2ecc71; font-size: 13px; font-weight: 800; display:flex; align-items:center; gap:6px;"><i class="fas fa-check-circle"></i> RESOLVED</span>
@@ -2439,9 +2438,10 @@ if ($users_result) {
                         });
                         listEl.innerHTML = html;
                     } else {
-                        listEl.innerHTML = '<div style="text-align:center; padding:50px; opacity:0.3;">No help requests found in the system.</div>';
+                        listEl.innerHTML = '<div style="text-align:center; padding:30px; opacity:0.5;">No active helpdesk requests.</div>';
                     }
 
+                    // Update UI Counters
                     const pCount = document.getElementById('pendingCount');
                     const rCount = document.getElementById('resolvedCount');
                     if(pCount) pCount.innerText = 'Pending: ' + pending;
@@ -2456,17 +2456,17 @@ if ($users_result) {
                             hBadge.style.display = 'none';
                         }
                     }
-                } else {
-                    listEl.innerHTML = `<div style="text-align:center; padding:50px; color:#e74c3c;">Error: ${json.message}</div>`;
                 }
             } catch (err) {
-                console.error("Helpdesk fetch error:", err);
-                listEl.innerHTML = `<div style="text-align:center; padding:30px; color:#e74c3c;">
-                    <p>Failed to connect to Help Desk service.</p>
-                    <small style="opacity:0.5;">${err.name === 'AbortError' ? 'Request Timed Out' : err.message}</small>
-                    <br><br>
-                    <button onclick="fetchHelpdeskRequests()" style="padding:8px 20px; background:rgba(255,255,255,0.1); border:1px solid rgba(255,255,255,0.2); color:white; border-radius:8px; cursor:pointer;">Retry</button>
-                </div>`;
+                if (err.name !== 'AbortError') {
+                    console.error("Helpdesk Poll Error:", err);
+                    listEl.innerHTML = `<div style="text-align:center; padding:30px; color:#e74c3c;">Failed to load requests.</div>`;
+                }
+            } finally {
+                // Recursive schedule: 60s
+                if (window.aquaSafeSyncRegistry && !window.aquaSafeSyncRegistry.helpdesk?.signal.aborted) {
+                    setTimeout(window.fetchHelpdeskRequests, 60000);
+                }
             }
         };
 
@@ -4123,35 +4123,21 @@ if ($users_result) {
         window.refreshAdminDashboard = function() {
             console.log("[SyncManager] Manual refresh triggered.");
             // Abort all in registry
-            Object.keys(window.aquaSafeSyncRegistry).forEach(key => window.SyncManager.abort(key));
+            if (window.SyncManager) {
+                Object.keys(window.SyncManager.controllers || {}).forEach(key => window.SyncManager.abort(key));
+            }
             
             // Immediate re-triggers (Recursive chains will reset)
-            fetchSystemAlerts();
-            setTimeout(monitorFloodAlerts, 500);
-            setTimeout(pollDashboardData, 1000);
-            setTimeout(fetchSensorStatus, 1500);
-        };
-
-        // Global Update Time (UI only, no network)
-        updateTime();
-        setInterval(updateTime, 1000);
-
-        // Global manual refresh
-        window.refreshAdminDashboard = function() {
-            console.log("[AdminSyncEngine] Manual refresh triggered.");
-            // Abort all pending
-            Object.values(window.adminSyncAborts).forEach(ctrl => ctrl && ctrl.abort());
-            
-            monitorFloodAlerts();
-            setTimeout(pollDashboardData, 500);
-            setTimeout(fetchSystemAlerts, 1000);
-            setTimeout(fetchSensorStatus, 1500);
+            if (typeof fetchSystemAlerts === 'function') fetchSystemAlerts();
+            if (typeof monitorFloodAlerts === 'function') setTimeout(monitorFloodAlerts, 500);
+            if (typeof pollDashboardData === 'function') setTimeout(pollDashboardData, 1000);
+            if (typeof fetchSensorStatus === 'function') setTimeout(fetchSensorStatus, 1500);
         };
 
         // Global Export Diagnostic
         console.log("[AquaSafe] Export Definitions Check:", {
-            csv: typeof window.exportReportCSV,
-            pdf: typeof window.downloadReportPDF
+            csv: typeof window.aquaSafeExportCSV,
+            pdf: typeof window.aquaSafeDownloadPDF
         });
         
         log("AquaSafe Admin System: LOADED SUCCESSFULLY!");
