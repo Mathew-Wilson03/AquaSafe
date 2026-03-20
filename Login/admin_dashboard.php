@@ -943,7 +943,7 @@ if ($users_result) {
                 <li><a href="#" id="nav-evacuation" class="nav-link" onclick="switchTab('evacuation', this)">📍 Evacuation Points</a></li>
                 <li><a href="#" id="nav-reports" class="nav-link" onclick="switchTab('reports', this)">📊 Reports</a></li>
                 <li><a href="#" id="nav-helpdesk" class="nav-link" onclick="switchTab('helpdesk', this)">🆘 Help Desk <span id="helpdeskBadge"></span></a></li>
-                <li><a href="#" id="nav-notifications" class="nav-link" onclick="switchTab('system_settings', this)">🔔 Notifications</a></li>
+                <li><a href="#" id="nav-notifications" class="nav-link" onclick="switchTab('iq_intelligence', this)">🔔 Notifications</a></li>
                 <?php if($user_email === SUPER_ADMIN_EMAIL): ?>
                 <li><a href="#" id="nav-users" class="nav-link" onclick="switchTab('users', this)">👥 Manage Users</a></li>
                 <?php endif; ?>
@@ -1370,8 +1370,7 @@ if ($users_result) {
                                             healthEl.className = 'status-value warning-text';
                                         } else {
                                             healthEl.innerText = "Critical";
-                                            healthEl.className = 'status-value danger-text';
-                                    }
+                                            healthEl.className = "status-value danger-text";
                                 }
                             } catch(e) {
                                 if (e.name !== 'AbortError') console.error("[AquaSafe] Sensor Table Poller Error:", e);
@@ -1972,7 +1971,7 @@ if ($users_result) {
             </div>
 
             <!-- IQ Intelligence - Notifications Section -->
-            <div id="system_settings" class="content-section">
+            <div id="iq_intelligence" class="content-section">
                 <div style="display: grid; grid-template-columns: 350px 1fr; gap: 25px;">
                     
                     <!-- Left Column: Settings and Controls -->
@@ -4182,7 +4181,7 @@ if ($users_result) {
         let lastIoTAlertId = 0;
         let lastSeenEmergencyId = 0;
 
-        async function monitorFloodAlerts() {
+        window.monitorFloodAlerts = async function() {
             const signal = window.SyncManager.getSignal('flood');
             
             try {
