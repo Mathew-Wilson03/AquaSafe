@@ -1783,6 +1783,8 @@ if (file_exists($help_file)) {
                     color: '#fff',
                     confirmButtonColor: '#e74c3c',
                     backdrop: `rgba(231, 76, 60, 0.4)`
+                }).then(() => {
+                    window.stopEmergencyAlarm();
                 });
             }
 
@@ -2449,12 +2451,6 @@ if (file_exists($help_file)) {
                 }
             } catch (e) {
                 if (e.name !== 'AbortError') console.error("Alert Polling Error:", e);
-            } finally {
-                // Recursive Polling: schedule next run ONLY after current one finishes
-                // 10 second interval for Alerts
-                if (!window.aquaSafeSyncRegistry.alerts?.signal.aborted) {
-                    setTimeout(fetchUserAlerts, 10000);
-                }
             }
         }
 
@@ -2548,7 +2544,21 @@ if (file_exists($help_file)) {
                     }
 
                     if(guidanceEl) guidanceEl.textContent = guidanceMsgs[status] || guidanceMsgs['SAFE'];
+
+                    // 🛑 WATER LEVEL ALERT + SOUND LOGIC 🛑
+                    if (iot.level !== lastKnownLevel || status !== (window.activeAlarmStatus || 'SAFE')) {
+                        if (status === 'WARNING' || status === 'CRITICAL' || status === 'DANGER') {
+                            const sevName = status === 'DANGER' ? 'CRITICAL' : status;
+                            const msg = `Water level changed to ${iot.level} ft. ${guidanceMsgs[sevName] || 'Please take necessary precautions.'}`;
+                            const alertId = `level_${iot.level}_${status}`;
+                            playEmergencyAlarm(sevName, msg, alertId, true);
+                        } else if (status === 'SAFE') {
+                            window.stopEmergencyAlarm();
+                        }
+                    }
+
                     lastKnownLevel = iot.level;
+                    window.activeAlarmStatus = status;
                 }
 
                 // 2. Intelligence Feed
@@ -2609,37 +2619,40 @@ if (file_exists($help_file)) {
                     console.warn('Dashboard sync failed:', e);
                     if(updEl) updEl.textContent = 'Sync Failed';
                 }
-            } finally {
-                // Recursive Polling: schedule next run ONLY after current one finishes
-                // 10 second interval for Safety Data
-                if (!window.aquaSafeSyncRegistry.safety?.signal.aborted) {
-                    setTimeout(updateSafetyDashboard, 10000);
-                }
             }
         }
 
-        // --- DASHBOARD SYNC ENGINE (OPTIMIZED) ---
-        // --- DASHBOARD SYNC INITIATION (STAGGERED) ---
+        // --- DASHBOARD SYNC ENGINE (OPTIMIZED FOR LIVE POLLING) ---
+        let safetyIntervalId = null;
+        let alertsIntervalId = null;
+
+        window.startPolling = function() {
+            if (safetyIntervalId) clearInterval(safetyIntervalId);
+            if (alertsIntervalId) clearInterval(alertsIntervalId);
+            
+            // Immediate first call
+            updateSafetyDashboard();
+            fetchUserAlerts();
+            
+            // setInterval for polling every 3 seconds for safety data (live water level)
+            safetyIntervalId = setInterval(updateSafetyDashboard, 3000);
+            
+            // setInterval for polling every 5 seconds for alerts
+            alertsIntervalId = setInterval(fetchUserAlerts, 5000);
+            
+            console.log("[SyncManager] Started AJAX polling with setInterval...");
+        };
+
+        // --- DASHBOARD SYNC INITIATION ---
         (function initSync() {
             // Prevent duplicate boot sequences
             if (window.aquaSafeSyncBooted) return;
             window.aquaSafeSyncBooted = true;
 
-            console.log("[SyncManager] Initializing staggered boot sequence...");
-            
-            // 1. Alerts (High Priority) - 0 delay
-            setTimeout(() => {
-                console.log("[SyncManager] Booting Alerts...");
-                fetchUserAlerts();
-            }, 0);
+            console.log("[SyncManager] Booting Sync Engine...");
+            window.startPolling();
 
-            // 2. Safety Data (IoT) - 300ms delay
-            setTimeout(() => {
-                console.log("[SyncManager] Booting Safety Dashboard...");
-                updateSafetyDashboard();
-            }, 300);
-
-            // 3. User Requests / Health (Lower Priority) - 600ms delay
+            // User Requests / Health (Lower Priority) - 5000ms delay
             setTimeout(() => {
                 if (typeof loadMyRequests === 'function') {
                     console.log("[SyncManager] Booting Requests...");
@@ -2652,10 +2665,11 @@ if (file_exists($help_file)) {
         window.refreshSafetyDashboard = function() {
             console.log("[SyncManager] Manual force-sync requested.");
             // Signal abort for existing tasks; they will re-schedule themselves on call
-            window.SyncManager.abort('safety');
-            window.SyncManager.abort('alerts');
+            if (window.SyncManager) {
+                window.SyncManager.abort('safety');
+                window.SyncManager.abort('alerts');
+            }
             
-            // Immediate trigger (Recursive chains will reset from here)
             updateSafetyDashboard();
             setTimeout(() => fetchUserAlerts(), 500);
         };
