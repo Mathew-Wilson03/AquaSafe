@@ -2514,10 +2514,6 @@ if (file_exists($help_file)) {
                 const res = await fetch('get_user_safety_data.php?_t=' + Date.now(), {
                     signal: signal
                 });
-                if (res.status === 304) {
-                    if(updEl) updEl.textContent = 'Updated: ' + new Date().toLocaleTimeString();
-                    return;
-                }
                 if (!res.ok) throw new Error(`API returned ${res.status}`);
                 
                 const data = await res.json();
