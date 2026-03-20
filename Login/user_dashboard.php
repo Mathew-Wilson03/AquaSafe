@@ -2412,28 +2412,31 @@ if (file_exists($help_file)) {
                 if (data.status === 'success') {
                     rawAlertRegistry = data.data;
                     
-                    // Check for new alerts to trigger siren
+                    // 🛑 RELIABLE ALARM TRIGGER LOGIC 🛑
+                    // We check the HIGHEST severity of any active alert (e.g. within the last hour or resolved=0)
+                    // For AquaSafe, alerts[0] is the latest. If the latest alert is actively dangerous, we trigger.
                     if (rawAlertRegistry.length > 0) {
-                        const latestId = parseInt(rawAlertRegistry[0].id);
-                        if (lastProcessedAlertId !== 0 && latestId > lastProcessedAlertId) {
-                            const sev = (rawAlertRegistry[0].severity || 'INFO').toUpperCase();
-                            playAlertSiren(sev);
-                            
-                            // Visual cue: show a toast or highlight
-                            if (window.Swal) {
-                                Swal.fire({
-                                    toast: true,
-                                    position: 'top-end',
-                                    icon: 'info',
-                                    title: 'New Emergency Broadcast',
-                                    text: rawAlertRegistry[0].message.substring(0, 50) + '...',
-                                    showConfirmButton: false,
-                                    timer: 5000,
-                                    timerProgressBar: true
-                                });
+                        const latestAlert = rawAlertRegistry[0];
+                        const sev = (latestAlert.severity || 'INFO').toUpperCase();
+                        
+                        if (sev === 'CRITICAL' || sev === 'WARNING') {
+                            // Only show popup once per unique alert ID to avoid spamming the user every 10 seconds
+                            if (lastProcessedAlertId !== latestAlert.id) {
+                                playAlertSiren(sev);
+                                if (window.Swal) {
+                                    Swal.fire({
+                                        toast: true, position: 'top-end', icon: 'warning',
+                                        title: `${sev} ALERT DETECTED`,
+                                        text: latestAlert.message.substring(0, 50) + '...',
+                                        showConfirmButton: false, timer: 7000, timerProgressBar: true
+                                    });
+                                }
+                                lastProcessedAlertId = latestAlert.id;
                             }
+                        } else {
+                            // If severity is SAFE/INFO, reset the tracker so next warnings trigger instantly
+                            lastProcessedAlertId = 0;
                         }
-                        lastProcessedAlertId = latestId;
                     }
 
                     renderAlertTerminal();
@@ -2444,9 +2447,9 @@ if (file_exists($help_file)) {
                 if (e.name !== 'AbortError') console.error("Alert Polling Error:", e);
             } finally {
                 // Recursive Polling: schedule next run ONLY after current one finishes
-                // 20 second interval for Alerts
+                // 10 second interval for Alerts
                 if (!window.aquaSafeSyncRegistry.alerts?.signal.aborted) {
-                    setTimeout(fetchUserAlerts, 20000);
+                    setTimeout(fetchUserAlerts, 10000);
                 }
             }
         }
@@ -2600,9 +2603,9 @@ if (file_exists($help_file)) {
                 }
             } finally {
                 // Recursive Polling: schedule next run ONLY after current one finishes
-                // 30 second interval for Safety Data
+                // 10 second interval for Safety Data
                 if (!window.aquaSafeSyncRegistry.safety?.signal.aborted) {
-                    setTimeout(updateSafetyDashboard, 30000);
+                    setTimeout(updateSafetyDashboard, 10000);
                 }
             }
         }
@@ -2616,19 +2619,19 @@ if (file_exists($help_file)) {
 
             console.log("[SyncManager] Initializing staggered boot sequence...");
             
-            // 1. Alerts (High Priority) - 1.0s delay
+            // 1. Alerts (High Priority) - 0 delay
             setTimeout(() => {
                 console.log("[SyncManager] Booting Alerts...");
                 fetchUserAlerts();
-            }, 1000);
+            }, 0);
 
-            // 2. Safety Data (IoT) - 3.0s delay
+            // 2. Safety Data (IoT) - 300ms delay
             setTimeout(() => {
                 console.log("[SyncManager] Booting Safety Dashboard...");
                 updateSafetyDashboard();
-            }, 3000);
+            }, 300);
 
-            // 3. User Requests / Health (Lower Priority) - 5.0s delay
+            // 3. User Requests / Health (Lower Priority) - 600ms delay
             setTimeout(() => {
                 if (typeof loadMyRequests === 'function') {
                     console.log("[SyncManager] Booting Requests...");

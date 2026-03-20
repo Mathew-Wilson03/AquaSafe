@@ -3048,32 +3048,35 @@ if ($users_result) {
                             }
                         }
                         
-                        // PLAY NOTIFICATION BEEP for any new alert (if siren not playing)
+                        // 🚨 ROBUST EMERGENCY ALARM TRIGGER & NOTIFICATION BEEP 🚨
                         const latestAlert = alerts[0];
-                        const lastBeepedId = parseInt(localStorage.getItem('adminLastBeepedId') || '0');
-                        if (latestAlert && parseInt(latestAlert.id) > lastBeepedId) {
-                            if (!isAlarmPlaying) playSystemBeep();
-                            localStorage.setItem('adminLastBeepedId', latestAlert.id);
-                        }
-                    }
+                        if (latestAlert) {
+                            const sev = (latestAlert.severity || 'INFO').toUpperCase();
+                            const id = parseInt(latestAlert.id);
+                            
+                            const silencedId = parseInt(localStorage.getItem('adminSilencedAlertId') || '0');
+                            const lastProcessedId = parseInt(localStorage.getItem('adminLastProcessedAlertId') || '0');
 
-                    // 🚨 EMERGENCY ALARM TRIGGER (Scan all new alerts) 🚨
-                    const lastSeenCountValue = parseInt(localStorage.getItem('seenAlertCount') || '0');
-                    const silencedId = localStorage.getItem('adminSilencedAlertId');
-                    let maxNewId = parseInt(localStorage.getItem('adminLastAlertId') || '0');
-                    
-                    alerts.slice(0, Math.max(0, alerts.length - lastSeenCountValue)).forEach(alert => {
-                        const id = parseInt(alert.id);
-                        const severityUpper = (alert.severity || '').toUpperCase();
-                        if ((severityUpper === 'CRITICAL' || severityUpper === 'WARNING') && id > parseInt(silencedId || '0')) {
-                            if (id > maxNewId) {
-                                maxNewId = id;
-                                localStorage.setItem('adminLastAlertId', id);
+                            if (sev === 'CRITICAL' || sev === 'WARNING') {
+                                // Only trigger the emergency siren if it's a NEW critical alert vs what we last processed
+                                // OR if we just loaded the page and the current state is actively critical and not manually silenced
+                                if (id !== lastProcessedId && id > silencedId) {
+                                    const shouldSiren = (latestAlert.alert_type === 'IoT');
+                                    playEmergencyAlarm(latestAlert.severity + ": " + latestAlert.message, latestAlert.id, shouldSiren);
+                                    
+                                    localStorage.setItem('adminLastProcessedAlertId', id);
+                                }
+                            } else {
+                                // If it's SAFE/INFO, reset so next warning triggers immediately
+                                localStorage.setItem('adminLastProcessedAlertId', '0');
+                                
+                                // Play standard beep for non-critical new messages
+                                if (id > lastProcessedId) {
+                                    if (!isAlarmPlaying) playSystemBeep();
+                                    localStorage.setItem('adminLastProcessedAlertId', id);
+                                }
                             }
-                            const shouldSiren = (alert.alert_type === 'IoT');
-                            playEmergencyAlarm(alert.severity + ": " + alert.message, alert.id, shouldSiren);
                         }
-                    });
                     
                     // Update UI Lists (Full History & Dashboard Summary)
                     if(container) {
@@ -4043,23 +4046,23 @@ if ($users_result) {
 
                 console.log("[SyncManager] Initializing staggered boot sequence...");
                 
-                // 1. Alerts (Critical) - 1.0s delay
-                setTimeout(() => fetchSystemAlerts(), 1000);
+                // 1. Alerts (Critical) - 0 delay
+                setTimeout(() => fetchSystemAlerts(), 0);
                 
-                // 2. Flood Data (IoT) - 3.0s delay
-                setTimeout(() => monitorFloodAlerts(), 3000);
+                // 2. Flood Data (IoT) - 200ms delay
+                setTimeout(() => monitorFloodAlerts(), 200);
                 
-                // 3. Stats & Sensors - 5.0s delay
+                // 3. Stats & Sensors - 400ms delay
                 setTimeout(() => {
                     pollDashboardData();
                     fetchSensorStatus();
-                }, 5000);
+                }, 400);
 
-                // 4. Intelligence & Support - 8.0s delay
+                // 4. Intelligence & Support - 600ms delay
                 setTimeout(() => {
                     if (typeof fetchIoTFeed === 'function') fetchIoTFeed();
                     fetchHelpdeskRequests();
-                }, 8000);
+                }, 600);
             })();
         }
 
