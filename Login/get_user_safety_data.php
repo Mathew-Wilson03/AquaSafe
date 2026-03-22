@@ -58,13 +58,11 @@ $loc_esc = mysqli_real_escape_string($link, $user_location);
 $is_admin = (stripos($user_role, 'admin') !== false);
 
 $where_cond = "1=1"; // Default for System Wide and unassigned
-if (!$is_admin && $user_location !== 'System Wide' && !empty($user_location)) {
-    // If user has a specific location AND is NOT an admin, show their location + system-wide alerts
-    $where_cond = "(location = '$loc_esc' OR location = 'System Wide' OR location = 'Unknown Cluster')";
-}
 
+// We now always fetch system-wide IoT data for the dashboard hero section,
+// same as the Admin Dashboard.
 $iot_sql = "SELECT sensor_id, level, status, location, created_at FROM flood_data 
-            WHERE $where_cond
+            WHERE 1=1
             ORDER BY created_at DESC LIMIT 20";
 $iot_res = mysqli_query($link, $iot_sql);
 
